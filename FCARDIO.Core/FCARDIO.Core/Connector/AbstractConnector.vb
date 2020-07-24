@@ -302,8 +302,9 @@ Namespace Connector
                 Return True
             Else
                 Dim cmdCount As Integer = 0
+                Dim sKey = cdt.ToString()
                 For Each cmd In _CommandList
-                    If cmd.CommandDetail.Equals(cdt) Then
+                    If cmd.CommandDetail.ToString() = sKey Then
                         cmdCount += 1
                         Exit For
                     End If
@@ -316,25 +317,28 @@ Namespace Connector
                         cmd = Nothing
                         retGetCommand = _CommandList.TryDequeue(cmd)
                         If retGetCommand Then
-                            If Not cmd.CommandDetail.Equals(cdt) Then
+                            If Not cmd.CommandDetail.ToString() = sKey Then
                                 tmpQue.Enqueue(cmd) '临时加入队列
                             Else
                                 If cmd.Equals(_ActivityCommand) Then
                                     _ActivityCommand = Nothing
                                 End If
-
                                 RaiseCommandErrorEvent(cmd, True)
                             End If
+
                         End If
                     Loop While retGetCommand
+                    If tmpQue.Count > 0 Then
+                        Do
+                            cmd = tmpQue.Dequeue()
+                            _CommandList.Enqueue(cmd)
+                        Loop While tmpQue.Count > 0
+                    End If
 
-                    Do
-                        cmd = tmpQue.Dequeue()
-                        _CommandList.Enqueue(cmd)
-                    Loop While tmpQue.Count > 0
                 End If
 
             End If
+            Return True
         End Function
 
         ''' <summary>
