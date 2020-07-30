@@ -25,7 +25,7 @@ Namespace Connector
         Protected _DecompileList As ConcurrentDictionary(Of String, INRequestHandle)
 
         ''' <summary>
-        ''' 表示此连接是否一致保持连接
+        ''' 表示此连接是保持连接
         ''' </summary>
         Protected _IsForcibly As Boolean
 
@@ -248,9 +248,11 @@ Namespace Connector
                         If tmp Is _ActivityCommand Then
                             tmp = Nothing
                             Call _CommandList.TryDequeue(tmp)
+                            tmp = Nothing
                         End If
                         tmp = Nothing
                     End If
+                    _ActivityCommand.RemoveBinding()
                     _ActivityCommand = Nothing
                 End If
             End If
@@ -263,28 +265,37 @@ Namespace Connector
             If (_isRelease) Then Return
             Dim status As INCommandStatus
 
-            If _CommandList.TryPeek(_ActivityCommand) Then
-
-                status = _ActivityCommand.GetStatus()
-                If TypeOf status Is AbstractCommandStatus_Waiting Then
-                    status = _ActivityCommand.GetStatus_Runing()
-                    _ActivityCommand.SetStatus(status) '变更等待状态为运行中状态
-                End If
-
-                If status.IsCompleted Then
-                    RemoveCommand(_ActivityCommand)
-                    CheckCommandList() '检查下一个指令
-                Else
-                    If (Not _ActivityCommand.IsWaitExecute) Then
-                        _ActivityCommand.IsWaitExecute = True
-                        GetEventLoop()?.Execute(_ActivityCommand)
+            Try
+                If _CommandList.TryPeek(_ActivityCommand) Then
+                    If _ActivityCommand.IsRelease() Then
+                        RemoveCommand(_ActivityCommand)
+                        CheckCommandList() '检查下一个指令
+                        Return
+                    End If
+                    status = _ActivityCommand.GetStatus()
+                    If TypeOf status Is AbstractCommandStatus_Waiting Then
+                        status = _ActivityCommand.GetStatus_Runing()
+                        _ActivityCommand.SetStatus(status) '变更等待状态为运行中状态
                     End If
 
+                    If status.IsCompleted Then
+                        RemoveCommand(_ActivityCommand)
+                        CheckCommandList() '检查下一个指令
+                    Else
+                        If (Not _ActivityCommand.IsWaitExecute) Then
+                            _ActivityCommand.IsWaitExecute = True
+                            GetEventLoop()?.Execute(_ActivityCommand)
+                        End If
+
+                    End If
+
+                    UpdateActivityTime()
+
                 End If
+            Catch ex As Exception
+                Trace.WriteLine($" CheckCommandList {ex.ToString()}")
+            End Try
 
-                UpdateActivityTime()
-
-            End If
         End Sub
 
 #Region "停止命令"
@@ -320,6 +331,7 @@ Namespace Connector
                             If Not cmd.CommandDetail.ToString() = sKey Then
                                 tmpQue.Enqueue(cmd) '临时加入队列
                             Else
+                                cmd.RemoveBinding()
                                 If cmd.Equals(_ActivityCommand) Then
                                     _ActivityCommand = Nothing
                                 End If
@@ -349,14 +361,13 @@ Namespace Connector
             If (_isRelease) Then Return
             Dim cmd As INCommandRuntime = Nothing
             Dim retGetCommand As Boolean
-
             _ActivityCommand = Nothing
             If _CommandList Is Nothing Then Return
             Do
                 cmd = Nothing
                 retGetCommand = _CommandList.TryDequeue(cmd)
                 If retGetCommand Then
-                    cmd.CommandOver()
+                    cmd.RemoveBinding()
                     RaiseCommandErrorEvent(cmd, isStop)
                 End If
 
@@ -510,7 +521,7 @@ Namespace Connector
 
                 CheckStatus()
             Catch ex As Exception
-                Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.Message}")
+                Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.ToString()}")
             End Try
 
 
@@ -535,8 +546,9 @@ Namespace Connector
         ''' 触发命令完成消息，并将当前命令从队列中移除
         ''' </summary>
         Public Sub fireCommandCompleteEvent(e As CommandEventArgs) Implements INConnector.FireCommandCompleteEvent
-            RemoveCommand(e.Command)
+
             RaiseEvent CommandCompleteEvent(Me, e)
+            RemoveCommand(e.Command)
         End Sub
 
         ''' <summary>
@@ -564,8 +576,9 @@ Namespace Connector
         ''' </summary>
         ''' <param name="e"></param>
         Public Sub fireCommandTimeout(e As CommandEventArgs) Implements INConnector.FireCommandTimeout
-            RemoveCommand(e.Command)
+
             RaiseEvent CommandTimeout(Me, e)
+            RemoveCommand(e.Command)
         End Sub
 #End Region
 
@@ -575,8 +588,9 @@ Namespace Connector
         ''' </summary>
         ''' <param name="e"></param>
         Public Sub fireAuthenticationErrorEvent(e As CommandEventArgs) Implements INConnector.FireAuthenticationErrorEvent
-            RemoveCommand(e.Command)
+
             RaiseEvent AuthenticationErrorEvent(Me, e)
+            RemoveCommand(e.Command)
         End Sub
 #End Region
 

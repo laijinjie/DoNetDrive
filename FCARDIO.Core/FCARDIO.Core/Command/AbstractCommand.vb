@@ -2,7 +2,7 @@
 Imports DoNetDrive.Core.Connector
 Imports DotNetty.Buffers
 Imports DoNetDrive.Core.Packet
-
+Imports System.Threading
 
 Namespace Command
     ''' <summary>
@@ -10,6 +10,10 @@ Namespace Command
     ''' </summary>
     Public MustInherit Class AbstractCommand
         Implements INCommandRuntime
+        ''' <summary>
+        ''' 命令计数器
+        ''' </summary>
+        Public Shared CommandObjectTotal As Long
 
         ''' <summary>
         ''' 保存用于命令的各种参数
@@ -104,7 +108,7 @@ Namespace Command
             If cd Is Nothing Then
                 Throw New ArgumentException("cd Is Error")
             End If
-
+            Interlocked.Increment(CommandObjectTotal)
             CommandDetail = cd
             _Parameter = par
             _Result = Nothing
@@ -119,6 +123,14 @@ Namespace Command
             _EventArgs = New CommandEventArgs(Me)
             _Status = GetStatus_Wating()
         End Sub
+
+        ''' <summary>
+        ''' 检测命令是否已释放
+        ''' </summary>
+        ''' <returns></returns>
+        Public Function IsRelease() As Boolean Implements INCommandRuntime.IsRelease
+            Return _IsRelease
+        End Function
 
         ''' <summary>
         ''' 命令逻辑所需要的命令参数
@@ -253,6 +265,7 @@ Namespace Command
         ''' 设置命令的状态,变更当前状态
         ''' </summary>
         Public Sub SetStatus(cmdstatus As INCommandStatus) Implements INCommandRuntime.SetStatus
+            If _IsRelease Then Return
             _Status = cmdstatus
         End Sub
 
@@ -348,15 +361,31 @@ Namespace Command
         ''' 命令结束的时候调用
         ''' </summary>
         Public Sub CommandOver() Implements INCommandRuntime.CommandOver
-            CommandDetail.EndTime = Now
+            If CommandDetail IsNot Nothing Then CommandDetail.EndTime = Now
             _ProcessStep = _ProcessMax
-            If _Packet IsNot Nothing Then
-                _Packet.Dispose()
-            End If
+            _Packet?.Dispose()
             _Packet = Nothing
-            If _Decompile IsNot Nothing Then
-                _Decompile.Dispose()
+
+            _Decompile?.Dispose()
+            _Decompile = Nothing
+            Release0()
+        End Sub
+
+
+        ''' <summary>
+        ''' 解除绑定
+        ''' </summary>
+        Public Sub RemoveBinding() Implements INCommandRuntime.RemoveBinding
+            If _IsRelease = True Then
+                Return
             End If
+
+            _IsRelease = True
+            _Connector = Nothing
+            _Packet?.Dispose()
+            _Packet = Nothing
+
+            _Decompile?.Dispose()
             _Decompile = Nothing
             Release0()
         End Sub
@@ -562,6 +591,8 @@ Namespace Command
         End Sub
 
 #Region "IDisposable Support"
+
+
         Private disposedValue As Boolean ' 要检测冗余调用
 
         ''' <summary>
@@ -573,29 +604,17 @@ Namespace Command
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposedValue Then
                 If disposing Then
-                    ' TODO: 释放托管状态(托管对象)。
-                    Release0()
 
+                    ' TODO: 释放托管状态(托管对象)。
+                    _Parameter?.Dispose()
                     _Parameter = Nothing
 
-                    If _Result IsNot Nothing Then
-                        _Result.Dispose()
-                    End If
+                    _Result?.Dispose()
                     _Result = Nothing
-
-                    _Connector = Nothing
 
                     _Status = Nothing
 
-                    If _Packet IsNot Nothing Then
-                        _Packet.Dispose()
-                    End If
-                    _Packet = Nothing
-
-                    If _Decompile IsNot Nothing Then
-                        _Decompile.Dispose()
-                    End If
-                    _Decompile = Nothing
+                    RemoveBinding()
                 End If
 
                 ' TODO: 释放未托管资源(未托管对象)并在以下内容中替代 Finalize()。
@@ -617,6 +636,11 @@ Namespace Command
             Dispose(True)
             ' TODO: 如果在以上内容中替代了 Finalize()，则取消注释以下行。
             ' GC.SuppressFinalize(Me)
+        End Sub
+
+        Protected Overrides Sub Finalize()
+            MyBase.Finalize()
+            Interlocked.Decrement(CommandObjectTotal)
         End Sub
 
 #End Region

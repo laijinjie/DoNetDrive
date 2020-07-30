@@ -66,6 +66,17 @@ Namespace Command
         ''' 让命令强制完结，释放掉临时缓冲
         ''' </summary>
         Sub CommandOver()
+
+        ''' <summary>
+        ''' 从连接通道中结束绑定，命令设定为结束，并释放已使用资源
+        ''' </summary>
+        Sub RemoveBinding()
+
+        ''' <summary>
+        ''' 检测命令是否已释放
+        ''' </summary>
+        ''' <returns></returns>
+        Function IsRelease() As Boolean
     End Interface
 End Namespace
 
