@@ -417,7 +417,8 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl.FireCommandCompleteEvent(e)
             RaiseEvent CommandCompleteEvent(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator.FireCommandCompleteEvent 发生错误")
+            Dim oCommand = e?.Command?.GetType()?.Name
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandCompleteEvent {vbNewLine} {ex.ToString}")
         End Try
 
     End Sub
@@ -434,7 +435,7 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl.FireCommandProcessEvent(e)
             RaiseEvent CommandProcessEvent(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator.FireCommandProcessEvent 发生错误")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent  {vbNewLine} {ex.ToString}")
         End Try
 
     End Sub
@@ -452,7 +453,9 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl.FireCommandErrorEvent(e)
             RaiseEvent CommandErrorEvent(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator.FireCommandErrorEvent 发生错误")
+            Dim oCommand = e?.Command?.GetType()?.Name
+
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent  {vbNewLine} {ex.ToString}")
         End Try
 
     End Sub
@@ -469,7 +472,8 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl.FireCommandTimeout(e)
             RaiseEvent CommandTimeout(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator.FireCommandTimeout 发生错误")
+            Dim oCommand = e?.Command?.GetType()?.Name
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout  {vbNewLine} {ex.ToString}")
         End Try
 
     End Sub
@@ -487,7 +491,7 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl.FireCommandTimeout(e)
             RaiseEvent CommandTimeout(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator.FireAuthenticationErrorEvent 发生错误")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent  {vbNewLine} {ex.ToString}")
         End Try
 
     End Sub
