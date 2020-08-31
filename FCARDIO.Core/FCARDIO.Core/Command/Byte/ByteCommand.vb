@@ -21,8 +21,6 @@ Namespace Command.Byte
         ''' 指令开始执行时，用于让命令组装第一个用于发送的数据包 CommandNext0 中组装（如果有的话）
         ''' </summary>
         Protected Overrides Sub CreatePacket()
-
-            _Connector.GetByteBufAllocator()
             _Packet = New BytePacket(_Parameter)
         End Sub
 

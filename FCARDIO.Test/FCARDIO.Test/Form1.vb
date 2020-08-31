@@ -213,7 +213,7 @@ Public Class Form1
 
     End Sub
 
-    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles butCloseTCPServer.Click
+    Private Sub butCloseTCPServer_Click(sender As Object, e As EventArgs) Handles butCloseTCPServer.Click
         Dim sAddr As String = txtWatchAddr.Text
         Dim sPort As Integer = txtWatchPort.Text.ToInt32()
         Dim serverDtl As TCPServer.TCPServerDetail = New TCPServer.TCPServerDetail(sAddr, sPort)

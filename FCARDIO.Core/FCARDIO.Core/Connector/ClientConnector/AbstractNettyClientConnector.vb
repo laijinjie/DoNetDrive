@@ -145,9 +145,9 @@ Namespace Connector.Client
                 If _ClientChannel.Active Then
                     FireConnectorClosedEvent(GetConnectorDetail())
 
-                    _ClientChannel.CloseAsync().ContinueWith(Sub()
-                                                                 CloseConnector0()
-                                                             End Sub) '关闭通道
+                    _ClientChannel?.CloseAsync()?.ContinueWith(Sub()
+                                                                   CloseConnector0()
+                                                               End Sub) '关闭通道
 
                 End If
                 _IsActivity = False

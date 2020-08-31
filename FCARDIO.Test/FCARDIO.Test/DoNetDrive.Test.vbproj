@@ -48,25 +48,23 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DoNetDrive.Protocol">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DoNetDrive.Protocol.dll</HintPath>
-    </Reference>
     <Reference Include="DoNetDrive.Protocol.Door">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DoNetDrive.Protocol.Door.dll</HintPath>
+      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetDrive.Protocol.Door.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Buffers, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
+    <Reference Include="DotNetty.Buffers">
+      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Common, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\dotnetty\DLL\net451\win-x64\DotNetty.Common.dll</HintPath>
+    <Reference Include="DotNetty.Codecs">
+      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Transport.Libuv, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\dotnetty\DLL\net451\win-x64\DotNetty.Transport.Libuv.dll</HintPath>
+    <Reference Include="DotNetty.Common">
+      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetty.Handlers">
+      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
@@ -102,6 +100,7 @@
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -142,6 +141,10 @@
     <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
       <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
       <Name>DoNetDrive.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\FCARDIO.Protocol\FCARDIO.Protocol\DoNetDrive.Protocol.vbproj">
+      <Project>{4c9b06e5-da6b-49af-8e4d-a0d75046c044}</Project>
+      <Name>DoNetDrive.Protocol</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

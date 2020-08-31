@@ -4,32 +4,35 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4C9B06E5-DA6B-49AF-8E4D-A0D75046C044}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>DoNetDrive.Protocol</RootNamespace>
-    <AssemblyName>DoNetDrive.Protocol</AssemblyName>
+    <ProjectGuid>{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>DotNetDrive.Core.TCPClientTest.My.MyApplication</StartupObject>
+    <RootNamespace>DotNetDrive.Core.TCPClientTest</RootNamespace>
+    <AssemblyName>TCPClientTest</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>DoNetDrive.Protocol.xml</DocumentationFile>
+    <DocumentationFile>TCPClientTest.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\DLL\</OutputPath>
-    <DocumentationFile>DoNetDrive.Protocol.xml</DocumentationFile>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>TCPClientTest.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
@@ -45,23 +48,36 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DoNetDrive.Core, Version=1.13.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetDrive.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DoNetTool.Common">
+      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetTool.Common.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
+      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
+      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
+      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
+      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -74,24 +90,22 @@
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
     <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
     <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
     <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FrameCommand\AbstractFrameCommand.vb" />
-    <Compile Include="CommandDetailFactory.vb" />
-    <Compile Include="FrameCommand\FrameCommandStatus.vb" />
-    <Compile Include="Door8800\Door8800Transaction.vb" />
-    <Compile Include="FrameCommand\AbstractFramePacket.vb" />
-    <Compile Include="Packet\BaseDecompile.vb" />
-    <Compile Include="Packet\BaseDecompileStep.vb" />
-    <Compile Include="Packet\BasePacket.vb" />
-    <Compile Include="OnlineAccess\OnlineAccessDecompileStep.vb" />
-    <Compile Include="Transaction\AbstractTransaction.vb" />
-    <Compile Include="Door8800\Door8800RequestHandle.vb" />
-    <Compile Include="Door8800\Door8800Command.vb" />
+    <Compile Include="CRC32.vb" />
+    <Compile Include="FrmTCPClient.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmTCPClient.Designer.vb">
+      <DependentUpon>FrmTCPClient.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -107,21 +121,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Packet\INDecompileStep.vb" />
-    <Compile Include="OnlineAccess\OnlineAccessCommandDetail.vb" />
-    <Compile Include="OnlineAccess\OnlineAccessDecompile.vb" />
-    <Compile Include="OnlineAccess\OnlineAccessPacket.vb" />
-    <Compile Include="Transaction\INTransaction.vb" />
-    <Compile Include="USBDrive\USBDriveCommand.vb" />
-    <Compile Include="USBDrive\USBDriveCommandStatus.vb" />
-    <Compile Include="USBDrive\USBDriveDecompileStep.vb" />
-    <Compile Include="USBDrive\USBDriveDecompile.vb" />
-    <Compile Include="USBDrive\USBDrivePacket.vb" />
-    <Compile Include="USBDrive\USBDriveCommandDetail.vb" />
-    <Compile Include="USBDrive\USBDriveRequestHandle.vb" />
-    <Compile Include="USBDrive\USBDriveTransaction.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="FrmTCPClient.resx">
+      <DependentUpon>FrmTCPClient.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
@@ -139,12 +143,7 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
-      <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
-      <Name>DoNetDrive.Core</Name>
-    </ProjectReference>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
