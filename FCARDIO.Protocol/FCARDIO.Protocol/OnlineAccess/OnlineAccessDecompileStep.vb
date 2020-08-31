@@ -150,7 +150,7 @@ Namespace OnlineAccess
 
             Dim iLen = buf.ReadUnsignedInt()
 
-            If iLen > 10240 Then
+            If iLen > 5242880 Then
                 '数据长度异常
                 decompile.ClearBuf()
                 Return
