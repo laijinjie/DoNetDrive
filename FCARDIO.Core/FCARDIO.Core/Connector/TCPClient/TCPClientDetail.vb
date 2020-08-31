@@ -139,9 +139,9 @@ Namespace Connector.TCPClient
             LocalPort = ilocalPort
 
 
-            If bSSL Then
-                If oX509 Is Nothing Then bSSL = False
-            End If
+            'If bSSL Then
+            '    If oX509 Is Nothing Then bSSL = False
+            'End If
 
             IsSSL = bSSL
             Certificate = oX509

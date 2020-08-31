@@ -1,17 +1,11 @@
-﻿Imports DoNetDrive.Protocol.OnlineAccess
-Imports DoNetDrive.Core.Connector
+﻿Imports DoNetDrive.Core.Connector
 Imports DoNetDrive.Core.Command
 Imports DotNetty.Buffers
 Imports DoNetDrive.Core.Extension
-Imports DoNetDrive.Core.Packet
-Imports System.Threading.Tasks
-Imports DoNetDrive.Core.Connector.TCPClient
 Imports DoNetDrive.Core
-Imports DoNetDrive.Protocol
-Imports DoNetDrive.Core.Data
-Imports System.Security.Cryptography.X509Certificates
-Imports DoNetDrive.Core.Connector.WebSocket.Server
 Imports System.Net
+Imports System.IO
+Imports System.Security.Cryptography.X509Certificates
 
 Public Class frmTCPServer
 
@@ -80,7 +74,21 @@ Public Class frmTCPServer
     Private Sub butTCPServer_Click(sender As Object, e As EventArgs) Handles butOpenTCPServer.Click
         Dim sAddr As String = cmbLocalIP.Text
         Dim sPort As Integer = txtWatchPort.Text.ToInt32()
-        Dim serverDtl As TCPServer.TCPServerDetail = New TCPServer.TCPServerDetail(sAddr, sPort)
+        Dim serverDtl As TCPServer.TCPServerDetail
+
+        If chkSSL.Checked Then
+            Dim sSSLFile = Path.Combine(Application.StartupPath, "SSLX509.pfx")
+            If Not File.Exists(sSSLFile) Then
+                MsgBox("证书不存在！", 16, "错误")
+                Return
+            End If
+            Dim x509Data = File.ReadAllBytes(sSSLFile)
+            Dim x509 As X509Certificate2 = New X509Certificate2(x509Data, "BRUsqOWH")
+            serverDtl = New TCPServer.TCPServerDetail(sAddr, sPort, True, x509)
+        Else
+            serverDtl = New TCPServer.TCPServerDetail(sAddr, sPort)
+        End If
+
         Allocator.OpenConnector(serverDtl)
 
     End Sub

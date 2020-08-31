@@ -48,13 +48,9 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DoNetDrive.Core, Version=1.13.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetDrive.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="DoNetTool.Common">
       <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetTool.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Buffers">
       <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
@@ -144,6 +140,12 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+      <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
+      <Name>DoNetDrive.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

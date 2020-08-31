@@ -54,6 +54,7 @@
     </Reference>
     <Reference Include="DoNetTool.Common">
       <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetTool.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Buffers">
       <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>

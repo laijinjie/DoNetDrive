@@ -282,6 +282,7 @@ Public Class FrmTCPClient
 
     Private Sub butConnect_Click(sender As Object, e As EventArgs) Handles butConnect.Click
         Dim oTCPDTL = GetTCPClientDetail()
+
         Allocator.OpenConnector(oTCPDTL)
     End Sub
 
@@ -297,7 +298,12 @@ Public Class FrmTCPClient
         sLocalIP = cmbLocalIP.Text
         iRemotePort = Integer.Parse(txtRemotePort.Text)
         iLocalPort = Integer.Parse(txtLocalPort.Text)
-        Return New TCPClient.TCPClientDetail(sRemoteIP, iRemotePort, sLocalIP, iLocalPort)
+        If chkSSL.Checked Then
+            Return New TCPClient.TCPClientDetail(sRemoteIP, iRemotePort, sLocalIP, iLocalPort, True, Nothing)
+        Else
+            Return New TCPClient.TCPClientDetail(sRemoteIP, iRemotePort, sLocalIP, iLocalPort)
+        End If
+
     End Function
 
     Private Sub butTCPClientSend_Click(sender As Object, e As EventArgs) Handles butTCPClientSend.Click

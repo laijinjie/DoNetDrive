@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Blend for Visual Studio Version 16
+# Visual Studio Version 16
 VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DotNetDrive.Core.TCPClientTest", "TCPClient\DotNetDrive.Core.TCPClientTest\DotNetDrive.Core.TCPClientTest.vbproj", "{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DotNetDrive.Core.TCPServerTest", "TCPServer\DotNetDrive.Core.TCPServerTest\DotNetDrive.Core.TCPServerTest.vbproj", "{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DoNetDrive.Core", "..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj", "{A149C4D3-2209-408F-A0DE-D9EB8E0FA492}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A149C4D3-2209-408F-A0DE-D9EB8E0FA492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A149C4D3-2209-408F-A0DE-D9EB8E0FA492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A149C4D3-2209-408F-A0DE-D9EB8E0FA492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A149C4D3-2209-408F-A0DE-D9EB8E0FA492}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -38,6 +38,7 @@ Partial Class FrmTCPClient
         Me.txtLog = New System.Windows.Forms.TextBox()
         Me.butCloseTCP = New System.Windows.Forms.Button()
         Me.Button1 = New System.Windows.Forms.Button()
+        Me.chkSSL = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'cmbLocalIP
@@ -179,11 +180,22 @@ Partial Class FrmTCPClient
         Me.Button1.Text = "测试"
         Me.Button1.UseVisualStyleBackColor = True
         '
+        'chkSSL
+        '
+        Me.chkSSL.AutoSize = True
+        Me.chkSSL.Location = New System.Drawing.Point(555, 44)
+        Me.chkSSL.Name = "chkSSL"
+        Me.chkSSL.Size = New System.Drawing.Size(42, 16)
+        Me.chkSSL.TabIndex = 45
+        Me.chkSSL.Text = "SSL"
+        Me.chkSSL.UseVisualStyleBackColor = True
+        '
         'FrmTCPClient
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(785, 450)
+        Me.Controls.Add(Me.chkSSL)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.butCloseTCP)
         Me.Controls.Add(Me.txtLog)
@@ -223,4 +235,5 @@ Partial Class FrmTCPClient
     Friend WithEvents txtLog As TextBox
     Friend WithEvents butCloseTCP As Button
     Friend WithEvents Button1 As Button
+    Friend WithEvents chkSSL As CheckBox
 End Class

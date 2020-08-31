@@ -35,6 +35,7 @@ Partial Class frmTCPServer
         Me.cmbTCPClient = New System.Windows.Forms.ComboBox()
         Me.txtTCPClientText = New System.Windows.Forms.TextBox()
         Me.cmbLocalIP = New System.Windows.Forms.ComboBox()
+        Me.chkSSL = New System.Windows.Forms.CheckBox()
         Me.GroupBox3.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -158,11 +159,22 @@ Partial Class frmTCPServer
         Me.cmbLocalIP.Size = New System.Drawing.Size(140, 20)
         Me.cmbLocalIP.TabIndex = 30
         '
+        'chkSSL
+        '
+        Me.chkSSL.AutoSize = True
+        Me.chkSSL.Location = New System.Drawing.Point(610, 52)
+        Me.chkSSL.Name = "chkSSL"
+        Me.chkSSL.Size = New System.Drawing.Size(42, 16)
+        Me.chkSSL.TabIndex = 31
+        Me.chkSSL.Text = "SSL"
+        Me.chkSSL.UseVisualStyleBackColor = True
+        '
         'frmTCPServer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(839, 482)
+        Me.Controls.Add(Me.chkSSL)
         Me.Controls.Add(Me.cmbLocalIP)
         Me.Controls.Add(Me.GroupBox3)
         Me.Controls.Add(Me.txtLog)
@@ -193,4 +205,5 @@ Partial Class frmTCPServer
     Friend WithEvents txtTCPClientText As TextBox
     Friend WithEvents cmbLocalIP As ComboBox
     Friend WithEvents butTCPClientSend_200K As Button
+    Friend WithEvents chkSSL As CheckBox
 End Class
