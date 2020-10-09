@@ -58,7 +58,11 @@ Namespace Connector.Client
         ''' 当连接通道连接已失效时调用
         ''' </summary>
         Protected Overrides Sub ConnectFail0()
-            FireClientOffline(EventArg)
+            If _IsForcibly = False Then
+                FireClientOffline(EventArg)
+            End If
+
+
             SetInvalid()
 
             Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源

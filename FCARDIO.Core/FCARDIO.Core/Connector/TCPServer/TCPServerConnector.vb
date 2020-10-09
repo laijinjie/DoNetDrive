@@ -47,9 +47,11 @@ Namespace Connector.TCPServer
         Private Sub BindOver(t As Task(Of IChannel))
             Threading.Thread.Sleep(20)
             If t.IsCanceled Or t.IsFaulted Then
+                _IsActivity = False
                 FireConnectorErrorEvent(GetConnectorDetail())
                 CloseConnector()
             Else
+                _IsActivity = True
                 _ServerChannel = t.Result
                 _ServerChannel.ServerConnector = Me
                 FireConnectorConnectedEvent(GetConnectorDetail())

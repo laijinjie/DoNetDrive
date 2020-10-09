@@ -39,7 +39,7 @@ Public Class Form1
 
 
         For i = 1 To 10
-            Dim cmdDtl = CommandDetailFactory.CreateDetail(CommandDetailFactory.ConnectType.TCPClient, "127.0.0.1", 8000,
+            Dim cmdDtl = CommandDetailFactory.CreateDetail(CommandDetailFactory.ConnectType.TCPClient, "192.168.1.86", 9687,
                                                         CommandDetailFactory.ControllerType.Door88, "FC-8940H09030001", "FFFFFFFF")
 
             Dim Cmd = New ReadSN(cmdDtl, i + 1)

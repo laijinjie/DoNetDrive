@@ -29,6 +29,7 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         ''' <returns></returns>
         Protected Overrides Function GetConnectorDetail0() As INConnectorDetail
+            If (_ClientChannel Is Nothing) Then Return Nothing
             Return New TCPServerClientDetail(mKey, _ClientChannel.RemoteAddress， _ClientChannel.LocalAddress)
         End Function
 

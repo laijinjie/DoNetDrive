@@ -167,6 +167,7 @@ Namespace Connector.UDP
         ''' 关闭连接
         ''' </summary>
         Public Overrides Sub CloseConnector()
+
             If _ClientChannel IsNot Nothing Then
 
                 FireClientOffline(Me)
@@ -177,6 +178,7 @@ Namespace Connector.UDP
 
             _IsActivity = False
             RaiseEvent ConnectorDisposeEvent(Me)
+
         End Sub
 
         ''' <summary>

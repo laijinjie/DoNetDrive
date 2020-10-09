@@ -169,8 +169,8 @@ Namespace Connector.SerialPort
                 mSerialPort.Close()
                 '关闭串口
                 FireConnectorClosedEvent(GetConnectorDetail())
-                _IsActivity = False
             End If
+            _IsActivity = False
             _Status = GetInitializationStatus()
         End Sub
 #End Region

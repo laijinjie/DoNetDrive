@@ -413,9 +413,18 @@ Namespace Connector
         Protected Sub SetInvalid()
             If Not _isInvalid Then
                 'Trace.WriteLine("通道已失效，设置为无效状态：" & GetKey())
-                _isInvalid = True
-                '触发通道关闭事件
-                RaiseEvent TaskCloseEvent(Me)
+
+                If _IsActivity Then
+                    _isInvalid = False
+                    _IsForcibly = False
+                    '先关闭通道
+                    CloseConnector()
+                Else
+                    _isInvalid = True
+                    '触发通道关闭事件
+                    RaiseEvent TaskCloseEvent(Me)
+                End If
+
             End If
         End Sub
 

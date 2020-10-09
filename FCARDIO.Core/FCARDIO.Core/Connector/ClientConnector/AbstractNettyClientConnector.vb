@@ -143,15 +143,15 @@ Namespace Connector.Client
         Public Overrides Sub CloseConnector()
             If _ClientChannel IsNot Nothing Then
                 If _ClientChannel.Active Then
+
+                    _ClientChannel.CloseAsync()
+                Else
                     FireConnectorClosedEvent(GetConnectorDetail())
-
-                    _ClientChannel?.CloseAsync()?.ContinueWith(Sub()
-                                                                   CloseConnector0()
-                                                               End Sub) '关闭通道
-
                 End If
-                _IsActivity = False
+
+
             End If
+            _IsActivity = False
             _ClientChannel = Nothing
             _Status = GetInitializationStatus()
         End Sub
