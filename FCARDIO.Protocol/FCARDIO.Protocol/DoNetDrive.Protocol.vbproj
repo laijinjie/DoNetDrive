@@ -45,20 +45,20 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DoNetDrive.Core">
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DoNetDrive.Core.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -85,6 +85,8 @@
     <Compile Include="FrameCommand\FrameCommandStatus.vb" />
     <Compile Include="Door8800\Door8800Transaction.vb" />
     <Compile Include="FrameCommand\AbstractFramePacket.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessDecompileStep_PC.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessDecompile_PC.vb" />
     <Compile Include="Packet\BaseDecompile.vb" />
     <Compile Include="Packet\BaseDecompileStep.vb" />
     <Compile Include="Packet\BasePacket.vb" />
@@ -139,12 +141,6 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
-      <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
-      <Name>DoNetDrive.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

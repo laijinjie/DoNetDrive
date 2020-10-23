@@ -178,7 +178,7 @@ Namespace OnlineAccess
     Friend Class DecompileStep_CmdData
         Implements INDecompileStep(Of OnlineAccessPacket)
 
-        Public Function DecompileStep(decompile As BaseDecompile(Of OnlineAccessPacket), value As Byte) As Boolean Implements INDecompileStep(Of OnlineAccessPacket).DecompileStep
+        Public Overridable Function DecompileStep(decompile As BaseDecompile(Of OnlineAccessPacket), value As Byte) As Boolean Implements INDecompileStep(Of OnlineAccessPacket).DecompileStep
             Dim p = decompile.GetPacket()
             Dim buf = p.CmdData
             Dim iLen = p.DataLen
@@ -197,12 +197,14 @@ Namespace OnlineAccess
     Friend Class DecompileStep_CheckSum
         Implements INDecompileStep(Of OnlineAccessPacket)
 
-        Public Function DecompileStep(decompile As BaseDecompile(Of OnlineAccessPacket), value As Byte) As Boolean Implements INDecompileStep(Of OnlineAccessPacket).DecompileStep
+        Public Overridable Function DecompileStep(decompile As BaseDecompile(Of OnlineAccessPacket), value As Byte) As Boolean Implements INDecompileStep(Of OnlineAccessPacket).DecompileStep
             Dim p = decompile._Packet
             Dim chk = p.Check And 255
             p.Check = value
+
+            decompile.DecompileStep = OnlineAccessDecompileStep.Code '进入到下一步骤
+
             If chk = value Then
-                decompile.DecompileStep = OnlineAccessDecompileStep.Code '进入到下一步骤
                 Return True
             Else
                 '数据长度异常
@@ -214,3 +216,5 @@ Namespace OnlineAccess
     End Class
 
 End Namespace
+
+
