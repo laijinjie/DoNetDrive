@@ -1,4 +1,5 @@
-﻿Imports DotNetty.Buffers
+﻿Imports System.Threading
+Imports DotNetty.Buffers
 Imports DotNetty.Transport.Channels
 
 Namespace Connector.Client
@@ -76,12 +77,22 @@ Namespace Connector.Client
         ''' 远程连接失败的处理过程
         ''' </summary>
         Protected Sub ConnectFail()
-            _Status = GetStatus_Fail()
+            If _isRelease Then Return
 
+            _Status = GetStatus_Fail()
+            _IsActivity = False
 
             _ConnectFailCount += 1 '失败次数加1
+            CloseConnectCheck()
             ConnectFail0()
-            _IsActivity = False
+
+        End Sub
+
+        Protected Overridable Sub CloseConnectCheck()
+            If (_IsCloseing Or IsInvalid) And _IsRuning Then
+                Dispose()
+                Return
+            End If
         End Sub
 
         ''' <summary>
@@ -106,10 +117,11 @@ Namespace Connector.Client
 
             _ConnectFailCount = 0
             ConnectSuccess0()
-
-            FireConnectorConnectedEvent(GetConnectorDetail())
-            '将本身加入到通道所在的线程循环中
-            _ClientChannel.EventLoop.Execute(Me)
+            Dim dtl = GetConnectorDetail()
+            dtl.SetError(Nothing)
+            FireConnectorConnectedEvent(dtl)
+            '立刻检查是否有需要发送的命令
+            CheckCommandList()
         End Sub
 
         ''' <summary>
@@ -142,24 +154,22 @@ Namespace Connector.Client
         ''' </summary>
         Public Overrides Sub CloseConnector()
             If _ClientChannel IsNot Nothing Then
+
                 If _ClientChannel.Active Then
-
+                    'Trace.WriteLine($"{GetKey()} ，线程ID:{Thread.CurrentThread.ManagedThreadId} 准备关闭TCP连接")
                     _ClientChannel.CloseAsync()
+                    '链接断开后会自动触发 ChannelInactive 事件，再此事件中再增加通知消息
                 Else
+                    'Trace.WriteLine($"{GetKey()} TCP连接关闭时发现通过未活动，直接触发事件 ")
                     FireConnectorClosedEvent(GetConnectorDetail())
+                    _IsActivity = False
+                    CloseConnectCheck()
                 End If
-
-
             End If
-            _IsActivity = False
-            _ClientChannel = Nothing
-            _Status = GetInitializationStatus()
-        End Sub
 
-        ''' <summary>
-        ''' 连接关闭后的后续处理
-        ''' </summary>
-        Protected MustOverride Sub CloseConnector0()
+            '_ClientChannel = Nothing
+            '_Status = GetInitializationStatus()
+        End Sub
 #End Region
 
 #Region "接收数据"
@@ -237,8 +247,10 @@ Namespace Connector.Client
         ''' <param name="ctx"></param>
         Friend Sub ChannelInactive(ctx As IChannelHandlerContext)
             If _isRelease Then Return
-
-            FireConnectorClosedEvent(GetConnectorDetail())
+            'Trace.WriteLine($"{GetKey()} ，线程ID:{Thread.CurrentThread.ManagedThreadId} ChannelInactive 已关闭TCP连接")
+            Dim dtl = GetConnectorDetail()
+            dtl.SetError(New System.Net.Sockets.SocketException(System.Net.Sockets.SocketError.Shutdown))
+            FireConnectorClosedEvent(dtl)
             _ClientChannel = Nothing
             ConnectFail()
         End Sub
@@ -253,6 +265,9 @@ Namespace Connector.Client
             If _isRelease Then Return
             'Debug.Print(ex.Message)
             Try
+                Dim dtl = GetConnectorDetail()
+                dtl.SetError(ex)
+
                 ctx.CloseAsync()
 
             Catch ext As Exception
@@ -282,7 +297,7 @@ Namespace Connector.Client
             RemoteDetail = Nothing
 
             Release1()
-            ThisConnectorDetail = Nothing
+            'ThisConnectorDetail = Nothing
         End Sub
 
         ''' <summary>

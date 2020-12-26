@@ -6,14 +6,6 @@
         Implements INConnectorDetail
 
         ''' <summary>
-        ''' 初始化默认的连接等待时间和重试次数
-        ''' </summary>
-        Sub New()
-            Timeout = 5000 '默认值是5秒
-            RestartCount = 2 '默认重试2次
-        End Sub
-
-        ''' <summary>
         ''' 连接器连接到对端时最大等待时间，单位毫秒
         ''' </summary>
         ''' <returns></returns>
@@ -24,6 +16,8 @@
         ''' </summary>
         ''' <returns></returns>
         Public Property RestartCount As Integer Implements INConnectorDetail.RestartCount
+
+
 
         ''' <summary>
         ''' 获取连接通道所在的程序集
@@ -61,7 +55,26 @@
         ''' <returns></returns>
         Public MustOverride Function GetKey() As String Implements INConnectorDetail.GetKey
 
+#Region "错误"
+        ''' <summary>
+        ''' 一个异常报告
+        ''' </summary>
+        Protected _Exception As Exception
 
+        Public ReadOnly Property IsFaulted As Boolean Implements INConnectorDetail.IsFaulted
+            Get
+                Return _Exception IsNot Nothing
+            End Get
+        End Property
+
+        Public Sub SetError(err As Exception) Implements INConnectorDetail.SetError
+            _Exception = err
+        End Sub
+
+        Public Function GetError() As Exception Implements INConnectorDetail.GetError
+            Return _Exception
+        End Function
+#End Region
     End Class
 End Namespace
 

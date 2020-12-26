@@ -61,7 +61,7 @@ Namespace Connector.UDP
                 .Option(ChannelOption.TcpNodelay, True)
                 .Option(ChannelOption.SoReuseaddr, True)
                 .Option(ChannelOption.Allocator, DotNettyAllocator.GetBufferAllocator())
-                .Handler(New ActionChannelInitializer(Of IChannel)(Sub(x) x.Pipeline.AddLast(New IdleStateHandler(20, 20, 0))))
+                .Handler(New ActionChannelInitializer(Of IChannel)(Sub(x) x.Pipeline.AddLast(New IdleStateHandler(50, 50, 0))))
             End With
         End Sub
 

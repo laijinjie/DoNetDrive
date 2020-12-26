@@ -1,5 +1,6 @@
 ﻿Imports System.Configuration
 Imports System.Net
+Imports System.Threading
 Imports DoNetDrive.Core
 Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
@@ -213,18 +214,22 @@ Public Class FrmTCPClient
 
     Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorClosedEvent
         If mIsUnload Then Return
-        AddLog($"连接关闭  {GetConnectorDetail(connector)} ")
+        mConnectKey.Remove(connector.GetKey())
+        AddLog($"连接已关闭  {connector.GetKey()} {GetConnectorDetail(connector)} ")
     End Sub
 
     Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorConnectedEvent
         If mIsUnload Then Return
-        Allocator.GetConnector(connector).AddRequestHandle(obServer)
-        AddLog($"连接成功  {GetConnectorDetail(connector)} ")
+        Dim conn = Allocator.GetConnector(connector)
+        conn.AddRequestHandle(obServer)
+        mConnectKey.Add(connector.GetKey())
+        AddLog($"已连接成功 {connector.GetKey()} {GetConnectorDetail(connector)} ")
+
     End Sub
 
     Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorErrorEvent
         If mIsUnload Then Return
-        AddLog($"连接发生错误！  {GetConnectorDetail(connector)} ")
+        AddLog($"连接发生错误！  {GetConnectorDetail(connector)} {connector.GetError()} ")
     End Sub
 
     Private Function GetConnectorDetail(conn As INConnector) As String
@@ -263,6 +268,7 @@ Public Class FrmTCPClient
 
     Private Sub AddLog(ByVal sTxt As String)
         If mIsUnload Then Return
+        If Not chkShowLog.Checked Then Return
         Try
             If txtLog.InvokeRequired Then
                 Invoke(New Action(Of String)(AddressOf AddLog), sTxt)
@@ -381,4 +387,87 @@ Public Class FrmTCPClient
 
         buf.Release()
     End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        GC.Collect()
+    End Sub
+
+
+    Private mConnectKey As HashSet(Of String) = New HashSet(Of String)
+
+    Private Sub butOpenConnectList_Click(sender As Object, e As EventArgs) Handles butOpenConnectList.Click
+        Dim i As Integer
+        Dim iCount As Integer = Integer.Parse(txtNewConnects.Text)
+
+        Dim sKey As String
+
+
+        For i = 1 To iCount
+            Dim oTCPDTL = GetTCPClientDetail()
+
+            sKey = $"Remote:{oTCPDTL.Addr}:{oTCPDTL.Port}_{Guid.NewGuid():N}"
+            oTCPDTL.ConnectAlias = sKey
+
+            Allocator.OpenConnector(oTCPDTL)
+        Next
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim sKey As String
+        Dim sKeys = mConnectKey.ToArray()
+
+        For Each sKey In sKeys
+            Dim oTCPDTL = GetTCPClientDetail()
+            oTCPDTL.ConnectAlias = sKey
+            Allocator.CloseConnector(oTCPDTL)
+        Next
+        mConnectKey.Clear()
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        SendAllClient()
+    End Sub
+
+    Private Sub SendAllClient()
+        If String.IsNullOrEmpty(txtSendText.Text) Then
+            Return
+        End If
+
+        Dim sKey As String
+
+        Dim sKeys = mConnectKey.ToArray()
+        For Each sKey In sKeys
+            Dim oTCPDTL = GetTCPClientDetail()
+            oTCPDTL.ConnectAlias = sKey
+            Dim par = New Command.Text.TextCommandParameter(txtSendText.Text,
+                                                        System.Text.Encoding.UTF8)
+            Dim cmd = New Command.Text.TextCommand(New Text.TextCommandDetail(oTCPDTL), par)
+            Allocator.AddCommand(cmd)
+        Next
+    End Sub
+
+    Private Sub tmrConnects_Tick(sender As Object, e As EventArgs) Handles tmrConnects.Tick
+        txtConnected.Text = mConnectKey.Count.ToString()
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        If mSending = False Then
+            Task.Run(AddressOf TaskSendAll)
+            mSending = True
+        Else
+            mSending = False
+        End If
+
+    End Sub
+
+    Private mSending As Boolean
+    Private Sub TaskSendAll()
+        Do
+
+            Invoke(New Action(AddressOf SendAllClient))
+            Thread.Sleep(500)
+        Loop While mSending
+
+    End Sub
+
 End Class

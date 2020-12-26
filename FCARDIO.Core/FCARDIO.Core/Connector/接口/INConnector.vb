@@ -129,6 +129,10 @@ Namespace Connector
         ''' </summary>
         ''' <returns></returns>
         Overloads Function GetEventLoop() As IEventLoop
+        ''' <summary>
+        ''' 关闭链接
+        ''' </summary>
+        Sub Close()
     End Interface
 End Namespace
 

@@ -8,12 +8,8 @@
         ''' <summary>
         ''' 初始化连接器详细
         ''' </summary>
-        ''' <param name="sAddr">远程服务器的IP或域名</param>
-        ''' <param name="iPort">远程服务器的监听端口</param>
-        ''' <param name="slocal">指定本地IP</param>
-        ''' <param name="ilocalPort">指定本地端口</param>
-        Sub New(sAddr As String, iPort As Integer, slocal As String, ilocalPort As Integer)
-            MyBase.New(sAddr, iPort, slocal, ilocalPort)
+        Sub New(dtl As TCPClient.TCPClientDetail)
+            MyBase.New(dtl)
         End Sub
 
         ''' <summary>

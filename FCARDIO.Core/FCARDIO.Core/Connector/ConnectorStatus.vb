@@ -12,9 +12,7 @@
         Public Sub CheckStatus(connector As INConnector) Implements INConnectorStatus.CheckStatus
             connector.CheckIsInvalid()
             If (Not connector.IsInvalid) Then
-
                 OpenConnector(connector)
-
             End If
         End Sub
 
@@ -38,7 +36,7 @@
         End Function
 
         Public Sub CheckStatus(connector As INConnector) Implements INConnectorStatus.CheckStatus
-            connector.UpdateActivityTime()
+            connector?.UpdateActivityTime()
             CheckConnectingStatus(connector)
         End Sub
 

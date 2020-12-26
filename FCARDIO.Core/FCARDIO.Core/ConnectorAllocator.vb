@@ -172,16 +172,10 @@ Public NotInheritable Class ConnectorAllocator
         If DefaultEventLoopGroupTaskCount <= 0 Then
             DefaultEventLoopGroupTaskCount = Environment.ProcessorCount
         End If
-        WorkEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateThreadEventLoop, DefaultEventLoopGroupTaskCount)
+        WorkEventLoopGroup = New MultithreadEventLoopGroup(DefaultEventLoopGroupTaskCount)
 
         mManagers = New ConnectorManageFactory(WorkEventLoopGroup, Me)
     End Sub
-
-    Private EventLoopID As Integer
-    Private Function CreateThreadEventLoop(group As IEventLoopGroup) As IEventLoop
-        Interlocked.Increment(EventLoopID)
-        Return New SingleThreadEventLoop(group, $"DoNetDrive.Core.ConnectorAllocator.EventLoop {EventLoopID}")
-    End Function
 
 
 #Region "连接通道操作"
@@ -205,7 +199,7 @@ Public NotInheritable Class ConnectorAllocator
                         If Not Connectors.TryAdd(sKey, Conn) Then
                             Dim oTmpConn As INConnector = Nothing
                             If Connectors.TryGetValue(sKey, oTmpConn) Then
-                                If Not oTmpConn.Equals(Conn) Then
+                                If Not Object.ReferenceEquals(oTmpConn, Conn) Then
                                     '通道已存在
                                     Conn.Dispose()
                                     Conn = Nothing
@@ -240,6 +234,18 @@ Public NotInheritable Class ConnectorAllocator
     Public Function OpenConnector(connectDtl As INConnectorDetail) As Boolean
         If _IsRelease Then Return False
         Dim connector As INConnector = GetOrCreateConnector(connectDtl)
+
+        Return True
+    End Function
+
+    ''' <summary>
+    ''' 强制打开一个连接通道
+    ''' </summary>
+    ''' <param name="connectDtl">表示连接通道的信息</param>
+    ''' <returns></returns>
+    Public Function OpenForciblyConnect(connectDtl As INConnectorDetail) As Boolean
+        If _IsRelease Then Return False
+        Dim connector As INConnector = GetOrCreateConnector(connectDtl)
         If connector Is Nothing Then Return False
         connector.OpenForciblyConnect()
         Return True
@@ -256,9 +262,8 @@ Public NotInheritable Class ConnectorAllocator
         Dim connector As INConnector = Nothing
         Dim sKey = connectDtl.GetKey()
         If Connectors.TryGetValue(sKey, connector) Then
-            connector.CloseForciblyConnect()
-            connector.StopCommand(Nothing)
-            connector.Dispose()
+
+            connector.Close()
         End If
         Return True
     End Function
@@ -288,7 +293,7 @@ Public NotInheritable Class ConnectorAllocator
         If _IsRelease Then Return
         If Connectors.TryRemove(sKey, oConn) Then
             'Trace.WriteLine("从 ConnectorAllocator 分配器中移除通道：" & sKey)
-            oConn.Dispose()
+
             RemoveEventListener(oConn)
         End If
     End Sub
@@ -412,9 +417,16 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="e">事件参数，包含此事件所代表的命令信息</param>
     Private Sub FireCommandCompleteEvent(sender As Object, e As CommandEventArgs)
         Dim cmdDtl = e?.CommandDetail
-        If cmdDtl Is Nothing Then Return
+
         Try
-            cmdDtl.FireCommandCompleteEvent(e)
+            cmdDtl?.FireCommandCompleteEvent(e)
+        Catch ex As Exception
+            Dim oCommand = e?.Command?.GetType()?.Name
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandCompleteEvent.CommandDetail {vbNewLine} {ex.ToString}")
+        End Try
+
+
+        Try
             RaiseEvent CommandCompleteEvent(Me, e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
@@ -430,9 +442,13 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="e">事件参数，包含此事件所代表的命令信息</param>
     Private Sub FireCommandProcessEvent(sender As Object, e As CommandEventArgs)
         Dim cmdDtl = e?.CommandDetail
-        If cmdDtl Is Nothing Then Return
         Try
-            cmdDtl.FireCommandProcessEvent(e)
+            cmdDtl?.FireCommandProcessEvent(e)
+        Catch ex As Exception
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent.CommandDetail  {vbNewLine} {ex.ToString}")
+        End Try
+
+        Try
             RaiseEvent CommandProcessEvent(Me, e)
         Catch ex As Exception
             Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent  {vbNewLine} {ex.ToString}")
@@ -448,16 +464,21 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="e">事件参数，包含此事件所代表的命令信息</param>
     Private Sub FireCommandErrorEvent(sender As Object, e As CommandEventArgs)
         Dim cmdDtl = e?.CommandDetail
-        If cmdDtl Is Nothing Then Return
         Try
-            cmdDtl.FireCommandErrorEvent(e)
+            cmdDtl?.FireCommandErrorEvent(e)
+        Catch ex As Exception
+            Dim oCommand = e?.Command?.GetType()?.Name
+
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent.CommandDetail  {vbNewLine} {ex.ToString}")
+        End Try
+
+        Try
             RaiseEvent CommandErrorEvent(Me, e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
 
             Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent  {vbNewLine} {ex.ToString}")
         End Try
-
     End Sub
 
     ''' <summary>
@@ -467,15 +488,19 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="e">事件参数，包含此事件所代表的命令信息</param>
     Private Sub FireCommandTimeout(sender As Object, e As CommandEventArgs)
         Dim cmdDtl = e?.CommandDetail
-        If cmdDtl Is Nothing Then Return
         Try
-            cmdDtl.FireCommandTimeout(e)
+            cmdDtl?.FireCommandTimeout(e)
+        Catch ex As Exception
+            Dim oCommand = e?.Command?.GetType()?.Name
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout.CommandDetail  {vbNewLine} {ex.ToString}")
+        End Try
+
+        Try
             RaiseEvent CommandTimeout(Me, e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
             Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout  {vbNewLine} {ex.ToString}")
         End Try
-
     End Sub
 
     ''' <summary>
@@ -486,14 +511,17 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="e">事件参数，包含此事件所代表的命令信息</param>
     Private Sub FireAuthenticationErrorEvent(sender As Object, e As CommandEventArgs)
         Dim cmdDtl = e?.CommandDetail
-        If cmdDtl Is Nothing Then Return
         Try
-            cmdDtl.FireCommandTimeout(e)
+            cmdDtl?.FireCommandTimeout(e)
+        Catch ex As Exception
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent.CommandDetail  {vbNewLine} {ex.ToString}")
+        End Try
+
+        Try
             RaiseEvent CommandTimeout(Me, e)
         Catch ex As Exception
             Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent  {vbNewLine} {ex.ToString}")
         End Try
-
     End Sub
 
 
@@ -574,7 +602,7 @@ Public NotInheritable Class ConnectorAllocator
 
 
                 mManagers.Dispose()
-                Trace.WriteLine("调用 ConnectorAllocator.Dispose,动态库资源已释放，正在等待线程池退出事件...")
+                'Trace.WriteLine("调用 ConnectorAllocator.Dispose,动态库资源已释放，正在等待线程池退出事件...")
                 WorkEventLoopGroup.ShutdownGracefullyAsync().ContinueWith(AddressOf AsyncDisposeCallblack)
 
             End If
@@ -586,7 +614,7 @@ Public NotInheritable Class ConnectorAllocator
     End Sub
 
     Private Sub AsyncDisposeCallblack()
-        Trace.WriteLine("调用 ConnectorAllocator.AsyncDispose 动态库 WorkEventLoopGroup 线程池已完全退出,准备释放 DefaultConnectorFactory 工厂中创建的事件循环组 ")
+        'Trace.WriteLine("调用 ConnectorAllocator.AsyncDispose 动态库 WorkEventLoopGroup 线程池已完全退出,准备释放 DefaultConnectorFactory 工厂中创建的事件循环组 ")
         WorkEventLoopGroup = Nothing
         DefaultConnectorFactory.Release().ContinueWith(AddressOf AsyncDisposeConnectorFactory)
     End Sub

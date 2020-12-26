@@ -448,7 +448,7 @@ Namespace Command
 
             SyncLock Me
                 If _IsRelease Then Return
-                IsWaitExecute = False
+
                 _Connector?.UpdateActivityTime() '命令执行期间不应该超时
                 Try
                     If _Status IsNot Nothing Then
@@ -457,7 +457,7 @@ Namespace Command
                 Catch ex As Exception
                     CommandError()
                 End Try
-
+                IsWaitExecute = False
             End SyncLock
         End Sub
 

@@ -34,6 +34,16 @@ Namespace Connector.TCPClient
         End Function
 
         ''' <summary>
+        ''' 默认连接超时，单位毫秒
+        ''' </summary>
+        Public Shared CONNECT_TIMEOUT_Default As Integer = 8000
+        ''' <summary>
+        ''' 默认重新连接次数
+        ''' </summary>
+        Public Shared ReadOnly CONNECT_RECONNECT_Default As Integer = 5
+
+
+        ''' <summary>
         ''' 最大40秒连接超时，单位毫秒
         ''' </summary>
         Public Shared ReadOnly CONNECT_TIMEOUT_MILLIS_MAX As Integer = 40000
@@ -44,7 +54,7 @@ Namespace Connector.TCPClient
         ''' <summary>
         ''' 最大重新连接次数
         ''' </summary>
-        Public Shared ReadOnly CONNECT_RECONNECT_MAX As Integer = 5
+        Public Shared ReadOnly CONNECT_RECONNECT_MAX As Integer = 30
 
         Protected TCPBootstrap As Bootstrap
         Protected TCPInitializer As TCPClientChannelInitializer
@@ -68,7 +78,7 @@ Namespace Connector.TCPClient
                 .Option(ChannelOption.SoReuseaddr, True)
                 .Option(ChannelOption.SoRcvbuf, 209600)
                 .Option(ChannelOption.SoSndbuf, 102400)
-                .Option(ChannelOption.ConnectTimeout, New TimeSpan(0, 0, 0, 0, CONNECT_TIMEOUT_MILLIS_MAX)) '最大连接超时时间
+                .Option(ChannelOption.ConnectTimeout, TimeSpan.FromMilliseconds(CONNECT_TIMEOUT_MILLIS_MAX)) '最大连接超时时间
                 .Handler(TCPInitializer)
             End With
         End Sub

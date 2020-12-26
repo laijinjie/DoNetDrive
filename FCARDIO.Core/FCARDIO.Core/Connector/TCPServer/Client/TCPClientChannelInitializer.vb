@@ -16,7 +16,7 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         ''' <param name="channel"></param>
         Protected Overrides Sub InitChannel(channel As IChannel)
-            channel.Pipeline().AddLast(New IdleStateHandler(20, 20, 0)) '超时检查
+            channel.Pipeline().AddLast(New IdleStateHandler(120, 120, 0)) '超时检查
 
             Dim serverAddress = channel.Parent.LocalAddress
             Dim pnl As TcpServerSocketChannelEx = TryCast(channel.Parent, TcpServerSocketChannelEx）

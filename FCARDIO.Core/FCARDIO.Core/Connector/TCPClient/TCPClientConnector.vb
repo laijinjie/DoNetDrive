@@ -8,6 +8,7 @@ Imports DotNetty.Handlers.Tls
 Imports System.Security.Cryptography.X509Certificates
 Imports System.Net.Security
 Imports System.IO
+Imports System.Threading
 
 Namespace Connector.TCPClient
     ''' <summary>
@@ -27,10 +28,7 @@ Namespace Connector.TCPClient
         ''' </summary>
         Protected _ConnectDate As Date
 
-        ''' <summary>
-        ''' 连接的异步操作类
-        ''' </summary>
-        Protected _ConnectFuture As Task(Of IChannel)
+
 
         ''' <summary>
         ''' 最大连接等待时间
@@ -66,15 +64,15 @@ Namespace Connector.TCPClient
             _ConnectTimeoutMSEL = detail.Timeout
             _ReconnectMax = detail.RestartCount
 
-            If (_ConnectTimeoutMSEL > TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MAX) Then
+            If _ConnectTimeoutMSEL > TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MAX Then
                 _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MAX
-            ElseIf (_ConnectTimeoutMSEL < TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MIN) Then
+            ElseIf _ConnectTimeoutMSEL < TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MIN Then
                 _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MIN
             End If
 
-            If (_ReconnectMax > TCPClientAllocator.CONNECT_RECONNECT_MAX) Then
+            If _ReconnectMax > TCPClientAllocator.CONNECT_RECONNECT_MAX Then
                 _ReconnectMax = TCPClientAllocator.CONNECT_RECONNECT_MAX
-            ElseIf (_ReconnectMax < 0) Then
+            ElseIf _ReconnectMax < 0 Then
                 _ReconnectMax = 0
             End If
         End Sub
@@ -83,8 +81,8 @@ Namespace Connector.TCPClient
         ''' 设定默认的超时等待和重连参数
         ''' </summary>
         Private Sub SetConnectOptionByDefault()
-            _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MAX
-            _ReconnectMax = TCPClientAllocator.CONNECT_RECONNECT_MAX
+            _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_Default
+            _ReconnectMax = TCPClientAllocator.CONNECT_RECONNECT_Default
         End Sub
 
         ''' <summary>
@@ -117,17 +115,19 @@ Namespace Connector.TCPClient
         ''' 开始连接到远端服务器
         ''' </summary>
         Protected Friend Sub ConnectServer()
+            If _isRelease Then Return
+
             If ClientAllocator Is Nothing Then Return
 
 
             If _ClientChannel IsNot Nothing Then
-                _ClientChannel.CloseAsync().Wait()
-                _ClientChannel = Nothing
+                _ClientChannel.CloseAsync().ContinueWith(
+                    Sub()
+                        _ClientChannel = Nothing
+                        ConnectServer()
+                    End Sub)
             End If
 
-            If IsInvalid Then
-                Return
-            End If
             If _ActivityCommand Is Nothing Then
                 '一个新的指令
 
@@ -145,13 +145,16 @@ Namespace Connector.TCPClient
                 SetConnectOption(_ActivityCommand.CommandDetail.Connector)
             End If
             Try
-                _ConnectFuture = ClientAllocator.Connect(GetConnectorDetail(), _ConnectTimeoutMSEL)
+                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} 准备发起TCP连接，超时时间：{_ConnectTimeoutMSEL}")
+                '连接的异步操作类
+                Dim oConnectFuture As Task(Of IChannel)
+                oConnectFuture = ClientAllocator.Connect(GetConnectorDetail(), _ConnectTimeoutMSEL)
 
-
-                _ConnectFuture.ContinueWith(New Action(Of Task(Of IChannel))(AddressOf connectCallback))
+                oConnectFuture.ContinueWith(New Action(Of Task(Of IChannel))(AddressOf connectCallback))
 
                 _Status = TCPClientConnectorStatus.Connecting
             Catch ex As Exception
+                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} 准备发起TCP连接时出现错误：{ex}")
                 _Status = TCPClientConnectorStatus.Free
             End Try
 
@@ -162,16 +165,28 @@ Namespace Connector.TCPClient
         ''' </summary>
         ''' <param name="tak"></param>
         Protected Sub connectCallback(tak As Task(Of IChannel))
-            If _isRelease Then Return
+
             If tak.IsCanceled Or tak.IsFaulted Then
+                'For Each ex In tak.Exception.InnerExceptions
+                '    Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} TCP连接请求错误,{ex.Message}")
+                'Next
+
+                If _isRelease Then Return
+                Dim dtl = GetConnectorDetail()
+                dtl.SetError(tak.Exception)
                 ConnectFail()
             Else
+                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} TCP连接成功")
                 _ClientChannel = tak.Result
+                If _isRelease Then
+                    _ClientChannel.CloseAsync()
+                    _ClientChannel = Nothing
+                    Return
+                End If
 
                 AddChannelHandler()
-
             End If
-            _ConnectFuture = Nothing
+
         End Sub
 
         ''' <summary>
@@ -190,9 +205,10 @@ Namespace Connector.TCPClient
         ''' 当连接通道连接已失效时调用
         ''' </summary>
         Protected Overrides Sub ConnectFail0()
+
             If (_ConnectFailCount >= _ReconnectMax) Then
                 FireConnectorErrorEvent(GetConnectorDetail())
-
+                _ConnectFailCount = 0
                 If Not _IsForcibly Then
                     SetInvalid()
                     Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源
@@ -227,12 +243,6 @@ Namespace Connector.TCPClient
         End Function
 #End Region
 
-        ''' <summary>
-        ''' 连接关闭后的后续处理
-        ''' </summary>
-        Protected Overrides Sub CloseConnector0()
-            Return
-        End Sub
 
 
 
@@ -241,7 +251,7 @@ Namespace Connector.TCPClient
         ''' 释放资源
         ''' </summary>
         Protected Overrides Sub Release1()
-            _ConnectFuture = Nothing
+
             ClientAllocator = Nothing
         End Sub
 

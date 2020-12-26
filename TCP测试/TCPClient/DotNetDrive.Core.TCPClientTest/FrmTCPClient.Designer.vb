@@ -22,6 +22,7 @@ Partial Class FrmTCPClient
     '不要使用代码编辑器修改它。
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Me.cmbLocalIP = New System.Windows.Forms.ComboBox()
         Me.txtLocalPort = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
@@ -39,6 +40,17 @@ Partial Class FrmTCPClient
         Me.butCloseTCP = New System.Windows.Forms.Button()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.chkSSL = New System.Windows.Forms.CheckBox()
+        Me.Button2 = New System.Windows.Forms.Button()
+        Me.butOpenConnectList = New System.Windows.Forms.Button()
+        Me.Button3 = New System.Windows.Forms.Button()
+        Me.Button4 = New System.Windows.Forms.Button()
+        Me.txtNewConnects = New System.Windows.Forms.TextBox()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.txtConnected = New System.Windows.Forms.TextBox()
+        Me.Label7 = New System.Windows.Forms.Label()
+        Me.tmrConnects = New System.Windows.Forms.Timer(Me.components)
+        Me.chkShowLog = New System.Windows.Forms.CheckBox()
+        Me.Button5 = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'cmbLocalIP
@@ -120,7 +132,7 @@ Partial Class FrmTCPClient
         '
         'butTCPClientSend
         '
-        Me.butTCPClientSend.Location = New System.Drawing.Point(698, 134)
+        Me.butTCPClientSend.Location = New System.Drawing.Point(698, 199)
         Me.butTCPClientSend.Name = "butTCPClientSend"
         Me.butTCPClientSend.Size = New System.Drawing.Size(75, 23)
         Me.butTCPClientSend.TabIndex = 6
@@ -129,7 +141,7 @@ Partial Class FrmTCPClient
         '
         'txtSendText
         '
-        Me.txtSendText.Location = New System.Drawing.Point(93, 107)
+        Me.txtSendText.Location = New System.Drawing.Point(93, 172)
         Me.txtSendText.Name = "txtSendText"
         Me.txtSendText.Size = New System.Drawing.Size(680, 21)
         Me.txtSendText.TabIndex = 5
@@ -138,7 +150,7 @@ Partial Class FrmTCPClient
         'Label5
         '
         Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(33, 111)
+        Me.Label5.Location = New System.Drawing.Point(33, 176)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(53, 12)
         Me.Label5.TabIndex = 40
@@ -146,7 +158,7 @@ Partial Class FrmTCPClient
         '
         'butTCPClientSend_200K
         '
-        Me.butTCPClientSend_200K.Location = New System.Drawing.Point(93, 134)
+        Me.butTCPClientSend_200K.Location = New System.Drawing.Point(93, 199)
         Me.butTCPClientSend_200K.Name = "butTCPClientSend_200K"
         Me.butTCPClientSend_200K.Size = New System.Drawing.Size(75, 23)
         Me.butTCPClientSend_200K.TabIndex = 41
@@ -155,11 +167,11 @@ Partial Class FrmTCPClient
         '
         'txtLog
         '
-        Me.txtLog.Location = New System.Drawing.Point(12, 163)
+        Me.txtLog.Location = New System.Drawing.Point(12, 228)
         Me.txtLog.Multiline = True
         Me.txtLog.Name = "txtLog"
         Me.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.txtLog.Size = New System.Drawing.Size(761, 281)
+        Me.txtLog.Size = New System.Drawing.Size(973, 281)
         Me.txtLog.TabIndex = 42
         '
         'butCloseTCP
@@ -190,11 +202,116 @@ Partial Class FrmTCPClient
         Me.chkSSL.Text = "SSL"
         Me.chkSSL.UseVisualStyleBackColor = True
         '
+        'Button2
+        '
+        Me.Button2.Location = New System.Drawing.Point(612, 16)
+        Me.Button2.Name = "Button2"
+        Me.Button2.Size = New System.Drawing.Size(75, 23)
+        Me.Button2.TabIndex = 46
+        Me.Button2.Text = "GC"
+        Me.Button2.UseVisualStyleBackColor = True
+        '
+        'butOpenConnectList
+        '
+        Me.butOpenConnectList.Location = New System.Drawing.Point(248, 113)
+        Me.butOpenConnectList.Name = "butOpenConnectList"
+        Me.butOpenConnectList.Size = New System.Drawing.Size(75, 23)
+        Me.butOpenConnectList.TabIndex = 47
+        Me.butOpenConnectList.Text = "批量连接"
+        Me.butOpenConnectList.UseVisualStyleBackColor = True
+        '
+        'Button3
+        '
+        Me.Button3.Location = New System.Drawing.Point(329, 113)
+        Me.Button3.Name = "Button3"
+        Me.Button3.Size = New System.Drawing.Size(75, 23)
+        Me.Button3.TabIndex = 48
+        Me.Button3.Text = "批量关闭"
+        Me.Button3.UseVisualStyleBackColor = True
+        '
+        'Button4
+        '
+        Me.Button4.Location = New System.Drawing.Point(410, 113)
+        Me.Button4.Name = "Button4"
+        Me.Button4.Size = New System.Drawing.Size(75, 23)
+        Me.Button4.TabIndex = 49
+        Me.Button4.Text = "批量发送"
+        Me.Button4.UseVisualStyleBackColor = True
+        '
+        'txtNewConnects
+        '
+        Me.txtNewConnects.Location = New System.Drawing.Point(171, 115)
+        Me.txtNewConnects.MaxLength = 4
+        Me.txtNewConnects.Name = "txtNewConnects"
+        Me.txtNewConnects.Size = New System.Drawing.Size(68, 21)
+        Me.txtNewConnects.TabIndex = 50
+        Me.txtNewConnects.Text = "100"
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Location = New System.Drawing.Point(111, 119)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(53, 12)
+        Me.Label6.TabIndex = 51
+        Me.Label6.Text = "连接数量"
+        '
+        'txtConnected
+        '
+        Me.txtConnected.Location = New System.Drawing.Point(574, 113)
+        Me.txtConnected.MaxLength = 0
+        Me.txtConnected.Name = "txtConnected"
+        Me.txtConnected.Size = New System.Drawing.Size(68, 21)
+        Me.txtConnected.TabIndex = 52
+        '
+        'Label7
+        '
+        Me.Label7.AutoSize = True
+        Me.Label7.Location = New System.Drawing.Point(514, 117)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(65, 12)
+        Me.Label7.TabIndex = 53
+        Me.Label7.Text = "已连接数："
+        '
+        'tmrConnects
+        '
+        Me.tmrConnects.Enabled = True
+        Me.tmrConnects.Interval = 500
+        '
+        'chkShowLog
+        '
+        Me.chkShowLog.AutoSize = True
+        Me.chkShowLog.Location = New System.Drawing.Point(12, 206)
+        Me.chkShowLog.Name = "chkShowLog"
+        Me.chkShowLog.Size = New System.Drawing.Size(72, 16)
+        Me.chkShowLog.TabIndex = 54
+        Me.chkShowLog.Text = "显示日志"
+        Me.chkShowLog.UseVisualStyleBackColor = True
+        '
+        'Button5
+        '
+        Me.Button5.Location = New System.Drawing.Point(410, 143)
+        Me.Button5.Name = "Button5"
+        Me.Button5.Size = New System.Drawing.Size(75, 23)
+        Me.Button5.TabIndex = 55
+        Me.Button5.Text = "循环发送"
+        Me.Button5.UseVisualStyleBackColor = True
+        '
         'FrmTCPClient
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(785, 450)
+        Me.ClientSize = New System.Drawing.Size(997, 547)
+        Me.Controls.Add(Me.Button5)
+        Me.Controls.Add(Me.chkShowLog)
+        Me.Controls.Add(Me.txtConnected)
+        Me.Controls.Add(Me.Label7)
+        Me.Controls.Add(Me.txtNewConnects)
+        Me.Controls.Add(Me.Label6)
+        Me.Controls.Add(Me.Button4)
+        Me.Controls.Add(Me.Button3)
+        Me.Controls.Add(Me.butOpenConnectList)
+        Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.chkSSL)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.butCloseTCP)
@@ -236,4 +353,15 @@ Partial Class FrmTCPClient
     Friend WithEvents butCloseTCP As Button
     Friend WithEvents Button1 As Button
     Friend WithEvents chkSSL As CheckBox
+    Friend WithEvents Button2 As Button
+    Friend WithEvents butOpenConnectList As Button
+    Friend WithEvents Button3 As Button
+    Friend WithEvents Button4 As Button
+    Friend WithEvents txtNewConnects As TextBox
+    Friend WithEvents Label6 As Label
+    Friend WithEvents txtConnected As TextBox
+    Friend WithEvents Label7 As Label
+    Friend WithEvents tmrConnects As Timer
+    Friend WithEvents chkShowLog As CheckBox
+    Friend WithEvents Button5 As Button
 End Class

@@ -36,6 +36,23 @@
         ''' <returns></returns>
         Function GetKey() As String
 
+        ''' <summary>
+        ''' 可以设置一个错误信息，当错误发生时，保存在此处
+        ''' </summary>
+        ''' <param name="err"></param>
+        Sub SetError(err As Exception)
+
+        ''' <summary>
+        ''' 当错误发生时，获取一个错误信息
+        ''' </summary>
+        ''' <returns></returns>
+        Function GetError() As Exception
+
+        ''' <summary>
+        ''' 表示是否包含错误信息
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property IsFaulted As Boolean
     End Interface
 
 End Namespace

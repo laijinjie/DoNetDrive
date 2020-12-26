@@ -3,9 +3,7 @@
         Inherits ConnectorStatus_Connecting
 
         Protected Overrides Sub CheckConnectingStatus(connector As INConnector)
-            Dim client As TCPClientConnector = TryCast(connector, TCPClientConnector)
-
-            client?.UpdateActivityTime()
+            connector?.UpdateActivityTime()
         End Sub
     End Class
 

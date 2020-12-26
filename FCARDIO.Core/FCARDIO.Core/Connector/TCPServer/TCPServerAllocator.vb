@@ -97,6 +97,7 @@ Namespace Connector.TCPServer
 
                 mTCPClientHandler = New TCPClientChannelInitializer()
                 .ChildHandler(mTCPClientHandler)
+                .ChildOption(ChannelOption.SoKeepalive, True)
             End With
         End Sub
 

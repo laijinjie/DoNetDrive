@@ -65,6 +65,7 @@ Namespace Connector.TCPClient
 
             If _CertificateList.ContainsKey(sKey) Then
                 oCer = _CertificateList(sKey)
+                '_CertificateList.Remove(sKey)
             End If
 
             If oCer.IsSSL Then
@@ -93,11 +94,10 @@ Namespace Connector.TCPClient
                 channel.Pipeline().AddLast(tls)
             End If
             AddPipeline(channel)
-
         End Sub
 
         Protected Overridable Sub AddPipeline(channel As IChannel)
-            channel.Pipeline().AddLast(New IdleStateHandler(20, 20, 0)) '超时检查
+            channel.Pipeline().AddLast(New IdleStateHandler(120, 120, 0)) '超时检查
         End Sub
 
         ''' <summary>

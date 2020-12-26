@@ -45,9 +45,6 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DoNetDrive.Core">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DoNetDrive.Core.dll</HintPath>
-    </Reference>
     <Reference Include="DotNetty.Buffers">
       <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
     </Reference>
@@ -135,6 +132,12 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+      <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
+      <Name>DoNetDrive.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

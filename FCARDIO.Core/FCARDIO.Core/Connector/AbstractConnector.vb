@@ -5,6 +5,7 @@ Imports DoNetDrive.Core.Data
 Imports DotNetty.Buffers
 Imports DotNetty.Transport.Channels
 Imports DoNetDrive.Core.TaskManage
+Imports System.Threading
 
 Namespace Connector
     ''' <summary>
@@ -13,6 +14,10 @@ Namespace Connector
     Public MustInherit Class AbstractConnector
         Implements INConnector
 
+        ''' <summary>
+        ''' 用来进行通道锁操作的对象
+        ''' </summary>
+        Protected Lockobject As Object = New Object()
 
         ''' <summary>
         ''' 连接通道中存在于队列中的命令列表，先进先出集合
@@ -63,6 +68,10 @@ Namespace Connector
         ''' 检查通道是否为活动的状态（已连接的）
         ''' </summary>
         Protected _IsActivity As Boolean
+        ''' <summary>
+        ''' 指示是否需要关闭通道
+        ''' </summary>
+        Protected _IsCloseing As Boolean
 
 #Region "事件定义"
         ''' <summary>
@@ -151,8 +160,15 @@ Namespace Connector
             _isRelease = False
             _isInvalid = False
             _IsRuning = False
+            _IsCloseing = False
             _Status = GetInitializationStatus()
             _ActivityDate = Date.Now
+        End Sub
+
+        Protected Overrides Sub Finalize()
+            'Trace.WriteLine($"{GetKey()} 被销毁 {DateTime.Now:HH:mm:ss.fff}")
+            Dispose()
+            MyBase.Finalize()
         End Sub
 
 
@@ -252,7 +268,7 @@ Namespace Connector
                         End If
                         tmp = Nothing
                     End If
-                    _ActivityCommand.RemoveBinding()
+                    _ActivityCommand?.RemoveBinding()
                     _ActivityCommand = Nothing
                 End If
             End If
@@ -286,14 +302,11 @@ Namespace Connector
                             _ActivityCommand.IsWaitExecute = True
                             GetEventLoop()?.Execute(_ActivityCommand)
                         End If
-
                     End If
-
                     UpdateActivityTime()
-
                 End If
             Catch ex As Exception
-                Trace.WriteLine($" CheckCommandList {ex.ToString()}")
+                Trace.WriteLine($" {GetKey()} CheckCommandList {ex.ToString()}")
             End Try
 
         End Sub
@@ -411,21 +424,7 @@ Namespace Connector
         ''' 将通道设置为无效状态
         ''' </summary>
         Protected Sub SetInvalid()
-            If Not _isInvalid Then
-                'Trace.WriteLine("通道已失效，设置为无效状态：" & GetKey())
-
-                If _IsActivity Then
-                    _isInvalid = False
-                    _IsForcibly = False
-                    '先关闭通道
-                    CloseConnector()
-                Else
-                    _isInvalid = True
-                    '触发通道关闭事件
-                    RaiseEvent TaskCloseEvent(Me)
-                End If
-
-            End If
+            _isInvalid = True
         End Sub
 
         ''' <summary>
@@ -517,24 +516,34 @@ Namespace Connector
         Public Sub Run() Implements IRunnable.Run
             If (_isRelease) Then Return
             If _IsRuning Then Return
+            '防止线程并发
+            SyncLock Lockobject
+                If _IsRuning Then Return
+                _IsRuning = True
+            End SyncLock
 
-            If Not IsActivity() Then
-                If IsInvalid Then
-                    Dispose()
+
+            If _IsCloseing Or _isInvalid Then '如果已经入通过关闭状态，则检查活动状态（连接状态）
+                'If _isInvalid Then Trace.WriteLine($"{GetKey()} Run 连接已失效（保持连接超时或连接失败次数已达最大），进入关闭流程")
+                'If _IsCloseing Then Trace.WriteLine($"{GetKey()} Run 进入关闭流程")
+                If IsActivity() Then
+                    'Trace.WriteLine($"{GetKey()} Run 连接已建立，先关闭连接")
+                    '已连接时，先关闭链接
+                    _IsForcibly = False
+                    CloseConnector()
+                Else
+                    'Trace.WriteLine($"{GetKey()} Run 连接未建立，直接销毁所有资源")
+                    Dispose() '非活动状态，直接失效
                 End If
+                Return
             End If
 
             Try
                 If (_isRelease) Then Return
-                _IsRuning = True
-
                 CheckStatus()
             Catch ex As Exception
                 Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.ToString()}")
             End Try
-
-
-
 
             _IsRuning = False
         End Sub
@@ -543,7 +552,7 @@ Namespace Connector
         ''' 检查当前状态
         ''' </summary>
         Protected Overridable Sub CheckStatus()
-            _Status.CheckStatus(Me)
+            _Status?.CheckStatus(Me)
         End Sub
 #End Region
 
@@ -795,6 +804,10 @@ Namespace Connector
         ''' </summary>
         Public MustOverride Sub CloseConnector()
 
+        Public Sub Close() Implements INConnector.Close
+            _IsCloseing = True
+        End Sub
+
 #End Region
 
 #Region "IDisposable Support"
@@ -803,21 +816,24 @@ Namespace Connector
         ' IDisposable
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposedValue Then
-                SyncLock Me
+                SyncLock Me '防止并发
                     If disposedValue Then Return
                     disposedValue = True
                 End SyncLock
 
-                'Trace.WriteLine("调用 AbstractConnector.Dispose,准备释放通道,资源标识：" & GetKey())
+                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} 调用 AbstractConnector.Dispose ，线程ID：{Thread.CurrentThread.ManagedThreadId}")
 
                 If disposing Then
                     ' TODO: 释放托管状态(托管对象)。
-                    If (_isRelease) Then Return
-
-                    Release0()
-
-                    SetInvalid()
                     _isRelease = True
+                    SetInvalid()
+                    _IsForcibly = False
+                    Release0()
+                    _IsActivity = False
+
+                    '触发通道关闭事件
+                    RaiseEvent TaskCloseEvent(Me)
+
                     Dim cmd As INCommandRuntime = Nothing
                     Dim ret As Boolean
                     If _CommandList IsNot Nothing Then
@@ -886,6 +902,8 @@ Namespace Connector
             End If
             Return mKey
         End Function
+
+
 #End Region
     End Class
 

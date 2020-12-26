@@ -51,8 +51,8 @@ Namespace Connector
 
         Shared Sub New()
             mIsRelease = False
-            BufferAllocator = DotNetty.Buffers.PooledByteBufferAllocator.Default
-            'BufferAllocator = DotNetty.Buffers.UnpooledByteBufferAllocator.Default
+            'BufferAllocator = DotNetty.Buffers.PooledByteBufferAllocator.Default
+            BufferAllocator = DotNetty.Buffers.UnpooledByteBufferAllocator.Default
         End Sub
 
         ''' <summary>
@@ -158,7 +158,7 @@ Namespace Connector
         ''' 释放所有已创建的 EventLoopGroup
         ''' </summary>
         Public Shared Async Function shutdownGracefully() As Task
-            Trace.WriteLine("调用 DotNettyAllocator.shutdownGracefully,准备释放事件循环组")
+            'Trace.WriteLine("调用 DotNettyAllocator.shutdownGracefully,准备释放事件循环组")
 
             Try
                 If ServerChildEventLoopGroup IsNot Nothing Then
@@ -178,9 +178,9 @@ Namespace Connector
 
                 BufferAllocator = Nothing
             Catch ex As Exception
-                Debug.Print("DotNettyAllocator.shutdownGracefully" & vbNewLine & ex.ToString())
+                'Trace.WriteLine("DotNettyAllocator.shutdownGracefully" & vbNewLine & ex.ToString())
             End Try
-            Trace.WriteLine("调用 DotNettyAllocator.shutdownGracefully,事件循环组释放完毕")
+            'Trace.WriteLine("调用 DotNettyAllocator.shutdownGracefully,事件循环组释放完毕")
 
             mIsRelease = True
         End Function

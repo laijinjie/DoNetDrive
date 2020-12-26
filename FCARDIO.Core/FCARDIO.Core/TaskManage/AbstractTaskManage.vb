@@ -30,14 +30,18 @@ Namespace TaskManage
         ''' <summary>
         ''' 管理器绑定的线程ID
         ''' </summary>
-        Protected _ThreadID As Long
+        Protected _ThreadID As Integer
 
+        ''' <summary>
+        ''' 默认的任务休眠时间，单位毫秒
+        ''' </summary>
+        Public Shared DefaultTaskSleepTime As Integer = 10
         ''' <summary>
         ''' 初始化缓冲区
         ''' </summary>
         ''' <param name="elp">任务循环器</param>
         Sub New(elp As IEventLoop)
-            Me.New(elp, New TimeSpan(0, 0, 0, 0, 10))
+            Me.New(elp, TimeSpan.FromMilliseconds(DefaultTaskSleepTime))
         End Sub
 
         ''' <summary>
@@ -47,7 +51,7 @@ Namespace TaskManage
         ''' <param name="SleepTime">设定休眠间隔</param>
         Sub New(elp As IEventLoop, SleepTime As TimeSpan)
             Dim oSigElp = TryCast(elp, DotNetty.Transport.Channels.SingleThreadEventLoop)
-            _ThreadID = oSigElp.Scheduler.Id
+            '_ThreadID = oSigElp.Scheduler.Id
             'Trace.WriteLine("调用 AbstractTaskManage.New,构建一个管理器,管理器标识：" & Me.GetType().Name & ",事件循环标识：" & _ThreadID)
 
             mEventLoop = elp
@@ -103,6 +107,7 @@ Namespace TaskManage
             Dim oClient As T = Nothing
             If Clients.TryRemove(sKey, oClient) Then
                 'Trace.WriteLine("将客户端从管理器中移除：" & sKey)
+                RemoveHandler oClient.TaskCloseEvent, AddressOf TaskCloseEvent
                 _RemoveClient(oClient)
             End If
 
@@ -129,7 +134,7 @@ Namespace TaskManage
             _Release()
             Clients.Clear()
 
-            Trace.WriteLine("调用 AbstractTaskManage.Release,管理器释放完毕,管理器标识：" & oType.Name & ",事件循环标识：" & _ThreadID)
+            'Trace.WriteLine("调用 AbstractTaskManage.Release,管理器释放完毕,管理器标识：" & oType.Name & ",事件循环标识：" & _ThreadID)
         End Sub
 
         ''' <summary>
@@ -137,11 +142,16 @@ Namespace TaskManage
         ''' </summary>
         Protected MustOverride Sub _Release()
 
+
         ''' <summary>
         ''' 任务处理器，再此检查各通道的状态
         ''' </summary>
         Public Sub Run() Implements IRunnable.Run
             If _IsRelease Then Return
+            If (_ThreadID <> Threading.Thread.CurrentThread.ManagedThreadId) Then
+                _ThreadID = Threading.Thread.CurrentThread.ManagedThreadId
+                'Trace.WriteLine($"工作线程：线程ID = {_ThreadID}")
+            End If
 
             Try
                 Dim sKeys = Clients.Keys

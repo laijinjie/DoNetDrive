@@ -22,6 +22,8 @@ Namespace Connector.Client
             _ClientChannel = channel
             _Handler = New TCPClientNettyChannelHandler(Of T)(Me)
             _ClientChannel.Pipeline.AddLast(_Handler)
+            _ClientChannel.Configuration.SetOption(ChannelOption.SoKeepalive, True)
+
             mKey = sKey
             '_IsForcibly = True
             ConnectSuccess()
@@ -62,18 +64,12 @@ Namespace Connector.Client
                 FireClientOffline(EventArg)
             End If
 
-
             SetInvalid()
 
             Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源
         End Sub
 
-        ''' <summary>
-        ''' 连接关闭后的后续处理
-        ''' </summary>
-        Protected Overrides Sub CloseConnector0()
-            ConnectFail0()
-        End Sub
+
 
 
         ''' <summary>

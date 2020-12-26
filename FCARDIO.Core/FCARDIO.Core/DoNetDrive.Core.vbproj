@@ -49,22 +49,28 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Codecs.Http">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.Http.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.Http.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

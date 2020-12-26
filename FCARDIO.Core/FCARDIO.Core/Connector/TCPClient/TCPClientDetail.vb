@@ -9,6 +9,10 @@ Namespace Connector.TCPClient
     ''' </summary>
     Public Class TCPClientDetail
         Inherits AbstractConnectorDetail
+        ''' <summary>
+        ''' 通道的别名 自定义通道Key
+        ''' </summary>
+        Public Overridable Property ConnectAlias As String
 
         ''' <summary>
         ''' 远程服务器的IP
@@ -101,7 +105,9 @@ Namespace Connector.TCPClient
         ''' <param name="oSSLFac">用于创建SSL安全套接字的流工厂</param>
         Public Sub New(sAddr As String, iPort As Integer, slocal As String, ilocalPort As Integer,
                        bSSL As Boolean, oX509 As X509Certificate2, oSSLFac As Func(Of Stream, SslStream))
-
+            Timeout = TCPClientAllocator.CONNECT_TIMEOUT_Default '默认值是5秒
+            RestartCount = TCPClientAllocator.CONNECT_RECONNECT_Default '默认重试2次
+            ConnectAlias = String.Empty
             Dim oIP As IPAddress = Nothing
             RemoteHost = sAddr
             If IPAddress.TryParse(sAddr, oIP) Then
@@ -191,7 +197,12 @@ Namespace Connector.TCPClient
         ''' </summary>
         ''' <returns></returns>
         Public Overrides Function GetKey() As String
-            Return $"{GetTypeName()}_Local:{LocalAddr}:{LocalPort}_Remote:{Addr}:{Port}"
+            If (String.IsNullOrEmpty(ConnectAlias)) Then
+                Return $"{GetTypeName()}_Local:{LocalAddr}:{LocalPort}_Remote:{Addr}:{Port}"
+            Else
+                Return ConnectAlias
+            End If
+
         End Function
 
         ''' <summary>

@@ -34,7 +34,9 @@ Namespace Connector.UDP
         Public Sub New(Remote As EndPoint, server As IChannel, serverDTL As UDPServerDetail)
             RemoteDetail = New IPDetail(Remote)
             LocalDetail = New IPDetail(server.LocalAddress)
-            ThisConnectorDetail = New UDPClientDetail_ReadOnly(RemoteDetail.Addr, RemoteDetail.Port, serverDTL.LocalAddr, serverDTL.LocalPort)
+            ThisConnectorDetail = New UDPClientDetail_ReadOnly(
+                New TCPClient.TCPClientDetail(RemoteDetail.Addr, RemoteDetail.Port,
+                                              serverDTL.LocalAddr, serverDTL.LocalPort))
             RemoteIP = Remote
 
             _ClientChannel = server
@@ -179,13 +181,6 @@ Namespace Connector.UDP
             _IsActivity = False
             RaiseEvent ConnectorDisposeEvent(Me)
 
-        End Sub
-
-        ''' <summary>
-        ''' 连接关闭后的后续处理
-        ''' </summary>
-        Protected Overrides Sub CloseConnector0()
-            Return
         End Sub
 #End Region
 
