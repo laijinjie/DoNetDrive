@@ -31,8 +31,8 @@ Namespace Connector.TCPServer.Client
                     channel.CloseAsync()
                     Return
                 End If
-
-                Dim sKey As String = TCPServerAllocator.GetClientKey(channel)
+                Dim iClientID As Long = 0
+                Dim sKey As String = TCPServerAllocator.GetClientKey(channel, iClientID)
                 Dim ServerConnt = pnl.ServerConnector
                 Dim ServerDetail = TryCast(ServerConnt.GetConnectorDetail(), TCPServer.TCPServerDetail)
                 If ServerDetail.IsSSL Then
@@ -45,7 +45,7 @@ Namespace Connector.TCPServer.Client
                     End If
 
                 End If
-                Dim conn As TCPClientConnector = New TCPClientConnector(sKey, channel)
+                Dim conn As TCPClientConnector = New TCPClientConnector(sKey, channel, iClientID)
                 pnl.ServerConnector.FireClientOnline(conn)
             Else
                 channel.CloseAsync()

@@ -6,11 +6,16 @@ Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
 Imports DotNetty.Transport.Libuv
 Imports DoNetDrive.Core.Connector.TCPServer.Client
+Imports DotNetty.Handlers.Logging
 
 Namespace Connector.TCPServer
     Public Class TCPServerAllocator
         Implements INConnectorAllocator
 
+
+        Public Shared SoRcvbuf As Integer = 209600
+        Public Shared SoSndbuf As Integer = 102400
+        Public Shared SoBacklog As Integer = 200
 #Region "单例模式"
 
         ''' <summary>
@@ -50,7 +55,7 @@ Namespace Connector.TCPServer
         ''' </summary>
         ''' <param name="channel"></param>
         ''' <returns></returns>
-        Public Shared Function GetClientKey(channel As IChannel) As String
+        Public Shared Function GetClientKey(channel As IChannel, ByRef outClientID As Long) As String
             Dim local As String = New IPDetail(channel.LocalAddress).ToString()
             Dim remote As IPEndPoint = TryCast(channel.RemoteAddress, IPEndPoint)
             Dim p As IPAddress = remote.Address
@@ -60,6 +65,7 @@ Namespace Connector.TCPServer
 
 
             Dim id = Interlocked.Increment(ClientID)
+            outClientID = id
             local = $"TCPServer_Local:{local}_Remote:{p.ToString()}:{remote.Port}_ClientID:{id}"
             Return local
         End Function
@@ -90,10 +96,9 @@ Namespace Connector.TCPServer
                 .Group(serverGroup, ClientGroup)
                 .Channel(Of TcpServerSocketChannelEx)()
                 .Option(ChannelOption.Allocator, DotNettyAllocator.GetBufferAllocator())
-                .Option(ChannelOption.SoBacklog, 100)
-                .Option(ChannelOption.SoRcvbuf, 209600)
-                .Option(ChannelOption.SoSndbuf, 102400)
-                '.Handler(New LoggingHandler("SRV-LSTN"))
+                .Option(ChannelOption.SoBacklog, SoBacklog)
+                .Option(ChannelOption.SoRcvbuf, SoRcvbuf)
+                .Option(ChannelOption.SoSndbuf, SoSndbuf)
 
                 mTCPClientHandler = New TCPClientChannelInitializer()
                 .ChildHandler(mTCPClientHandler)

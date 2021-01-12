@@ -125,7 +125,7 @@ Namespace Connector.TCPClient
             If TCPBootstrap Is Nothing Then
                 Return Nothing
             End If
-            TCPBootstrap.Option(ChannelOption.ConnectTimeout, New TimeSpan(0, 0, 0, 0, iTimeOut)) '最大连接超时时间
+            TCPBootstrap.Option(ChannelOption.ConnectTimeout, TimeSpan.FromMilliseconds(iTimeOut)) '最大连接超时时间
 
             Dim oIP As IPAddress = Nothing
             If String.IsNullOrEmpty(detail.LocalAddr) Then

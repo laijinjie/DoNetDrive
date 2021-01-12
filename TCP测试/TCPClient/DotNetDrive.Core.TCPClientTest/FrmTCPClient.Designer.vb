@@ -51,6 +51,7 @@ Partial Class FrmTCPClient
         Me.tmrConnects = New System.Windows.Forms.Timer(Me.components)
         Me.chkShowLog = New System.Windows.Forms.CheckBox()
         Me.Button5 = New System.Windows.Forms.Button()
+        Me.butDebugList = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'cmbLocalIP
@@ -241,7 +242,7 @@ Partial Class FrmTCPClient
         'txtNewConnects
         '
         Me.txtNewConnects.Location = New System.Drawing.Point(171, 115)
-        Me.txtNewConnects.MaxLength = 4
+        Me.txtNewConnects.MaxLength = 5
         Me.txtNewConnects.Name = "txtNewConnects"
         Me.txtNewConnects.Size = New System.Drawing.Size(68, 21)
         Me.txtNewConnects.TabIndex = 50
@@ -297,11 +298,21 @@ Partial Class FrmTCPClient
         Me.Button5.Text = "循环发送"
         Me.Button5.UseVisualStyleBackColor = True
         '
+        'butDebugList
+        '
+        Me.butDebugList.Location = New System.Drawing.Point(648, 113)
+        Me.butDebugList.Name = "butDebugList"
+        Me.butDebugList.Size = New System.Drawing.Size(70, 23)
+        Me.butDebugList.TabIndex = 62
+        Me.butDebugList.Text = "打印列表"
+        Me.butDebugList.UseVisualStyleBackColor = True
+        '
         'FrmTCPClient
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(997, 547)
+        Me.Controls.Add(Me.butDebugList)
         Me.Controls.Add(Me.Button5)
         Me.Controls.Add(Me.chkShowLog)
         Me.Controls.Add(Me.txtConnected)
@@ -364,4 +375,5 @@ Partial Class FrmTCPClient
     Friend WithEvents tmrConnects As Timer
     Friend WithEvents chkShowLog As CheckBox
     Friend WithEvents Button5 As Button
+    Friend WithEvents butDebugList As Button
 End Class

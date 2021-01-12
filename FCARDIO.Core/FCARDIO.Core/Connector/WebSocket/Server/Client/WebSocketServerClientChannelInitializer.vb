@@ -32,8 +32,8 @@ Namespace Connector.WebSocket.Server.Client
                     channel.CloseAsync()
                     Return
                 End If
-
-                Dim sKey As String = WebSocketServerAllocator.GetClientKey(channel)
+                Dim iClientID As Long
+                Dim sKey As String = WebSocketServerAllocator.GetClientKey(channel, iClientID)
                 Dim ServerConnt = pnl.ServerConnector
                 Dim ServerDetail = TryCast(ServerConnt.GetConnectorDetail(), TCPServer.TCPServerDetail)
                 If ServerDetail.IsSSL Then
@@ -49,7 +49,8 @@ Namespace Connector.WebSocket.Server.Client
                 channel.Pipeline().AddLast(New HttpServerCodec())
                 channel.Pipeline().AddLast(New HttpObjectAggregator(65536))
 
-                Dim conn As WebSocketServerClientConnector = New WebSocketServerClientConnector(sKey, channel)
+                Dim conn As WebSocketServerClientConnector =
+                    New WebSocketServerClientConnector(sKey, channel, iClientID)
                 pnl.ServerConnector.FireClientOnline(conn)
             Else
                 channel.CloseAsync()

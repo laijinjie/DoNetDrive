@@ -22,11 +22,16 @@ Namespace Connector.TCPServer.Client
         Public ReadOnly Local As IPDetail
 
         ''' <summary>
+        ''' 客户端唯一号
+        ''' </summary>
+        Public ReadOnly ClientID As Long
+
+        ''' <summary>
         ''' 指定一个唯一Key值，用于表示一个服务器下的节点客户端
         ''' </summary>
         ''' <param name="skey"></param>
         Public Sub New(skey As String)
-            Me.New(skey, Nothing, Nothing)
+            Me.New(skey, Nothing, Nothing, 0)
         End Sub
 
         ''' <summary>
@@ -34,10 +39,11 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         ''' <param name="skey">指示此节点的唯一Key值</param>
         ''' <param name="_remote">远程客户端身份</param>
-        Public Sub New(skey As String, _remote As IPEndPoint, _local As IPEndPoint)
+        Public Sub New(skey As String, _remote As IPEndPoint, _local As IPEndPoint, ByVal iClientID As Long)
             Key = skey
             Remote = New IPDetail(_remote)
             Local = New IPDetail(_local)
+            ClientID = iClientID
         End Sub
 
 

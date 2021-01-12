@@ -9,6 +9,7 @@ Imports System.Security.Cryptography.X509Certificates
 Imports System.Net.Security
 Imports System.IO
 Imports System.Threading
+Imports System.Net.Sockets
 
 Namespace Connector.TCPClient
     ''' <summary>
@@ -205,7 +206,20 @@ Namespace Connector.TCPClient
         ''' 当连接通道连接已失效时调用
         ''' </summary>
         Protected Overrides Sub ConnectFail0()
-
+            Dim dtl = GetConnectorDetail()
+            If dtl.IsFaulted Then
+                Dim err = dtl.GetError
+                If TypeOf err Is SocketException Then
+                    Dim SocketExceptionErr = TryCast(err, SocketException)
+                    If SocketExceptionErr.ErrorCode = System.Net.Sockets.SocketError.Shutdown Then
+                        If Not _IsForcibly Then
+                            SetInvalid()
+                            Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源
+                            Return
+                        End If
+                    End If
+                End If
+            End If
             If (_ConnectFailCount >= _ReconnectMax) Then
                 FireConnectorErrorEvent(GetConnectorDetail())
                 _ConnectFailCount = 0

@@ -12,7 +12,7 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         ''' <param name="skey"></param>
         Public Sub New(skey As String)
-            MyBase.New(skey, Nothing, Nothing)
+            MyBase.New(skey, Nothing, Nothing, 0)
         End Sub
 
         ''' <summary>
@@ -20,8 +20,8 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         ''' <param name="skey">指示此节点的唯一Key值</param>
         ''' <param name="_remote">远程客户端身份</param>
-        Public Sub New(skey As String, _remote As IPEndPoint, _local As IPEndPoint)
-            MyBase.New(skey, _remote, _local)
+        Public Sub New(skey As String, _remote As IPEndPoint, _local As IPEndPoint, _ClientID As Long)
+            MyBase.New(skey, _remote, _local, _ClientID)
         End Sub
 
         ''' <summary>

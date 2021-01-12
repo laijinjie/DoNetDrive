@@ -13,6 +13,8 @@
             connector.CheckIsInvalid()
             If (Not connector.IsInvalid) Then
                 OpenConnector(connector)
+            Else
+                connector.CheckIsInvalid()
             End If
         End Sub
 

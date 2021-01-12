@@ -15,6 +15,11 @@ Namespace Connector
         Implements INConnector
 
         ''' <summary>
+        ''' 默认的通道连接保持时间
+        ''' </summary>
+        Public Shared DefaultChannelKeepaliveMaxTime As Integer = 60
+
+        ''' <summary>
         ''' 用来进行通道锁操作的对象
         ''' </summary>
         Protected Lockobject As Object = New Object()
@@ -163,6 +168,7 @@ Namespace Connector
             _IsCloseing = False
             _Status = GetInitializationStatus()
             _ActivityDate = Date.Now
+            ChannelKeepaliveMaxTime = DefaultChannelKeepaliveMaxTime
         End Sub
 
         Protected Overrides Sub Finalize()
@@ -469,7 +475,7 @@ Namespace Connector
 
             Dim lElapse = (Date.Now - _ActivityDate).TotalSeconds()
             If (lElapse > ChannelKeepaliveMaxTime) Then
-                'Trace.WriteLine($"通道：{GetKey()}, 已空闲 {lElapse} 秒，准备关闭连接")
+                'Trace.WriteLine($"通道：{GetKey()}, 已空闲 {lElapse} 秒，准备关闭连接  {Date.Now:HH:mm:ss.ffff} ")
                 SetInvalid()
             End If
 
@@ -523,7 +529,7 @@ Namespace Connector
             End SyncLock
 
 
-            If _IsCloseing Or _isInvalid Then '如果已经入通过关闭状态，则检查活动状态（连接状态）
+            If _IsCloseing Then '如果已经入通过关闭状态，则检查活动状态（连接状态）
                 'If _isInvalid Then Trace.WriteLine($"{GetKey()} Run 连接已失效（保持连接超时或连接失败次数已达最大），进入关闭流程")
                 'If _IsCloseing Then Trace.WriteLine($"{GetKey()} Run 进入关闭流程")
                 If IsActivity() Then
@@ -541,6 +547,7 @@ Namespace Connector
             Try
                 If (_isRelease) Then Return
                 CheckStatus()
+
             Catch ex As Exception
                 Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.ToString()}")
             End Try
@@ -806,6 +813,13 @@ Namespace Connector
 
         Public Sub Close() Implements INConnector.Close
             _IsCloseing = True
+        End Sub
+
+        Protected Overridable Sub CloseConnectCheck()
+            If (_IsCloseing Or IsInvalid) And _IsRuning Then
+                Dispose()
+                Return
+            End If
         End Sub
 
 #End Region

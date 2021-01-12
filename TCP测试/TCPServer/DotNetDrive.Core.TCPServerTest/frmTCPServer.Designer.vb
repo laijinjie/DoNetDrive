@@ -22,6 +22,7 @@ Partial Class frmTCPServer
     '不要使用代码编辑器修改它。
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Me.txtWatchPort = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
@@ -29,6 +30,7 @@ Partial Class frmTCPServer
         Me.butOpenTCPServer = New System.Windows.Forms.Button()
         Me.txtLog = New System.Windows.Forms.TextBox()
         Me.GroupBox3 = New System.Windows.Forms.GroupBox()
+        Me.butReloadClientList = New System.Windows.Forms.Button()
         Me.butTCPClientSend_200K = New System.Windows.Forms.Button()
         Me.butCloseTCPClient = New System.Windows.Forms.Button()
         Me.butTCPClientSend = New System.Windows.Forms.Button()
@@ -36,6 +38,14 @@ Partial Class frmTCPServer
         Me.txtTCPClientText = New System.Windows.Forms.TextBox()
         Me.cmbLocalIP = New System.Windows.Forms.ComboBox()
         Me.chkSSL = New System.Windows.Forms.CheckBox()
+        Me.chkShowLog = New System.Windows.Forms.CheckBox()
+        Me.txtConnectCount = New System.Windows.Forms.TextBox()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.tmrTotal = New System.Windows.Forms.Timer(Me.components)
+        Me.txtReadBytes = New System.Windows.Forms.TextBox()
+        Me.Label2 = New System.Windows.Forms.Label()
+        Me.btnGC = New System.Windows.Forms.Button()
+        Me.butDebugList = New System.Windows.Forms.Button()
         Me.GroupBox3.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -94,6 +104,7 @@ Partial Class frmTCPServer
         '
         'GroupBox3
         '
+        Me.GroupBox3.Controls.Add(Me.butReloadClientList)
         Me.GroupBox3.Controls.Add(Me.butTCPClientSend_200K)
         Me.GroupBox3.Controls.Add(Me.butCloseTCPClient)
         Me.GroupBox3.Controls.Add(Me.butTCPClientSend)
@@ -106,9 +117,18 @@ Partial Class frmTCPServer
         Me.GroupBox3.TabStop = False
         Me.GroupBox3.Text = "TCP客户端_被动连接"
         '
+        'butReloadClientList
+        '
+        Me.butReloadClientList.Location = New System.Drawing.Point(370, 73)
+        Me.butReloadClientList.Name = "butReloadClientList"
+        Me.butReloadClientList.Size = New System.Drawing.Size(75, 23)
+        Me.butReloadClientList.TabIndex = 12
+        Me.butReloadClientList.Text = "刷新列表"
+        Me.butReloadClientList.UseVisualStyleBackColor = True
+        '
         'butTCPClientSend_200K
         '
-        Me.butTCPClientSend_200K.Location = New System.Drawing.Point(532, 75)
+        Me.butTCPClientSend_200K.Location = New System.Drawing.Point(532, 73)
         Me.butTCPClientSend_200K.Name = "butTCPClientSend_200K"
         Me.butTCPClientSend_200K.Size = New System.Drawing.Size(75, 23)
         Me.butTCPClientSend_200K.TabIndex = 11
@@ -126,7 +146,7 @@ Partial Class frmTCPServer
         '
         'butTCPClientSend
         '
-        Me.butTCPClientSend.Location = New System.Drawing.Point(451, 75)
+        Me.butTCPClientSend.Location = New System.Drawing.Point(451, 73)
         Me.butTCPClientSend.Name = "butTCPClientSend"
         Me.butTCPClientSend.Size = New System.Drawing.Size(75, 23)
         Me.butTCPClientSend.TabIndex = 9
@@ -169,11 +189,85 @@ Partial Class frmTCPServer
         Me.chkSSL.Text = "SSL"
         Me.chkSSL.UseVisualStyleBackColor = True
         '
+        'chkShowLog
+        '
+        Me.chkShowLog.AutoSize = True
+        Me.chkShowLog.Location = New System.Drawing.Point(12, 166)
+        Me.chkShowLog.Name = "chkShowLog"
+        Me.chkShowLog.Size = New System.Drawing.Size(72, 16)
+        Me.chkShowLog.TabIndex = 55
+        Me.chkShowLog.Text = "显示日志"
+        Me.chkShowLog.UseVisualStyleBackColor = True
+        '
+        'txtConnectCount
+        '
+        Me.txtConnectCount.Location = New System.Drawing.Point(757, 10)
+        Me.txtConnectCount.Name = "txtConnectCount"
+        Me.txtConnectCount.Size = New System.Drawing.Size(70, 21)
+        Me.txtConnectCount.TabIndex = 57
+        Me.txtConnectCount.Text = "0"
+        '
+        'Label1
+        '
+        Me.Label1.AutoSize = True
+        Me.Label1.Location = New System.Drawing.Point(686, 14)
+        Me.Label1.Name = "Label1"
+        Me.Label1.Size = New System.Drawing.Size(65, 12)
+        Me.Label1.TabIndex = 56
+        Me.Label1.Text = "已连接数："
+        '
+        'tmrTotal
+        '
+        Me.tmrTotal.Enabled = True
+        Me.tmrTotal.Interval = 500
+        '
+        'txtReadBytes
+        '
+        Me.txtReadBytes.Location = New System.Drawing.Point(757, 38)
+        Me.txtReadBytes.Name = "txtReadBytes"
+        Me.txtReadBytes.Size = New System.Drawing.Size(70, 21)
+        Me.txtReadBytes.TabIndex = 59
+        Me.txtReadBytes.Text = "0"
+        '
+        'Label2
+        '
+        Me.Label2.AutoSize = True
+        Me.Label2.Location = New System.Drawing.Point(658, 42)
+        Me.Label2.Name = "Label2"
+        Me.Label2.Size = New System.Drawing.Size(89, 12)
+        Me.Label2.TabIndex = 58
+        Me.Label2.Text = "已收到字节数："
+        '
+        'btnGC
+        '
+        Me.btnGC.Location = New System.Drawing.Point(757, 65)
+        Me.btnGC.Name = "btnGC"
+        Me.btnGC.Size = New System.Drawing.Size(70, 23)
+        Me.btnGC.TabIndex = 60
+        Me.btnGC.Text = "GC"
+        Me.btnGC.UseVisualStyleBackColor = True
+        '
+        'butDebugList
+        '
+        Me.butDebugList.Location = New System.Drawing.Point(757, 94)
+        Me.butDebugList.Name = "butDebugList"
+        Me.butDebugList.Size = New System.Drawing.Size(70, 23)
+        Me.butDebugList.TabIndex = 61
+        Me.butDebugList.Text = "打印列表"
+        Me.butDebugList.UseVisualStyleBackColor = True
+        '
         'frmTCPServer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(839, 482)
+        Me.Controls.Add(Me.butDebugList)
+        Me.Controls.Add(Me.btnGC)
+        Me.Controls.Add(Me.txtReadBytes)
+        Me.Controls.Add(Me.Label2)
+        Me.Controls.Add(Me.txtConnectCount)
+        Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.chkShowLog)
         Me.Controls.Add(Me.chkSSL)
         Me.Controls.Add(Me.cmbLocalIP)
         Me.Controls.Add(Me.GroupBox3)
@@ -206,4 +300,13 @@ Partial Class frmTCPServer
     Friend WithEvents cmbLocalIP As ComboBox
     Friend WithEvents butTCPClientSend_200K As Button
     Friend WithEvents chkSSL As CheckBox
+    Friend WithEvents chkShowLog As CheckBox
+    Friend WithEvents butReloadClientList As Button
+    Friend WithEvents txtConnectCount As TextBox
+    Friend WithEvents Label1 As Label
+    Friend WithEvents tmrTotal As Timer
+    Friend WithEvents txtReadBytes As TextBox
+    Friend WithEvents Label2 As Label
+    Friend WithEvents btnGC As Button
+    Friend WithEvents butDebugList As Button
 End Class

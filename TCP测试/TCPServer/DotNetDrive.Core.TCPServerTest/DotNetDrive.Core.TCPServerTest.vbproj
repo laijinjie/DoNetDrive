@@ -48,29 +48,20 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DoNetDrive.Core">
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetDrive.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DoNetTool.Common">
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DoNetTool.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\..\DoNetDrive.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="DotNetty.Transport">
+      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\..\一卡通云平台客户端辅助工具\DLL\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -108,6 +99,7 @@
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -119,6 +111,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="MyTraceListener.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="frmTCPServer.resx">
@@ -142,6 +135,16 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+      <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
+      <Name>DoNetDrive.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\FCARDIO.Protocol\FCARDIO.Protocol\DoNetDrive.Protocol.vbproj">
+      <Project>{4c9b06e5-da6b-49af-8e4d-a0d75046c044}</Project>
+      <Name>DoNetDrive.Protocol</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

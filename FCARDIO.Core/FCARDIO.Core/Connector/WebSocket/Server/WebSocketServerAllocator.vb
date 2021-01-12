@@ -51,10 +51,17 @@ Namespace Connector.WebSocket.Server
         ''' </summary>
         ''' <param name="channel"></param>
         ''' <returns></returns>
-        Public Shared Function GetClientKey(channel As IChannel) As String
+        Public Shared Function GetClientKey(channel As IChannel, ByRef iClientID As Long) As String
             Dim local As String = New IPDetail(channel.LocalAddress).ToString()
+            Dim remote As IPEndPoint = TryCast(channel.RemoteAddress, IPEndPoint)
+            Dim p As IPAddress = remote.Address
+            If p.IsIPv4MappedToIPv6 Then
+                p = p.MapToIPv4
+            End If
+
             Dim id = Interlocked.Increment(ClientID)
-            local = $"WebSocketServer:{local}_ClientID:{id}"
+            iClientID = id
+            local = $"WebSocketServer:{local}_Remote:{p.ToString()}:{remote.Port}_ClientID:{id}"
             Return local
         End Function
 #End Region

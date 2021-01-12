@@ -7,6 +7,7 @@ Imports DoNetDrive.Core.Connector
 Imports DoNetDrive.Core.Extension
 Imports DotNetty.Buffers
 Imports DotNetty.Common.Utilities
+Imports System.Collections.Concurrent
 
 Public Class FrmTCPClient
     Private mIsUnload As Boolean
@@ -122,10 +123,13 @@ Public Class FrmTCPClient
 
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Allocator = ConnectorAllocator.GetAllocator()
+        AbstractConnector.DefaultChannelKeepaliveMaxTime = 300
+
         obServer = New TCPIOObserverHandler()
         IniLoadLocalIP()
         LoadSetting()
         mIsUnload = False
+        mShowLog = chkShowLog.Checked
     End Sub
 
     Private Sub frmTCPServer_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
@@ -214,7 +218,9 @@ Public Class FrmTCPClient
 
     Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorClosedEvent
         If mIsUnload Then Return
-        mConnectKey.Remove(connector.GetKey())
+        Dim sKey = connector.GetKey()
+        Dim sValue As String
+        mConnectKeys.TryRemove(sKey, sValue)
         AddLog($"连接已关闭  {connector.GetKey()} {GetConnectorDetail(connector)} ")
     End Sub
 
@@ -222,8 +228,9 @@ Public Class FrmTCPClient
         If mIsUnload Then Return
         Dim conn = Allocator.GetConnector(connector)
         conn.AddRequestHandle(obServer)
-        mConnectKey.Add(connector.GetKey())
-        AddLog($"已连接成功 {connector.GetKey()} {GetConnectorDetail(connector)} ")
+        Dim sKey = connector.GetKey()
+        mConnectKeys.TryAdd(sKey, sKey)
+        AddLog($"已连接成功 {sKey} {GetConnectorDetail(connector)} ")
 
     End Sub
 
@@ -268,7 +275,7 @@ Public Class FrmTCPClient
 
     Private Sub AddLog(ByVal sTxt As String)
         If mIsUnload Then Return
-        If Not chkShowLog.Checked Then Return
+        If Not mShowLog Then Return
         Try
             If txtLog.InvokeRequired Then
                 Invoke(New Action(Of String)(AddressOf AddLog), sTxt)
@@ -393,7 +400,7 @@ Public Class FrmTCPClient
     End Sub
 
 
-    Private mConnectKey As HashSet(Of String) = New HashSet(Of String)
+    Private mConnectKeys As ConcurrentDictionary(Of String, String) = New ConcurrentDictionary(Of String, String)
 
     Private Sub butOpenConnectList_Click(sender As Object, e As EventArgs) Handles butOpenConnectList.Click
         Dim i As Integer
@@ -414,14 +421,14 @@ Public Class FrmTCPClient
 
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
         Dim sKey As String
-        Dim sKeys = mConnectKey.ToArray()
+        Dim sKeys = mConnectKeys.Keys.ToArray()
 
         For Each sKey In sKeys
             Dim oTCPDTL = GetTCPClientDetail()
             oTCPDTL.ConnectAlias = sKey
             Allocator.CloseConnector(oTCPDTL)
         Next
-        mConnectKey.Clear()
+        mConnectKeys.Clear()
     End Sub
 
     Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
@@ -434,8 +441,8 @@ Public Class FrmTCPClient
         End If
 
         Dim sKey As String
-
-        Dim sKeys = mConnectKey.ToArray()
+        Dim d As Hashtable
+        Dim sKeys = mConnectKeys.Keys.ToArray()
         For Each sKey In sKeys
             Dim oTCPDTL = GetTCPClientDetail()
             oTCPDTL.ConnectAlias = sKey
@@ -447,14 +454,16 @@ Public Class FrmTCPClient
     End Sub
 
     Private Sub tmrConnects_Tick(sender As Object, e As EventArgs) Handles tmrConnects.Tick
-        txtConnected.Text = mConnectKey.Count.ToString()
+        txtConnected.Text = mConnectKeys.Count.ToString()
     End Sub
 
     Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
         If mSending = False Then
             Task.Run(AddressOf TaskSendAll)
+            Button5.Text = "停止"
             mSending = True
         Else
+            Button5.Text = "循环发送"
             mSending = False
         End If
 
@@ -465,9 +474,24 @@ Public Class FrmTCPClient
         Do
 
             Invoke(New Action(AddressOf SendAllClient))
-            Thread.Sleep(500)
+            Thread.Sleep(3000)
         Loop While mSending
 
     End Sub
 
+    Private mShowLog As Boolean
+
+    Private Sub chkShowLog_CheckedChanged(sender As Object, e As EventArgs) Handles chkShowLog.CheckedChanged
+        mShowLog = chkShowLog.Checked
+    End Sub
+
+    Private Sub butDebugList_Click(sender As Object, e As EventArgs) Handles butDebugList.Click
+        Dim oKeys = Allocator.GetAllConnectorKeys()
+        Dim sBuf = New System.Text.StringBuilder()
+        For Each s In oKeys
+            sBuf.AppendLine(s)
+        Next
+
+        txtLog.Text = sBuf.ToString()
+    End Sub
 End Class

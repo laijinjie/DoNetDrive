@@ -6,6 +6,8 @@ Imports DoNetDrive.Core
 Imports System.Net
 Imports System.IO
 Imports System.Security.Cryptography.X509Certificates
+Imports System.Collections.Concurrent
+
 
 Public Class frmTCPServer
 
@@ -16,7 +18,8 @@ Public Class frmTCPServer
     ''' </summary>
     Private WithEvents obServer As TCPIOObserverHandler
 
-
+    Private mShowLog As Boolean
+    Private mReadBytes As Long
 
 
 
@@ -103,10 +106,15 @@ Public Class frmTCPServer
 
 
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        MyTraceListener.Ini()
         Allocator = ConnectorAllocator.GetAllocator()
+        AbstractConnector.DefaultChannelKeepaliveMaxTime = 10
+
         obServer = New TCPIOObserverHandler()
         InITCPServerClient()
         IniLoadLocalIP()
+
+        mShowLog = chkShowLog.Checked
     End Sub
 
     Private Sub IniLoadLocalIP()
@@ -192,6 +200,7 @@ Public Class frmTCPServer
     End Function
 
     Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeRequestEvent
+        mReadBytes += msgLen
         AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  0x{msgHex}")
     End Sub
 
@@ -204,6 +213,8 @@ Public Class frmTCPServer
 
 
     Private Sub AddLog(ByVal sTxt As String)
+        If Not mShowLog Then Return
+
         Try
             If txtLog.InvokeRequired Then
                 Invoke(New Action(Of String)(AddressOf AddLog), sTxt)
@@ -223,9 +234,9 @@ Public Class frmTCPServer
 
 #Region "TCP Server"
 
-    Private TCPServerClients As Dictionary(Of String, TCPServerClientDetail_Item)
+    Private TCPServerClients As ConcurrentDictionary(Of String, TCPServerClientDetail_Item)
     Private Sub InITCPServerClient()
-        TCPServerClients = New Dictionary(Of String, TCPServerClientDetail_Item)
+        TCPServerClients = New ConcurrentDictionary(Of String, TCPServerClientDetail_Item)
     End Sub
 
 
@@ -233,46 +244,56 @@ Public Class frmTCPServer
         Public Remote As IPDetail
         Public Local As IPDetail
         Public Key As String
+        Public ClientID As Long
 
         Public Sub New(ByVal dtl As TCPServer.Client.TCPServerClientDetail)
             Remote = New IPDetail(dtl.Remote.Addr, dtl.Remote.Port)
             Local = New IPDetail(dtl.Local.Addr, dtl.Local.Port)
+            ClientID = dtl.ClientID
             Key = dtl.Key
         End Sub
 
         Public Overrides Function ToString() As String
-            Return $"本地：{Local.Addr}:{Local.Port} -- 远程:{Remote.Addr}:{Remote.Port}"
+            Return $"本地：{Local.Addr}:{Local.Port} -- 远程:{Remote.Addr}:{Remote.Port} ,ID:{ClientID}"
         End Function
     End Class
 
     Private Sub RemoveTCPClientItem(dtl As INConnectorDetail)
-        If cmbTCPClient.InvokeRequired Then
-            Me.Invoke(Sub() RemoveTCPClientItem(dtl))
+        Dim oItem As TCPServerClientDetail_Item = Nothing
+        Dim sKey As String = dtl.GetKey()
+        Trace.WriteLine($"删除通道 {sKey} ")
+        If Not TCPServerClients.TryRemove(sKey, oItem) Then
             Return
         End If
-        Dim oClient As TCPServer.Client.TCPServerClientDetail = dtl
-
-        If Not TCPServerClients.ContainsKey(oClient.Key) Then
-            Return
-        End If
-        Dim oItem = TCPServerClients(oClient.Key)
-        cmbTCPClient.Items.Remove(oItem)
-        cmbTCPClient.SelectedIndex = cmbTCPClient.Items.Count - 1
-        TCPServerClients.Remove(oItem.Key)
     End Sub
 
     Private Sub AddTCPClientItem(dtl As INConnectorDetail)
-        If cmbTCPClient.InvokeRequired Then
-            Me.Invoke(Sub() AddTCPClientItem(dtl))
-            Return
-        End If
+        Dim sKey As String = dtl.GetKey()
         Dim oClient As TCPServer.Client.TCPServerClientDetail = dtl
         Dim oItem = New TCPServerClientDetail_Item(oClient)
-
-        cmbTCPClient.Items.Add(oItem)
-        cmbTCPClient.SelectedIndex = cmbTCPClient.Items.Count - 1
-        TCPServerClients.Add(oItem.Key, oItem)
+        Trace.WriteLine($"添加通道 {sKey} ")
+        TCPServerClients.TryAdd(sKey, oItem)
     End Sub
+
+
+    Private Sub butReloadClientList_Click(sender As Object, e As EventArgs) Handles butReloadClientList.Click
+        Dim sKeys = TCPServerClients.Keys.ToArray()
+        cmbTCPClient.Items.Clear()
+        cmbTCPClient.BeginUpdate()
+
+        For Each sKey As String In sKeys
+            Dim oItem As TCPServerClientDetail_Item = Nothing
+            If TCPServerClients.TryGetValue(sKey, oItem) Then
+                cmbTCPClient.Items.Add(oItem)
+            End If
+        Next
+        If (sKeys.Count > 0) Then
+            cmbTCPClient.SelectedIndex = 0
+
+        End If
+        cmbTCPClient.EndUpdate()
+    End Sub
+
 
     Private Sub butTCPClientSend_Click(sender As Object, e As EventArgs) Handles butTCPClientSend.Click
         Dim oItem = TryCast(cmbTCPClient.SelectedItem, TCPServerClientDetail_Item)
@@ -344,9 +365,28 @@ Public Class frmTCPServer
         End If
         Return l
     End Function
-
-
-
 #End Region
 
+    Private Sub chkShowLog_CheckedChanged(sender As Object, e As EventArgs) Handles chkShowLog.CheckedChanged
+        mShowLog = chkShowLog.Checked
+    End Sub
+
+    Private Sub tmrTotal_Tick(sender As Object, e As EventArgs) Handles tmrTotal.Tick
+        txtConnectCount.Text = TCPServerClients.Count
+        txtReadBytes.Text = mReadBytes
+    End Sub
+
+    Private Sub btnGC_Click(sender As Object, e As EventArgs) Handles btnGC.Click
+        GC.Collect()
+    End Sub
+
+    Private Sub butDebugList_Click(sender As Object, e As EventArgs) Handles butDebugList.Click
+        Dim oKeys = Allocator.GetAllConnectorKeys()
+        Dim sBuf = New System.Text.StringBuilder()
+        For Each s In oKeys
+            sBuf.AppendLine(s)
+        Next
+
+        txtLog.Text = sBuf.ToString()
+    End Sub
 End Class

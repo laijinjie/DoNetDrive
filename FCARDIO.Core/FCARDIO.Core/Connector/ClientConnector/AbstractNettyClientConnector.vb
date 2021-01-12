@@ -83,17 +83,13 @@ Namespace Connector.Client
             _IsActivity = False
 
             _ConnectFailCount += 1 '失败次数加1
-            CloseConnectCheck()
+
             ConnectFail0()
-
+            If _isRelease Then Return
+            CloseConnectCheck()
         End Sub
 
-        Protected Overridable Sub CloseConnectCheck()
-            If (_IsCloseing Or IsInvalid) And _IsRuning Then
-                Dispose()
-                Return
-            End If
-        End Sub
+
 
         ''' <summary>
         ''' 当连接通道连接已失效时调用
@@ -146,6 +142,7 @@ Namespace Connector.Client
         ''' </summary>
         ''' <returns></returns>
         Protected MustOverride Function GetStatus_Connected() As INConnectorStatus
+
 #End Region
 
 #Region "关闭连接"
@@ -168,7 +165,7 @@ Namespace Connector.Client
             End If
 
             '_ClientChannel = Nothing
-            '_Status = GetInitializationStatus()
+            _Status = GetInitializationStatus()
         End Sub
 #End Region
 
@@ -203,7 +200,15 @@ Namespace Connector.Client
             UpdateActivityTime()
 
             DisposeResponse(buf)
-            Return _ClientChannel?.WriteAndFlushAsync(buf)
+            Dim rst = _ClientChannel?.WriteAndFlushAsync(buf)
+            rst = rst.ContinueWith(Sub(x)
+
+                                       If x.IsFaulted Then
+                                           Trace.WriteLine(x.Exception)
+                                       End If
+                                   End Sub)
+            Return rst
+            'Return _ClientChannel?.WriteAndFlushAsync(buf)
         End Function
 #End Region
 
@@ -247,7 +252,7 @@ Namespace Connector.Client
         ''' <param name="ctx"></param>
         Friend Sub ChannelInactive(ctx As IChannelHandlerContext)
             If _isRelease Then Return
-            'Trace.WriteLine($"{GetKey()} ，线程ID:{Thread.CurrentThread.ManagedThreadId} ChannelInactive 已关闭TCP连接")
+            'Trace.WriteLine($"{GetKey()} ，线程ID:{Thread.CurrentThread.ManagedThreadId} ChannelInactive 已关闭TCP连接 Time: {Date.Now:HH:mm:ss.ffff} ")
             Dim dtl = GetConnectorDetail()
             dtl.SetError(New System.Net.Sockets.SocketException(System.Net.Sockets.SocketError.Shutdown))
             FireConnectorClosedEvent(dtl)

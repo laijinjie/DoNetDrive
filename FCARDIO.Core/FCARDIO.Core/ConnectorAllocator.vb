@@ -321,6 +321,14 @@ Public NotInheritable Class ConnectorAllocator
         End SyncLock
 
     End Function
+
+    ''' <summary>
+    ''' 获取所有在线的连接通道的Key
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function GetAllConnectorKeys() As List(Of String)
+        Return Connectors.Keys.ToList()
+    End Function
 #End Region
 
 #Region "命令的操作"

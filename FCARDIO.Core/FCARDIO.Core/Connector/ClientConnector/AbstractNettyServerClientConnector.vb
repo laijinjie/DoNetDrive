@@ -13,17 +13,19 @@ Namespace Connector.Client
         ''' </summary>
         Public EventArg As ServerEventArgs
 
+        Public ReadOnly ClientID As Long
+
         ''' <summary>
         ''' 创建一个客户端
         ''' </summary>
         ''' <param name="sKey"></param>
         ''' <param name="channel"></param>
-        Public Sub New(sKey As String, channel As IChannel)
+        Public Sub New(sKey As String, channel As IChannel, ByVal _ClientID As Long)
             _ClientChannel = channel
             _Handler = New TCPClientNettyChannelHandler(Of T)(Me)
             _ClientChannel.Pipeline.AddLast(_Handler)
             _ClientChannel.Configuration.SetOption(ChannelOption.SoKeepalive, True)
-
+            ClientID = _ClientID
             mKey = sKey
             '_IsForcibly = True
             ConnectSuccess()
@@ -60,9 +62,10 @@ Namespace Connector.Client
         ''' 当连接通道连接已失效时调用
         ''' </summary>
         Protected Overrides Sub ConnectFail0()
-            If _IsForcibly = False Then
-                FireClientOffline(EventArg)
-            End If
+            'If _IsForcibly = False Then
+            FireClientOffline(EventArg)
+            Trace.WriteLine($"TCP已离线：{GetKey()} {Date.Now:HH:mm:ss.ffff} ")
+            'End If
 
             SetInvalid()
 

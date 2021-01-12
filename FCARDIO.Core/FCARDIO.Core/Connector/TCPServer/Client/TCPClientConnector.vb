@@ -8,13 +8,15 @@ Namespace Connector.TCPServer.Client
         Inherits AbstractNettyServerClientConnector(Of IByteBuffer)
 
 
+
         ''' <summary>
         ''' 创建一个客户端
         ''' </summary>
         ''' <param name="sKey"></param>
         ''' <param name="channel"></param>
-        Public Sub New(sKey As String, channel As IChannel)
-            MyBase.New(sKey, channel)
+        Public Sub New(sKey As String, channel As IChannel, iClientID As Long)
+            MyBase.New(sKey, channel, iClientID)
+            ThisConnectorDetail = Nothing
         End Sub
 
         ''' <summary>
@@ -30,7 +32,7 @@ Namespace Connector.TCPServer.Client
         ''' <returns></returns>
         Protected Overrides Function GetConnectorDetail0() As INConnectorDetail
             If (_ClientChannel Is Nothing) Then Return Nothing
-            Return New TCPServerClientDetail(mKey, _ClientChannel.RemoteAddress， _ClientChannel.LocalAddress)
+            Return New TCPServerClientDetail(mKey, _ClientChannel.RemoteAddress， _ClientChannel.LocalAddress, ClientID)
         End Function
 
 

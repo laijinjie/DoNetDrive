@@ -99,6 +99,8 @@ Namespace Connector.TCPServer
             _ServerChannel = Nothing
             _Status = ConnectorStatus_Invalid.Invalid
             SetInvalid()
+
+            CloseConnectCheck()
         End Sub
 
         ''' <summary>

@@ -24,14 +24,13 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         Protected _HandshakeIsCompleted As Boolean
 
-
         ''' <summary>
         ''' 创建一个客户端
         ''' </summary>
         ''' <param name="sKey"></param>
         ''' <param name="channel"></param>
-        Public Sub New(sKey As String, channel As IChannel)
-            MyBase.New(sKey, channel)
+        Public Sub New(sKey As String, channel As IChannel, ByVal iClientID As Long)
+            MyBase.New(sKey, channel, iClientID)
             _HandshakeIsCompleted = False
         End Sub
 
@@ -223,7 +222,7 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         ''' <returns></returns>
         Protected Overrides Function GetConnectorDetail0() As INConnectorDetail
-            Return New WebSocketServerClientDetail(mKey, _ClientChannel.RemoteAddress， _ClientChannel.LocalAddress)
+            Return New WebSocketServerClientDetail(mKey, _ClientChannel.RemoteAddress， _ClientChannel.LocalAddress, ClientID)
         End Function
 
 
