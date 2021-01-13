@@ -213,6 +213,7 @@ Namespace Connector.TCPClient
                     Dim SocketExceptionErr = TryCast(err, SocketException)
                     If SocketExceptionErr.ErrorCode = System.Net.Sockets.SocketError.Shutdown Then
                         If Not _IsForcibly Then
+                            FireConnectorErrorEvent(GetConnectorDetail())
                             SetInvalid()
                             Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源
                             Return

@@ -204,7 +204,7 @@ Namespace Connector.Client
             rst = rst.ContinueWith(Sub(x)
 
                                        If x.IsFaulted Then
-                                           Trace.WriteLine(x.Exception)
+                                           CloseConnector()
                                        End If
                                    End Sub)
             Return rst

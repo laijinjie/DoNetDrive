@@ -63,6 +63,7 @@ Namespace Connector.Client
         ''' </summary>
         Protected Overrides Sub ConnectFail0()
             'If _IsForcibly = False Then
+            FireConnectorErrorEvent(GetConnectorDetail())
             FireClientOffline(EventArg)
             Trace.WriteLine($"TCP已离线：{GetKey()} {Date.Now:HH:mm:ss.ffff} ")
             'End If

@@ -77,10 +77,10 @@ Namespace Connector.WebSocket.Server.Client
                 Return
             End If
 
-            If "/".Equals(req.Uri) Then
-                SendHttpResponse(ctx, req, New DefaultFullHttpResponse(HttpVersion.Http11, HttpResponseStatus.NotFound))
-                Return
-            End If
+            'If "/".Equals(req.Uri) Then
+            '    SendHttpResponse(ctx, req, New DefaultFullHttpResponse(HttpVersion.Http11, HttpResponseStatus.NotFound))
+            '    Return
+            'End If
 
             If "/favicon.ico".Equals(req.Uri) Then
                 SendHttpResponse(ctx, req, New DefaultFullHttpResponse(HttpVersion.Http11, HttpResponseStatus.NotFound))
@@ -204,11 +204,18 @@ Namespace Connector.WebSocket.Server.Client
             If _ClientChannel Is Nothing Then
                 Return Nothing
             End If
+            Dim IsUseBinary As Boolean = (TypeOf _ActivityCommand IsNot Command.Text.TextCommand)
 
+
+            If TypeOf buf Is WebsocketTextBuffer Then
+                IsUseBinary = False
+                buf = TryCast(buf, WebsocketTextBuffer).GetBuf()
+            End If
 
             UpdateActivityTime()
             DisposeResponse(buf)
-            Dim IsUseBinary As Boolean = (TypeOf _ActivityCommand IsNot Command.Text.TextCommand)
+
+
             If IsUseBinary Then
                 Return _ClientChannel?.WriteAndFlushAsync(New BinaryWebSocketFrame(buf))
             Else

@@ -14,7 +14,7 @@
             If (Not connector.IsInvalid) Then
                 OpenConnector(connector)
             Else
-                connector.CheckIsInvalid()
+                'connector.CheckIsInvalid()
             End If
         End Sub
 

@@ -4,14 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}</ProjectGuid>
+    <ProjectGuid>{7FF06283-9564-4FBB-8499-112159E72A99}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <StartupObject>DotNetDrive.Core.TCPClientTest.My.MyApplication</StartupObject>
-    <RootNamespace>DotNetDrive.Core.TCPClientTest</RootNamespace>
-    <AssemblyName>TCPClientTest</AssemblyName>
+    <StartupObject>WebSocketClientTest.My.MyApplication</StartupObject>
+    <RootNamespace>WebSocketClientTest</RootNamespace>
+    <AssemblyName>WebSocketClientTest</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -22,7 +22,7 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>TCPClientTest.xml</DocumentationFile>
+    <DocumentationFile>WebSocketClientTest.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -32,7 +32,7 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>TCPClientTest.xml</DocumentationFile>
+    <DocumentationFile>WebSocketClientTest.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
@@ -48,29 +48,24 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DoNetTool.Common">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DoNetTool.Common.dll</HintPath>
+    <Reference Include="DotNetty.Buffers">
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="DotNetty.Buffers, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Codecs, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
+    <Reference Include="DotNetty.Codecs">
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
+      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -99,12 +94,11 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CRC32.vb" />
-    <Compile Include="FrmTCPClient.vb">
+    <Compile Include="frmWebSocketClient.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmTCPClient.Designer.vb">
-      <DependentUpon>FrmTCPClient.vb</DependentUpon>
+    <Compile Include="frmWebSocketClient.Designer.vb">
+      <DependentUpon>frmWebSocketClient.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="My Project\AssemblyInfo.vb" />
@@ -124,8 +118,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="FrmTCPClient.resx">
-      <DependentUpon>FrmTCPClient.vb</DependentUpon>
+    <EmbeddedResource Include="frmWebSocketClient.resx">
+      <DependentUpon>frmWebSocketClient.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
@@ -147,13 +141,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
       <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
       <Name>DoNetDrive.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\FCARDIO.Protocol\FCARDIO.Protocol\DoNetDrive.Protocol.vbproj">
-      <Project>{4c9b06e5-da6b-49af-8e4d-a0d75046c044}</Project>
-      <Name>DoNetDrive.Protocol</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

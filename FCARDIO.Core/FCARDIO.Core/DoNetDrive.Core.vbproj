@@ -169,6 +169,7 @@
     <Compile Include="Connector\WebSocket\Server\WebSocketServerAllocator.vb" />
     <Compile Include="Connector\WebSocket\Server\WebSocketServerConnector.vb" />
     <Compile Include="Connector\WebSocket\Server\WebSocketServerDetail.vb" />
+    <Compile Include="Connector\WebSocket\WebsocketTextBuffer.vb" />
     <Compile Include="Connector\接口\INConnector.vb" />
     <Compile Include="Connector\接口\INConnectorDetail.vb" />
     <Compile Include="Connector\接口\INConnectorStatus.vb" />

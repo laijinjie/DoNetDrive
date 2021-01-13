@@ -120,7 +120,7 @@ Namespace Connector.TCPServer
         ''' </summary>
         ''' <returns></returns>
         Public Overrides Function GetKey() As String
-            Return $"TCPServer_{LocalAddr}:{LocalPort}"
+            Return $"{GetTypeName()}_{LocalAddr}:{LocalPort}"
         End Function
 
         ''' <summary>

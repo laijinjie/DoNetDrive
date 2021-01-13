@@ -36,6 +36,16 @@ Namespace Connector.WebSocket.Server
         ''' </summary>
         ''' <param name="Addr">本地监听地址</param>
         ''' <param name="Port">本地监听端口</param>
+        Public Sub New(Addr As String, Port As Integer, path As String)
+            Me.New(Addr, Port, False, Nothing, path)
+        End Sub
+
+
+        ''' <summary>
+        ''' 初始化详情
+        ''' </summary>
+        ''' <param name="Addr">本地监听地址</param>
+        ''' <param name="Port">本地监听端口</param>
         ''' <param name="bSSL">是否开启SSL</param>
         ''' <param name="oX509">使用的证书</param>
         Public Sub New(Addr As String, Port As Integer, bSSL As Boolean, oX509 As X509Certificate2, path As String)
