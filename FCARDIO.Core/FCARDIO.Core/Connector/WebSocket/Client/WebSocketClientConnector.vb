@@ -96,11 +96,18 @@ Namespace Connector.WebSocket.Client
             End If
 
             If Not _HandshakeIsCompleted Then Return Nothing
+            Dim IsUseBinary As Boolean = (TypeOf _ActivityCommand IsNot Command.Text.TextCommand)
+
+
+            If TypeOf buf Is WebsocketTextBuffer Then
+                IsUseBinary = False
+                buf = TryCast(buf, WebsocketTextBuffer).GetBuf()
+            End If
+
 
             UpdateActivityTime()
             DisposeResponse(buf)
 
-            Dim IsUseBinary As Boolean = Not (TypeOf _ActivityCommand Is Command.Text.TextCommand)
 
             If IsUseBinary Then
                 Return _ClientChannel?.WriteAndFlushAsync(New BinaryWebSocketFrame(buf))

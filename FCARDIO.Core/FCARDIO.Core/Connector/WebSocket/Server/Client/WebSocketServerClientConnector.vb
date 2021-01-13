@@ -25,6 +25,11 @@ Namespace Connector.WebSocket.Server.Client
         Protected _HandshakeIsCompleted As Boolean
 
         ''' <summary>
+        ''' 本次请求的URL地址参数
+        ''' </summary>
+        Public RequestURL As String
+
+        ''' <summary>
         ''' 创建一个客户端
         ''' </summary>
         ''' <param name="sKey"></param>
@@ -87,6 +92,10 @@ Namespace Connector.WebSocket.Server.Client
                 Return
             End If
 
+            RequestURL = req.Uri
+            Dim dtl = TryCast(GetConnectorDetail(), WebSocketServerClientDetail)
+            dtl.RequestURL = req.Uri
+
             Dim wsFactory = New WebSocketServerHandshakerFactory(GetWebSocketLocation(req), Nothing, True, 5 * 1024 * 1024)
             Me._Handshaker = wsFactory.NewHandshaker(req)
             '握手完成
@@ -102,12 +111,13 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         ''' <param name="oTsk"></param>
         Private Sub HandshakeOver(oTsk As Task)
+            Dim pnl As TcpServerSocketChannelEx = TryCast(_ClientChannel.Parent, TcpServerSocketChannelEx）
             If oTsk.IsCanceled Or oTsk.IsFaulted Then
-                Trace.WriteLine("握手失败！")
+                pnl.ServerConnector.FireConnectorErrorEvent(GetConnectorDetail())
             Else
                 _HandshakeIsCompleted = oTsk.IsCompleted
-
-                Trace.WriteLine("握手成功！")
+                pnl.ServerConnector.FireClientOnline(Me)
+                'Trace.WriteLine("握手成功！")
             End If
         End Sub
 

@@ -6,6 +6,10 @@ Namespace Connector.WebSocket.Server.Client
     ''' </summary>
     Public Class WebSocketServerClientDetail
         Inherits TCPServer.Client.TCPServerClientDetail
+        ''' <summary>
+        ''' 请求的URL地址信息
+        ''' </summary>
+        Public RequestURL As String
 
         ''' <summary>
         ''' 指定一个唯一Key值，用于表示一个服务器下的节点客户端

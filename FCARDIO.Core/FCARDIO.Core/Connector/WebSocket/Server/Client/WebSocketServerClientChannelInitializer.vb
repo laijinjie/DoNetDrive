@@ -51,7 +51,7 @@ Namespace Connector.WebSocket.Server.Client
 
                 Dim conn As WebSocketServerClientConnector =
                     New WebSocketServerClientConnector(sKey, channel, iClientID)
-                pnl.ServerConnector.FireClientOnline(conn)
+                'pnl.ServerConnector.FireClientOnline(conn)
             Else
                 channel.CloseAsync()
             End If

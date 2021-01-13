@@ -135,6 +135,10 @@ Namespace Connector.WebSocket.Server
             mServerBootstrap = Nothing
             mWebSocketClientHandler = Nothing
         End Sub
+
+        Protected Overrides Sub Finalize()
+            MyBase.Finalize()
+        End Sub
     End Class
 
 End Namespace

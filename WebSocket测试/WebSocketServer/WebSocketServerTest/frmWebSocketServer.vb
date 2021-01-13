@@ -2,10 +2,12 @@
 Imports System.IO
 Imports System.Net
 Imports System.Security.Cryptography.X509Certificates
+Imports System.Threading
 Imports DoNetDrive.Core
 Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
 Imports DoNetDrive.Core.Connector.WebSocket
+Imports DoNetDrive.Core.Connector.WebSocket.Server.Client
 Imports DoNetDrive.Core.Extension
 Imports DotNetty.Buffers
 
@@ -19,8 +21,9 @@ Public Class frmWebSocketServer
     Private WithEvents obServer As TCPIOObserverHandler
 
     Private mShowLog As Boolean
-    Private mReadBytes As Long
+    Private mReadBytes As Long, mSendBytes As Long
     Private UTF8 As System.Text.Encoding = System.Text.Encoding.UTF8
+    Private mAutoAck As Boolean
 
 
     ''' <summary>
@@ -108,7 +111,7 @@ Public Class frmWebSocketServer
         MyTraceListener.Ini()
         Allocator = ConnectorAllocator.GetAllocator()
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 100
-
+        mAutoAck = chkAutoACK.Checked
         obServer = New TCPIOObserverHandler()
         InITCPServerClient()
         IniLoadLocalIP()
@@ -147,13 +150,49 @@ Public Class frmWebSocketServer
     Private Sub Allocator_ClientOnline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOnline
         Dim inc = TryCast(sender, INConnector)
         inc.AddRequestHandle(obServer)
-
+        AddLog($"连接建立  {GetConnectorDetail(inc)}")
         If inc.GetConnectorType = ConnectorType.WebSocketServerClient Then
             AddTCPClientItem(inc.GetConnectorDetail())
+            Dim wbcDTl = TryCast(inc.GetConnectorDetail(), WebSocketServerClientDetail)
+
+            Dim sURL = wbcDTl.RequestURL
+
+            Dim dic = GetURLParDictionary(sURL)
+
+            AddLog($"客户端请求的URL  {wbcDTl.RequestURL}  {dic("u")}")
+        End If
+    End Sub
+
+    Private Function GetURLParDictionary(ByVal sURL As String) As Dictionary(Of String, String)
+        Dim pars As Dictionary(Of String, String) = New Dictionary(Of String, String)
+        If String.IsNullOrWhiteSpace(sURL) Then
+            pars.Add("path", String.Empty)
+            Return pars
         End If
 
-        AddLog($"连接建立  {GetConnectorDetail(inc)}")
-    End Sub
+        '/v1/websocket?u=VCARDFACE7D4E2DF731FF30&ac=BKUN-UUH6-GXJV-XFKM&deviceFinger=156F50141242B55D42347D4E2DF731FF30
+
+        Dim sArr1 = sURL.Split("?")
+        pars.Add("path", sArr1(0))
+        If sArr1.Length = 1 Then
+            Return pars
+        End If
+
+
+        sArr1 = sArr1(1).Split("&")
+        For Each sParValue In sArr1
+            Dim sParArr = sParValue.Split("=")
+            Try
+                If Not pars.ContainsKey(sParArr(0)) Then
+                    pars.Add(sParArr(0), sParArr(1))
+                End If
+
+            Catch ex As Exception
+                pars.Add(sParArr(0), String.Empty)
+            End Try
+        Next
+        Return pars
+    End Function
 
 
     Private Sub Allocator_CommandCompleteEvent(sender As Object, e As CommandEventArgs) Handles Allocator.CommandCompleteEvent
@@ -199,7 +238,8 @@ Public Class frmWebSocketServer
     End Function
 
     Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeRequestEvent
-        mReadBytes += msgLen
+
+        Interlocked.Add(mReadBytes, msgLen)
         AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  内容：{msgHex}")
 
 
@@ -209,15 +249,19 @@ Public Class frmWebSocketServer
 
         'Dim txt As New Command.Text.TextCommand(New Text.TextCommandDetail(connDtl),
         '                                        New Command.Text.TextCommandParameter(msgHex, UTF8))
+        If mAutoAck Then
+            Dim tBuf = New WebsocketTextBuffer(msgHex, UTF8)
+            connector.WriteByteBuf(tBuf)
+        End If
 
-        Dim tBuf = New WebsocketTextBuffer(msgHex, UTF8)
-        connector.WriteByteBuf(tBuf)
     End Sub
 
     Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeResponseEvent
         'If mUseEcho Then
         '    Return
         'End If
+
+        Interlocked.Add(mSendBytes, msgLen)
         AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  内容：{msgHex}")
     End Sub
 
@@ -314,7 +358,12 @@ Public Class frmWebSocketServer
 
         Dim txt As New Command.Text.TextCommand(New Text.TextCommandDetail(connDtl),
                                                 New Command.Text.TextCommandParameter(txtTCPClientText.Text, UTF8))
-        Allocator.AddCommand(txt)
+        Try
+            Allocator.AddCommand(txt)
+        Catch ex As Exception
+            MsgBox("发送失败！"， 64， "错误")
+        End Try
+
     End Sub
 
     Private Sub butCloseTCPClient_Click(sender As Object, e As EventArgs) Handles butCloseTCPClient.Click
@@ -367,6 +416,10 @@ Public Class frmWebSocketServer
 
     Private Sub btnGC_Click(sender As Object, e As EventArgs) Handles btnGC.Click
         GC.Collect()
+    End Sub
+
+    Private Sub chkAutoACK_CheckedChanged(sender As Object, e As EventArgs) Handles chkAutoACK.CheckedChanged
+        mAutoAck = chkAutoACK.Checked
     End Sub
 
     Private Sub butDebugList_Click(sender As Object, e As EventArgs) Handles butDebugList.Click

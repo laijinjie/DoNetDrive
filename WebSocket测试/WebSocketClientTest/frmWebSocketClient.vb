@@ -8,7 +8,7 @@ Imports DoNetDrive.Core.Extension
 Imports DotNetty.Buffers
 Imports DotNetty.Common.Utilities
 Imports System.Collections.Concurrent
-
+Imports DoNetDrive.Core.Connector.WebSocket
 
 Public Class frmWebSocketClient
     Private mIsUnload As Boolean
@@ -18,7 +18,9 @@ Public Class frmWebSocketClient
     ''' 连接通道观察者，检查数据收发
     ''' </summary>
     Private WithEvents obServer As TCPIOObserverHandler
-
+    Private mReadBytes As Long, mSendBytes As Long
+    Private mAutoAck As Boolean
+    Private UTF8 As System.Text.Encoding = System.Text.Encoding.UTF8
 
 
     ''' <summary>
@@ -47,37 +49,30 @@ Public Class frmWebSocketClient
         ''' <param name="connector"></param>
         ''' <param name="msgLen"></param>
         Event DisposeResponseEvent(connector As INConnector, msgLen As Integer, msg As String)
+        Private UTF8 As System.Text.Encoding = System.Text.Encoding.UTF8
 
-        Private mRequestMsgCRC As UInt32
-        Private mBeginRead As Boolean
-        Private mRequestMax As Integer
-        Private mRequestLen As Integer
-
-        Private mRequestBuf As List(Of Byte)
 
         Public Overridable Sub DisposeRequest(connector As INConnector, msg As IByteBuffer) Implements INRequestHandle.DisposeRequest
             Dim sHex As String
             Dim iLen = msg.ReadableBytes
 
-            If iLen > MsgDebugLen Then
-                iLen = MsgDebugLen
-            End If
-            sHex = ByteBufferUtil.HexDump(msg, 0, iLen)
+            msg.MarkReaderIndex()
+            sHex = msg.ReadString(iLen, UTF8)
+            msg.ResetReaderIndex()
 
-
-            RaiseEvent DisposeRequestEvent(connector, msg.ReadableBytes, sHex)
+            RaiseEvent DisposeRequestEvent(connector, iLen, sHex)
 
         End Sub
 
         Public Overridable Sub DisposeResponse(connector As INConnector, msg As IByteBuffer) Implements INRequestHandle.DisposeResponse
             Dim sHex As String
             Dim iLen = msg.ReadableBytes
-            If iLen > MsgDebugLen Then
-                iLen = MsgDebugLen
-            End If
-            sHex = ByteBufferUtil.HexDump(msg, 0, iLen)
 
-            RaiseEvent DisposeResponseEvent(connector, msg.ReadableBytes, sHex)
+            msg.MarkReaderIndex()
+            sHex = msg.ReadString(iLen, UTF8)
+            msg.ResetReaderIndex()
+
+            RaiseEvent DisposeResponseEvent(connector, iLen, sHex)
         End Sub
 
         Public Sub Dispose() Implements IDisposable.Dispose
@@ -89,7 +84,7 @@ Public Class frmWebSocketClient
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Allocator = ConnectorAllocator.GetAllocator()
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 300
-
+        mAutoAck = chkAutoACK.Checked
         obServer = New TCPIOObserverHandler()
         IniLoadLocalIP()
         LoadSetting()
@@ -224,12 +219,18 @@ Public Class frmWebSocketClient
 
     Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHEX As String) Handles obServer.DisposeRequestEvent
         If mIsUnload Then Return
-        AddLog($"{GetConnectorDetail(connector)} 接收  长度：{msgLen}  0x{msgHEX}")
+        Interlocked.Add(mReadBytes, msgLen)
+        AddLog($"{GetConnectorDetail(connector)} 接收  长度：{msgLen}  {msgHEX}")
+        If mAutoAck Then
+            Dim tBuf = New WebsocketTextBuffer(msgHEX, UTF8)
+            connector.WriteByteBuf(tBuf)
+        End If
     End Sub
 
     Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHEX As String) Handles obServer.DisposeResponseEvent
         If mIsUnload Then Return
-        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  0x{msgHEX}")
+        Interlocked.Add(mSendBytes, msgLen)
+        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  {msgHEX}")
     End Sub
 
     Private Sub obServer_OnRequestLog(connector As INConnector, msg As String) Handles obServer.OnRequestLog
@@ -290,7 +291,7 @@ Public Class frmWebSocketClient
         End If
         Dim oTCPDTL = GetTCPClientDetail()
         Dim par = New Command.Text.TextCommandParameter(txtSendText.Text,
-                                                        System.Text.Encoding.UTF8)
+                                                        UTF8)
         Dim cmd = New Command.Text.TextCommand(New Text.TextCommandDetail(oTCPDTL), par)
         Allocator.AddCommand(cmd)
     End Sub
@@ -378,7 +379,7 @@ Public Class frmWebSocketClient
             Dim oTCPDTL = GetTCPClientDetail()
             oTCPDTL.ConnectAlias = sKey
             Dim par = New Command.Text.TextCommandParameter(txtSendText.Text,
-                                                        System.Text.Encoding.UTF8)
+                                                        UTF8)
             Dim cmd = New Command.Text.TextCommand(New Text.TextCommandDetail(oTCPDTL), par)
             Allocator.AddCommand(cmd)
         Next
@@ -386,6 +387,8 @@ Public Class frmWebSocketClient
 
     Private Sub tmrConnects_Tick(sender As Object, e As EventArgs) Handles tmrConnects.Tick
         txtConnected.Text = mConnectKeys.Count.ToString()
+        txtSendBytes.Text = mSendBytes
+        txtReadBytes.Text = mReadBytes
     End Sub
 
     Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
@@ -414,6 +417,10 @@ Public Class frmWebSocketClient
 
     Private Sub chkShowLog_CheckedChanged(sender As Object, e As EventArgs) Handles chkShowLog.CheckedChanged
         mShowLog = chkShowLog.Checked
+    End Sub
+
+    Private Sub chkAutoACK_CheckedChanged(sender As Object, e As EventArgs) Handles chkAutoACK.CheckedChanged
+        mAutoAck = chkAutoACK.Checked
     End Sub
 
     Private Sub butDebugList_Click(sender As Object, e As EventArgs) Handles butDebugList.Click

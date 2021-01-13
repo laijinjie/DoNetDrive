@@ -52,6 +52,11 @@ Partial Class frmWebSocketClient
         Me.txtLocalPort = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
+        Me.txtSendBytes = New System.Windows.Forms.TextBox()
+        Me.Label8 = New System.Windows.Forms.Label()
+        Me.txtReadBytes = New System.Windows.Forms.TextBox()
+        Me.Label9 = New System.Windows.Forms.Label()
+        Me.chkAutoACK = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'butDebugList
@@ -307,11 +312,60 @@ Partial Class frmWebSocketClient
         Me.Label3.TabIndex = 70
         Me.Label3.Text = "本地地址"
         '
-        'Form1
+        'txtSendBytes
+        '
+        Me.txtSendBytes.Location = New System.Drawing.Point(578, 136)
+        Me.txtSendBytes.MaxLength = 0
+        Me.txtSendBytes.Name = "txtSendBytes"
+        Me.txtSendBytes.Size = New System.Drawing.Size(68, 21)
+        Me.txtSendBytes.TabIndex = 91
+        '
+        'Label8
+        '
+        Me.Label8.AutoSize = True
+        Me.Label8.Location = New System.Drawing.Point(518, 140)
+        Me.Label8.Name = "Label8"
+        Me.Label8.Size = New System.Drawing.Size(65, 12)
+        Me.Label8.TabIndex = 92
+        Me.Label8.Text = "发送字节："
+        '
+        'txtReadBytes
+        '
+        Me.txtReadBytes.Location = New System.Drawing.Point(737, 137)
+        Me.txtReadBytes.MaxLength = 0
+        Me.txtReadBytes.Name = "txtReadBytes"
+        Me.txtReadBytes.Size = New System.Drawing.Size(68, 21)
+        Me.txtReadBytes.TabIndex = 93
+        '
+        'Label9
+        '
+        Me.Label9.AutoSize = True
+        Me.Label9.Location = New System.Drawing.Point(677, 141)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(65, 12)
+        Me.Label9.TabIndex = 94
+        Me.Label9.Text = "接收字节："
+        '
+        'chkAutoACK
+        '
+        Me.chkAutoACK.AutoSize = True
+        Me.chkAutoACK.Location = New System.Drawing.Point(783, 170)
+        Me.chkAutoACK.Name = "chkAutoACK"
+        Me.chkAutoACK.Size = New System.Drawing.Size(72, 16)
+        Me.chkAutoACK.TabIndex = 95
+        Me.chkAutoACK.Text = "连续响应"
+        Me.chkAutoACK.UseVisualStyleBackColor = True
+        '
+        'frmWebSocketClient
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1001, 515)
+        Me.Controls.Add(Me.chkAutoACK)
+        Me.Controls.Add(Me.txtReadBytes)
+        Me.Controls.Add(Me.Label9)
+        Me.Controls.Add(Me.txtSendBytes)
+        Me.Controls.Add(Me.Label8)
         Me.Controls.Add(Me.butDebugList)
         Me.Controls.Add(Me.chkShowLog)
         Me.Controls.Add(Me.Button5)
@@ -340,7 +394,7 @@ Partial Class frmWebSocketClient
         Me.Controls.Add(Me.txtLocalPort)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Label3)
-        Me.Name = "Form1"
+        Me.Name = "frmWebSocketClient"
         Me.Text = "Websocket 客户端测试"
         Me.ResumeLayout(False)
         Me.PerformLayout()
@@ -376,4 +430,9 @@ Partial Class frmWebSocketClient
     Friend WithEvents txtLocalPort As TextBox
     Friend WithEvents Label4 As Label
     Friend WithEvents Label3 As Label
+    Friend WithEvents txtSendBytes As TextBox
+    Friend WithEvents Label8 As Label
+    Friend WithEvents txtReadBytes As TextBox
+    Friend WithEvents Label9 As Label
+    Friend WithEvents chkAutoACK As CheckBox
 End Class

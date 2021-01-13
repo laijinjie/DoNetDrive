@@ -7,7 +7,7 @@ Namespace Connector
         ''' <summary>
         ''' 本系统使用的Buffer分配器
         ''' </summary>
-        Private Shared BufferAllocator As DotNetty.Buffers.IByteBufferAllocator
+        Public Shared BufferAllocator As DotNetty.Buffers.IByteBufferAllocator
 
         ''' <summary>
         ''' 服务端主节点事件循环组

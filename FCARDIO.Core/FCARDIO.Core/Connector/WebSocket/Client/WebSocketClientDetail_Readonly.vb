@@ -11,7 +11,7 @@
         ''' <param name="oDtl">远程服务器的详情</param>
         Sub New(oDtl As WebSocketClientDetail)
             MyBase.New(oDtl)
-
+            ConnectAlias = oDtl.ConnectAlias
         End Sub
 
     End Class
