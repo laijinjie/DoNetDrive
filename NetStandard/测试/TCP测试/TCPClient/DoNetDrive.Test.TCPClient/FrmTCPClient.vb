@@ -83,9 +83,17 @@ Public Class FrmTCPClient
 
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Allocator = ConnectorAllocator.GetAllocator()
+        AddHandler Allocator.CommandCompleteEvent, AddressOf Allocator_CommandCompleteEvent
+        AddHandler Allocator.ConnectorClosedEvent, AddressOf Allocator_ConnectorClosedEvent
+        AddHandler Allocator.ConnectorConnectedEvent, AddressOf Allocator_ConnectorConnectedEvent
+        AddHandler Allocator.ConnectorErrorEvent, AddressOf Allocator_ConnectorErrorEvent
+
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 300
 
         obServer = New TCPIOObserverHandler()
+        AddHandler obServer.DisposeRequestEvent, AddressOf obServer_DisposeRequestEvent
+        AddHandler obServer.DisposeResponseEvent, AddressOf obServer_DisposeResponseEvent
+        AddHandler obServer.OnRequestLog, AddressOf obServer_OnRequestLog
         IniLoadLocalIP()
         LoadSetting()
         mIsUnload = False
@@ -167,7 +175,7 @@ Public Class FrmTCPClient
 
 
 
-    Private Sub Allocator_CommandCompleteEvent(sender As Object, e As CommandEventArgs) 
+    Private Sub Allocator_CommandCompleteEvent(sender As Object, e As CommandEventArgs) ' Handles Allocator.CommandCompleteEvent
         If mIsUnload Then Return
         Dim dtl = e.CommandDetail
         Dim lSec = (dtl.EndTime - dtl.BeginTime).TotalMilliseconds()
@@ -176,7 +184,7 @@ Public Class FrmTCPClient
 
     End Sub
 
-    Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) 
+    Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) 'Handles Allocator.ConnectorClosedEvent
         If mIsUnload Then Return
         Dim sKey = connector.GetKey()
         Dim sValue As String
@@ -184,7 +192,7 @@ Public Class FrmTCPClient
         AddLog($"连接已关闭  {connector.GetKey()} {GetConnectorDetail(connector)} ")
     End Sub
 
-    Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) 
+    Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) 'Handles Allocator.ConnectorConnectedEvent
         If mIsUnload Then Return
         Dim conn = Allocator.GetConnector(connector)
         conn.AddRequestHandle(obServer)
@@ -194,7 +202,7 @@ Public Class FrmTCPClient
 
     End Sub
 
-    Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail) 
+    Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail) ' Handles Allocator.ConnectorErrorEvent
         If mIsUnload Then Return
         AddLog($"连接发生错误！  {GetConnectorDetail(connector)} {connector.GetError()} ")
     End Sub
@@ -217,17 +225,17 @@ Public Class FrmTCPClient
         Return conn.ToString()
     End Function
 
-    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHEX As String) 
+    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHEX As String)
         If mIsUnload Then Return
         AddLog($"{GetConnectorDetail(connector)} 接收  长度：{msgLen}  0x{msgHEX}")
     End Sub
 
-    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHEX As String) 
+    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHEX As String)
         If mIsUnload Then Return
         AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  0x{msgHEX}")
     End Sub
 
-    Private Sub obServer_OnRequestLog(connector As INConnector, msg As String) 
+    Private Sub obServer_OnRequestLog(connector As INConnector, msg As String)
         If mIsUnload Then Return
         AddLog($"{GetConnectorDetail(connector)}  {msg}")
     End Sub

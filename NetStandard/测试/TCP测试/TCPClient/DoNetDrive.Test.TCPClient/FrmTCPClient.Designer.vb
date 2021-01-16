@@ -23,6 +23,7 @@ Partial Class FrmTCPClient
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FrmTCPClient))
         Me.cmbLocalIP = New System.Windows.Forms.ComboBox()
         Me.txtLocalPort = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
@@ -59,7 +60,7 @@ Partial Class FrmTCPClient
         Me.cmbLocalIP.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbLocalIP.FormattingEnabled = True
         Me.cmbLocalIP.Location = New System.Drawing.Point(287, 55)
-        Me.cmbLocalIP.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.cmbLocalIP.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbLocalIP.Name = "cmbLocalIP"
         Me.cmbLocalIP.Size = New System.Drawing.Size(163, 25)
         Me.cmbLocalIP.TabIndex = 2
@@ -67,7 +68,7 @@ Partial Class FrmTCPClient
         'txtLocalPort
         '
         Me.txtLocalPort.Location = New System.Drawing.Point(559, 55)
-        Me.txtLocalPort.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtLocalPort.Margin = New System.Windows.Forms.Padding(4)
         Me.txtLocalPort.Name = "txtLocalPort"
         Me.txtLocalPort.Size = New System.Drawing.Size(81, 23)
         Me.txtLocalPort.TabIndex = 3
@@ -96,7 +97,7 @@ Partial Class FrmTCPClient
         'txtRemotePort
         '
         Me.txtRemotePort.Location = New System.Drawing.Point(559, 17)
-        Me.txtRemotePort.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtRemotePort.Margin = New System.Windows.Forms.Padding(4)
         Me.txtRemotePort.Name = "txtRemotePort"
         Me.txtRemotePort.Size = New System.Drawing.Size(81, 23)
         Me.txtRemotePort.TabIndex = 1
@@ -125,7 +126,7 @@ Partial Class FrmTCPClient
         'txtRemoteIP
         '
         Me.txtRemoteIP.Location = New System.Drawing.Point(287, 17)
-        Me.txtRemoteIP.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtRemoteIP.Margin = New System.Windows.Forms.Padding(4)
         Me.txtRemoteIP.Name = "txtRemoteIP"
         Me.txtRemoteIP.Size = New System.Drawing.Size(163, 23)
         Me.txtRemoteIP.TabIndex = 0
@@ -133,7 +134,7 @@ Partial Class FrmTCPClient
         'butConnect
         '
         Me.butConnect.Location = New System.Drawing.Point(287, 92)
-        Me.butConnect.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butConnect.Margin = New System.Windows.Forms.Padding(4)
         Me.butConnect.Name = "butConnect"
         Me.butConnect.Size = New System.Drawing.Size(88, 33)
         Me.butConnect.TabIndex = 4
@@ -143,7 +144,7 @@ Partial Class FrmTCPClient
         'butTCPClientSend
         '
         Me.butTCPClientSend.Location = New System.Drawing.Point(814, 282)
-        Me.butTCPClientSend.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butTCPClientSend.Margin = New System.Windows.Forms.Padding(4)
         Me.butTCPClientSend.Name = "butTCPClientSend"
         Me.butTCPClientSend.Size = New System.Drawing.Size(88, 33)
         Me.butTCPClientSend.TabIndex = 6
@@ -153,7 +154,7 @@ Partial Class FrmTCPClient
         'txtSendText
         '
         Me.txtSendText.Location = New System.Drawing.Point(108, 244)
-        Me.txtSendText.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtSendText.Margin = New System.Windows.Forms.Padding(4)
         Me.txtSendText.Name = "txtSendText"
         Me.txtSendText.Size = New System.Drawing.Size(793, 23)
         Me.txtSendText.TabIndex = 5
@@ -172,7 +173,7 @@ Partial Class FrmTCPClient
         'butTCPClientSend_200K
         '
         Me.butTCPClientSend_200K.Location = New System.Drawing.Point(108, 282)
-        Me.butTCPClientSend_200K.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butTCPClientSend_200K.Margin = New System.Windows.Forms.Padding(4)
         Me.butTCPClientSend_200K.Name = "butTCPClientSend_200K"
         Me.butTCPClientSend_200K.Size = New System.Drawing.Size(88, 33)
         Me.butTCPClientSend_200K.TabIndex = 41
@@ -182,7 +183,7 @@ Partial Class FrmTCPClient
         'txtLog
         '
         Me.txtLog.Location = New System.Drawing.Point(14, 323)
-        Me.txtLog.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtLog.Margin = New System.Windows.Forms.Padding(4)
         Me.txtLog.Multiline = True
         Me.txtLog.Name = "txtLog"
         Me.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
@@ -192,7 +193,7 @@ Partial Class FrmTCPClient
         'butCloseTCP
         '
         Me.butCloseTCP.Location = New System.Drawing.Point(382, 92)
-        Me.butCloseTCP.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butCloseTCP.Margin = New System.Windows.Forms.Padding(4)
         Me.butCloseTCP.Name = "butCloseTCP"
         Me.butCloseTCP.Size = New System.Drawing.Size(88, 33)
         Me.butCloseTCP.TabIndex = 43
@@ -202,7 +203,7 @@ Partial Class FrmTCPClient
         'Button1
         '
         Me.Button1.Location = New System.Drawing.Point(714, 92)
-        Me.Button1.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Button1.Margin = New System.Windows.Forms.Padding(4)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(88, 33)
         Me.Button1.TabIndex = 44
@@ -213,7 +214,7 @@ Partial Class FrmTCPClient
         '
         Me.chkSSL.AutoSize = True
         Me.chkSSL.Location = New System.Drawing.Point(648, 62)
-        Me.chkSSL.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.chkSSL.Margin = New System.Windows.Forms.Padding(4)
         Me.chkSSL.Name = "chkSSL"
         Me.chkSSL.Size = New System.Drawing.Size(47, 21)
         Me.chkSSL.TabIndex = 45
@@ -223,7 +224,7 @@ Partial Class FrmTCPClient
         'Button2
         '
         Me.Button2.Location = New System.Drawing.Point(714, 23)
-        Me.Button2.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Button2.Margin = New System.Windows.Forms.Padding(4)
         Me.Button2.Name = "Button2"
         Me.Button2.Size = New System.Drawing.Size(88, 33)
         Me.Button2.TabIndex = 46
@@ -233,7 +234,7 @@ Partial Class FrmTCPClient
         'butOpenConnectList
         '
         Me.butOpenConnectList.Location = New System.Drawing.Point(289, 160)
-        Me.butOpenConnectList.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butOpenConnectList.Margin = New System.Windows.Forms.Padding(4)
         Me.butOpenConnectList.Name = "butOpenConnectList"
         Me.butOpenConnectList.Size = New System.Drawing.Size(88, 33)
         Me.butOpenConnectList.TabIndex = 47
@@ -243,7 +244,7 @@ Partial Class FrmTCPClient
         'Button3
         '
         Me.Button3.Location = New System.Drawing.Point(384, 160)
-        Me.Button3.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Button3.Margin = New System.Windows.Forms.Padding(4)
         Me.Button3.Name = "Button3"
         Me.Button3.Size = New System.Drawing.Size(88, 33)
         Me.Button3.TabIndex = 48
@@ -253,7 +254,7 @@ Partial Class FrmTCPClient
         'Button4
         '
         Me.Button4.Location = New System.Drawing.Point(478, 160)
-        Me.Button4.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Button4.Margin = New System.Windows.Forms.Padding(4)
         Me.Button4.Name = "Button4"
         Me.Button4.Size = New System.Drawing.Size(88, 33)
         Me.Button4.TabIndex = 49
@@ -263,7 +264,7 @@ Partial Class FrmTCPClient
         'txtNewConnects
         '
         Me.txtNewConnects.Location = New System.Drawing.Point(200, 163)
-        Me.txtNewConnects.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtNewConnects.Margin = New System.Windows.Forms.Padding(4)
         Me.txtNewConnects.MaxLength = 5
         Me.txtNewConnects.Name = "txtNewConnects"
         Me.txtNewConnects.Size = New System.Drawing.Size(79, 23)
@@ -283,7 +284,7 @@ Partial Class FrmTCPClient
         'txtConnected
         '
         Me.txtConnected.Location = New System.Drawing.Point(670, 160)
-        Me.txtConnected.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtConnected.Margin = New System.Windows.Forms.Padding(4)
         Me.txtConnected.MaxLength = 0
         Me.txtConnected.Name = "txtConnected"
         Me.txtConnected.Size = New System.Drawing.Size(79, 23)
@@ -308,7 +309,7 @@ Partial Class FrmTCPClient
         '
         Me.chkShowLog.AutoSize = True
         Me.chkShowLog.Location = New System.Drawing.Point(14, 292)
-        Me.chkShowLog.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.chkShowLog.Margin = New System.Windows.Forms.Padding(4)
         Me.chkShowLog.Name = "chkShowLog"
         Me.chkShowLog.Size = New System.Drawing.Size(75, 21)
         Me.chkShowLog.TabIndex = 54
@@ -318,7 +319,7 @@ Partial Class FrmTCPClient
         'Button5
         '
         Me.Button5.Location = New System.Drawing.Point(478, 203)
-        Me.Button5.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Button5.Margin = New System.Windows.Forms.Padding(4)
         Me.Button5.Name = "Button5"
         Me.Button5.Size = New System.Drawing.Size(88, 33)
         Me.Button5.TabIndex = 55
@@ -328,7 +329,7 @@ Partial Class FrmTCPClient
         'butDebugList
         '
         Me.butDebugList.Location = New System.Drawing.Point(756, 160)
-        Me.butDebugList.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butDebugList.Margin = New System.Windows.Forms.Padding(4)
         Me.butDebugList.Name = "butDebugList"
         Me.butDebugList.Size = New System.Drawing.Size(82, 33)
         Me.butDebugList.TabIndex = 62
@@ -368,7 +369,8 @@ Partial Class FrmTCPClient
         Me.Controls.Add(Me.txtLocalPort)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Label3)
-        Me.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(4)
         Me.Name = "FrmTCPClient"
         Me.Text = "TCP Client Test v1.16"
         Me.ResumeLayout(False)

@@ -23,6 +23,7 @@ Partial Class frmTCPServer
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmTCPServer))
         Me.txtWatchPort = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
@@ -52,7 +53,7 @@ Partial Class frmTCPServer
         'txtWatchPort
         '
         Me.txtWatchPort.Location = New System.Drawing.Point(608, 14)
-        Me.txtWatchPort.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtWatchPort.Margin = New System.Windows.Forms.Padding(4)
         Me.txtWatchPort.Name = "txtWatchPort"
         Me.txtWatchPort.Size = New System.Drawing.Size(81, 23)
         Me.txtWatchPort.TabIndex = 27
@@ -81,7 +82,7 @@ Partial Class frmTCPServer
         'butCloseTCPServer
         '
         Me.butCloseTCPServer.Location = New System.Drawing.Point(484, 65)
-        Me.butCloseTCPServer.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butCloseTCPServer.Margin = New System.Windows.Forms.Padding(4)
         Me.butCloseTCPServer.Name = "butCloseTCPServer"
         Me.butCloseTCPServer.Size = New System.Drawing.Size(220, 38)
         Me.butCloseTCPServer.TabIndex = 23
@@ -91,7 +92,7 @@ Partial Class frmTCPServer
         'butOpenTCPServer
         '
         Me.butOpenTCPServer.Location = New System.Drawing.Point(257, 65)
-        Me.butOpenTCPServer.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butOpenTCPServer.Margin = New System.Windows.Forms.Padding(4)
         Me.butOpenTCPServer.Name = "butOpenTCPServer"
         Me.butOpenTCPServer.Size = New System.Drawing.Size(220, 38)
         Me.butOpenTCPServer.TabIndex = 22
@@ -101,7 +102,7 @@ Partial Class frmTCPServer
         'txtLog
         '
         Me.txtLog.Location = New System.Drawing.Point(14, 266)
-        Me.txtLog.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtLog.Margin = New System.Windows.Forms.Padding(4)
         Me.txtLog.Multiline = True
         Me.txtLog.Name = "txtLog"
         Me.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
@@ -117,9 +118,9 @@ Partial Class frmTCPServer
         Me.GroupBox3.Controls.Add(Me.cmbTCPClient)
         Me.GroupBox3.Controls.Add(Me.txtTCPClientText)
         Me.GroupBox3.Location = New System.Drawing.Point(134, 110)
-        Me.GroupBox3.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.GroupBox3.Margin = New System.Windows.Forms.Padding(4)
         Me.GroupBox3.Name = "GroupBox3"
-        Me.GroupBox3.Padding = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.GroupBox3.Padding = New System.Windows.Forms.Padding(4)
         Me.GroupBox3.Size = New System.Drawing.Size(715, 147)
         Me.GroupBox3.TabIndex = 29
         Me.GroupBox3.TabStop = False
@@ -128,7 +129,7 @@ Partial Class frmTCPServer
         'butReloadClientList
         '
         Me.butReloadClientList.Location = New System.Drawing.Point(432, 103)
-        Me.butReloadClientList.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butReloadClientList.Margin = New System.Windows.Forms.Padding(4)
         Me.butReloadClientList.Name = "butReloadClientList"
         Me.butReloadClientList.Size = New System.Drawing.Size(88, 33)
         Me.butReloadClientList.TabIndex = 12
@@ -138,7 +139,7 @@ Partial Class frmTCPServer
         'butTCPClientSend_200K
         '
         Me.butTCPClientSend_200K.Location = New System.Drawing.Point(621, 103)
-        Me.butTCPClientSend_200K.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butTCPClientSend_200K.Margin = New System.Windows.Forms.Padding(4)
         Me.butTCPClientSend_200K.Name = "butTCPClientSend_200K"
         Me.butTCPClientSend_200K.Size = New System.Drawing.Size(88, 33)
         Me.butTCPClientSend_200K.TabIndex = 11
@@ -148,7 +149,7 @@ Partial Class frmTCPServer
         'butCloseTCPClient
         '
         Me.butCloseTCPClient.Location = New System.Drawing.Point(12, 103)
-        Me.butCloseTCPClient.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butCloseTCPClient.Margin = New System.Windows.Forms.Padding(4)
         Me.butCloseTCPClient.Name = "butCloseTCPClient"
         Me.butCloseTCPClient.Size = New System.Drawing.Size(88, 33)
         Me.butCloseTCPClient.TabIndex = 10
@@ -158,7 +159,7 @@ Partial Class frmTCPServer
         'butTCPClientSend
         '
         Me.butTCPClientSend.Location = New System.Drawing.Point(526, 103)
-        Me.butTCPClientSend.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butTCPClientSend.Margin = New System.Windows.Forms.Padding(4)
         Me.butTCPClientSend.Name = "butTCPClientSend"
         Me.butTCPClientSend.Size = New System.Drawing.Size(88, 33)
         Me.butTCPClientSend.TabIndex = 9
@@ -170,7 +171,7 @@ Partial Class frmTCPServer
         Me.cmbTCPClient.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbTCPClient.FormattingEnabled = True
         Me.cmbTCPClient.Location = New System.Drawing.Point(13, 28)
-        Me.cmbTCPClient.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.cmbTCPClient.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbTCPClient.Name = "cmbTCPClient"
         Me.cmbTCPClient.Size = New System.Drawing.Size(695, 25)
         Me.cmbTCPClient.TabIndex = 6
@@ -178,7 +179,7 @@ Partial Class frmTCPServer
         'txtTCPClientText
         '
         Me.txtTCPClientText.Location = New System.Drawing.Point(13, 65)
-        Me.txtTCPClientText.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtTCPClientText.Margin = New System.Windows.Forms.Padding(4)
         Me.txtTCPClientText.Name = "txtTCPClientText"
         Me.txtTCPClientText.Size = New System.Drawing.Size(695, 23)
         Me.txtTCPClientText.TabIndex = 7
@@ -189,7 +190,7 @@ Partial Class frmTCPServer
         Me.cmbLocalIP.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbLocalIP.FormattingEnabled = True
         Me.cmbLocalIP.Location = New System.Drawing.Point(336, 14)
-        Me.cmbLocalIP.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.cmbLocalIP.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbLocalIP.Name = "cmbLocalIP"
         Me.cmbLocalIP.Size = New System.Drawing.Size(163, 25)
         Me.cmbLocalIP.TabIndex = 30
@@ -198,7 +199,7 @@ Partial Class frmTCPServer
         '
         Me.chkSSL.AutoSize = True
         Me.chkSSL.Location = New System.Drawing.Point(712, 74)
-        Me.chkSSL.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.chkSSL.Margin = New System.Windows.Forms.Padding(4)
         Me.chkSSL.Name = "chkSSL"
         Me.chkSSL.Size = New System.Drawing.Size(47, 21)
         Me.chkSSL.TabIndex = 31
@@ -209,7 +210,7 @@ Partial Class frmTCPServer
         '
         Me.chkShowLog.AutoSize = True
         Me.chkShowLog.Location = New System.Drawing.Point(14, 235)
-        Me.chkShowLog.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.chkShowLog.Margin = New System.Windows.Forms.Padding(4)
         Me.chkShowLog.Name = "chkShowLog"
         Me.chkShowLog.Size = New System.Drawing.Size(75, 21)
         Me.chkShowLog.TabIndex = 55
@@ -219,7 +220,7 @@ Partial Class frmTCPServer
         'txtConnectCount
         '
         Me.txtConnectCount.Location = New System.Drawing.Point(883, 14)
-        Me.txtConnectCount.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtConnectCount.Margin = New System.Windows.Forms.Padding(4)
         Me.txtConnectCount.Name = "txtConnectCount"
         Me.txtConnectCount.Size = New System.Drawing.Size(81, 23)
         Me.txtConnectCount.TabIndex = 57
@@ -243,7 +244,7 @@ Partial Class frmTCPServer
         'txtReadBytes
         '
         Me.txtReadBytes.Location = New System.Drawing.Point(883, 54)
-        Me.txtReadBytes.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.txtReadBytes.Margin = New System.Windows.Forms.Padding(4)
         Me.txtReadBytes.Name = "txtReadBytes"
         Me.txtReadBytes.Size = New System.Drawing.Size(81, 23)
         Me.txtReadBytes.TabIndex = 59
@@ -262,7 +263,7 @@ Partial Class frmTCPServer
         'btnGC
         '
         Me.btnGC.Location = New System.Drawing.Point(883, 92)
-        Me.btnGC.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.btnGC.Margin = New System.Windows.Forms.Padding(4)
         Me.btnGC.Name = "btnGC"
         Me.btnGC.Size = New System.Drawing.Size(82, 33)
         Me.btnGC.TabIndex = 60
@@ -272,7 +273,7 @@ Partial Class frmTCPServer
         'butDebugList
         '
         Me.butDebugList.Location = New System.Drawing.Point(883, 133)
-        Me.butDebugList.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.butDebugList.Margin = New System.Windows.Forms.Padding(4)
         Me.butDebugList.Name = "butDebugList"
         Me.butDebugList.Size = New System.Drawing.Size(82, 33)
         Me.butDebugList.TabIndex = 61
@@ -300,7 +301,8 @@ Partial Class frmTCPServer
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.butCloseTCPServer)
         Me.Controls.Add(Me.butOpenTCPServer)
-        Me.Margin = New System.Windows.Forms.Padding(4, 4, 4, 4)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(4)
         Me.Name = "frmTCPServer"
         Me.Text = "TCP Server Test v1.16"
         Me.GroupBox3.ResumeLayout(False)

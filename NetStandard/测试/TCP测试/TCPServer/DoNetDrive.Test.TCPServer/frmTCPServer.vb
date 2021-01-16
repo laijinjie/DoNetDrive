@@ -13,11 +13,11 @@ Imports DoNetDrive.Core.Connector.TCPServer
 Public Class frmTCPServer
 
 
-    Private WithEvents Allocator As ConnectorAllocator
+    Private Allocator As ConnectorAllocator
     ''' <summary>
     ''' 连接通道观察者，检查数据收发
     ''' </summary>
-    Private WithEvents obServer As TCPIOObserverHandler
+    Private obServer As TCPIOObserverHandler
 
     Private mShowLog As Boolean
     Private mReadBytes As Long
@@ -109,9 +109,20 @@ Public Class frmTCPServer
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         MyTraceListener.Ini()
         Allocator = ConnectorAllocator.GetAllocator()
+        AddHandler Allocator.ClientOffline, AddressOf Allocator_ClientOffline
+        AddHandler Allocator.ClientOnline, AddressOf Allocator_ClientOnline
+        'AddHandler Allocator.CommandCompleteEvent, AddressOf Allocator_CommandCompleteEvent
+        AddHandler Allocator.ConnectorClosedEvent, AddressOf Allocator_ConnectorClosedEvent
+        AddHandler Allocator.ConnectorConnectedEvent, AddressOf Allocator_ConnectorConnectedEvent
+        AddHandler Allocator.ConnectorErrorEvent, AddressOf Allocator_ConnectorErrorEvent
+
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 10
 
         obServer = New TCPIOObserverHandler()
+
+        AddHandler obServer.DisposeRequestEvent, AddressOf obServer_DisposeRequestEvent
+        AddHandler obServer.DisposeResponseEvent, AddressOf obServer_DisposeResponseEvent
+
         InITCPServerClient()
         IniLoadLocalIP()
 
@@ -136,7 +147,7 @@ Public Class frmTCPServer
     End Sub
 
 
-    Private Sub Allocator_ClientOffline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOffline
+    Private Sub Allocator_ClientOffline(sender As Object, e As ServerEventArgs)
         Dim inc = TryCast(sender, INConnector)
 
         If inc.GetConnectorType = ConnectorType.TCPServerClient Then
@@ -146,7 +157,7 @@ Public Class frmTCPServer
         AddLog($"连接断开  {GetConnectorDetail(inc)}")
     End Sub
 
-    Private Sub Allocator_ClientOnline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOnline
+    Private Sub Allocator_ClientOnline(sender As Object, e As ServerEventArgs)
         Dim inc = TryCast(sender, INConnector)
         inc.AddRequestHandle(obServer)
 
@@ -158,7 +169,7 @@ Public Class frmTCPServer
     End Sub
 
 
-    Private Sub Allocator_CommandCompleteEvent(sender As Object, e As CommandEventArgs) Handles Allocator.CommandCompleteEvent
+    Private Sub Allocator_CommandCompleteEvent(sender As Object, e As CommandEventArgs)
 
         Dim dtl = e.CommandDetail
         Dim lSec = (dtl.EndTime - dtl.BeginTime).TotalMilliseconds()
@@ -167,16 +178,16 @@ Public Class frmTCPServer
 
     End Sub
 
-    Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorClosedEvent
+    Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail)
         AddLog($"连接关闭  {GetConnectorDetail(connector)} ")
     End Sub
 
-    Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorConnectedEvent
+    Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail)
         Allocator.GetConnector(connector).AddRequestHandle(obServer)
         AddLog($"连接成功  {GetConnectorDetail(connector)} ")
     End Sub
 
-    Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorErrorEvent
+    Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail)
         AddLog($"连接发生错误！  {GetConnectorDetail(connector)} ")
     End Sub
 
@@ -200,12 +211,12 @@ Public Class frmTCPServer
         Return conn.ToString()
     End Function
 
-    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeRequestEvent
+    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String)
         mReadBytes += msgLen
         AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  0x{msgHex}")
     End Sub
 
-    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeResponseEvent
+    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHex As String)
         'If mUseEcho Then
         '    Return
         'End If
