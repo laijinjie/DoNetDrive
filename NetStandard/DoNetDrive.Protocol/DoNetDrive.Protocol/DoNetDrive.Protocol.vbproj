@@ -6,6 +6,45 @@
     <Version>1.16.0</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>DoNetDrive.Protocol.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>DoNetDrive.Protocol.xml</DocumentationFile>
+    <OutputPath>E:\项目\2019\DoNet版通讯动态库V2\NetStandard\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="CommandDetailFactory.vb" />
+    <Compile Include="Door8800\Door8800Command.vb" />
+    <Compile Include="Door8800\Door8800RequestHandle.vb" />
+    <Compile Include="Door8800\Door8800Transaction.vb" />
+    <Compile Include="FrameCommand\AbstractFrameCommand.vb" />
+    <Compile Include="FrameCommand\AbstractFramePacket.vb" />
+    <Compile Include="FrameCommand\FrameCommandStatus.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessCommandDetail.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessDecompile.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessDecompileStep.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessDecompileStep_PC.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessDecompile_PC.vb" />
+    <Compile Include="OnlineAccess\OnlineAccessPacket.vb" />
+    <Compile Include="Packet\BaseDecompile.vb" />
+    <Compile Include="Packet\BaseDecompileStep.vb" />
+    <Compile Include="Packet\BasePacket.vb" />
+    <Compile Include="Packet\INDecompileStep.vb" />
+    <Compile Include="Transaction\AbstractTransaction.vb" />
+    <Compile Include="Transaction\INTransaction.vb" />
+    <Compile Include="USBDrive\USBDriveCommand.vb" />
+    <Compile Include="USBDrive\USBDriveCommandDetail.vb" />
+    <Compile Include="USBDrive\USBDriveCommandStatus.vb" />
+    <Compile Include="USBDrive\USBDriveDecompile.vb" />
+    <Compile Include="USBDrive\USBDriveDecompileStep.vb" />
+    <Compile Include="USBDrive\USBDrivePacket.vb" />
+    <Compile Include="USBDrive\USBDriveRequestHandle.vb" />
+    <Compile Include="USBDrive\USBDriveTransaction.vb" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="DoNetDrive.Common">
       <HintPath>..\..\netstandard2.0\DoNetDrive.Common.dll</HintPath>

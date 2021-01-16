@@ -2,7 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>1.16.0</Version>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>E:\项目\2019\DoNet版通讯动态库V2\NetStandard\</OutputPath>
+    <DocumentationFile>E:\项目\2019\DoNet版通讯动态库V2\NetStandard\DoNetDrive.Protocol.Util\DoNetDrive.Protocol.Util\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="ByteBufferExtension.cs" />
+    <Compile Include="ByteUtil.cs" />
+    <Compile Include="StringUtil.cs" />
+    <Compile Include="TimeUtil.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="DotNetty.Buffers">

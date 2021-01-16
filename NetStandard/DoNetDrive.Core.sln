@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DoNetDrive.Common", "DoNetDrive.Common\DoNetDrive.Common\DoNetDrive.Common.csproj", "{3E59A195-618C-4113-A1B7-DD68B96FEA0E}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DoNetDrive.Core", "DoNetDrive.Core\DoNetDrive.Core\DoNetDrive.Core.vbproj", "{3A4B9998-8496-48DF-BCE4-612F618CE7CB}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DoNetDrive.Protocol", "DoNetDrive.Protocol\DoNetDrive.Protocol\DoNetDrive.Protocol.vbproj", "{89509ACF-5133-479E-83BB-6B153AFACE79}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3E59A195-618C-4113-A1B7-DD68B96FEA0E} = {3E59A195-618C-4113-A1B7-DD68B96FEA0E}
+		{3A4B9998-8496-48DF-BCE4-612F618CE7CB} = {3A4B9998-8496-48DF-BCE4-612F618CE7CB}
+		{02D944E2-2C83-4F3D-9E73-8D929063010F} = {02D944E2-2C83-4F3D-9E73-8D929063010F}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DoNetDrive.Protocol.Util", "DoNetDrive.Protocol.Util\DoNetDrive.Protocol.Util\DoNetDrive.Protocol.Util.csproj", "{02D944E2-2C83-4F3D-9E73-8D929063010F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E59A195-618C-4113-A1B7-DD68B96FEA0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E59A195-618C-4113-A1B7-DD68B96FEA0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E59A195-618C-4113-A1B7-DD68B96FEA0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E59A195-618C-4113-A1B7-DD68B96FEA0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A4B9998-8496-48DF-BCE4-612F618CE7CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A4B9998-8496-48DF-BCE4-612F618CE7CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A4B9998-8496-48DF-BCE4-612F618CE7CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A4B9998-8496-48DF-BCE4-612F618CE7CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89509ACF-5133-479E-83BB-6B153AFACE79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89509ACF-5133-479E-83BB-6B153AFACE79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89509ACF-5133-479E-83BB-6B153AFACE79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89509ACF-5133-479E-83BB-6B153AFACE79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02D944E2-2C83-4F3D-9E73-8D929063010F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02D944E2-2C83-4F3D-9E73-8D929063010F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02D944E2-2C83-4F3D-9E73-8D929063010F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02D944E2-2C83-4F3D-9E73-8D929063010F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7CA6A7CC-560D-4540-8D38-516C36862426}
+	EndGlobalSection
+EndGlobal
