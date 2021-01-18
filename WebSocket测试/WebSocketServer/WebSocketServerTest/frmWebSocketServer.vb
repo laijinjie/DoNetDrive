@@ -110,6 +110,7 @@ Public Class frmWebSocketServer
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         MyTraceListener.Ini()
         Allocator = ConnectorAllocator.GetAllocator()
+        DotNettyAllocator.UseLibuv = True
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 100
         mAutoAck = chkAutoACK.Checked
         obServer = New TCPIOObserverHandler()
@@ -157,9 +158,9 @@ Public Class frmWebSocketServer
 
             Dim sURL = wbcDTl.RequestURL
 
-            Dim dic = GetURLParDictionary(sURL)
 
-            AddLog($"客户端请求的URL  {wbcDTl.RequestURL}  {dic("u")}")
+
+            AddLog($"客户端请求的URL  {wbcDTl.RequestURL} ")
         End If
     End Sub
 
@@ -420,6 +421,13 @@ Public Class frmWebSocketServer
 
     Private Sub chkAutoACK_CheckedChanged(sender As Object, e As EventArgs) Handles chkAutoACK.CheckedChanged
         mAutoAck = chkAutoACK.Checked
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        For i = 0 To 100
+            butTCPClientSend_Click(Nothing, Nothing)
+        Next
+
     End Sub
 
     Private Sub butDebugList_Click(sender As Object, e As EventArgs) Handles butDebugList.Click

@@ -13,7 +13,7 @@ Namespace Connector.TCPServer
         ''' <summary>
         ''' 服务器监听通道
         ''' </summary>
-        Protected _ServerChannel As TcpServerSocketChannelEx
+        Protected _ServerChannel As IDoNetTCPServerChannel
 
         ''' <summary>
         ''' 表示当前监听器的信息

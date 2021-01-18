@@ -48,6 +48,7 @@ Partial Class frmWebSocketServer
         Me.Label5 = New System.Windows.Forms.Label()
         Me.txtServerAddr = New System.Windows.Forms.TextBox()
         Me.chkAutoACK = New System.Windows.Forms.CheckBox()
+        Me.Button1 = New System.Windows.Forms.Button()
         Me.GroupBox3.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -175,6 +176,7 @@ Partial Class frmWebSocketServer
         '
         'GroupBox3
         '
+        Me.GroupBox3.Controls.Add(Me.Button1)
         Me.GroupBox3.Controls.Add(Me.butReloadClientList)
         Me.GroupBox3.Controls.Add(Me.butCloseTCPClient)
         Me.GroupBox3.Controls.Add(Me.butTCPClientSend)
@@ -277,6 +279,15 @@ Partial Class frmWebSocketServer
         Me.chkAutoACK.Text = "自动回应"
         Me.chkAutoACK.UseVisualStyleBackColor = True
         '
+        'Button1
+        '
+        Me.Button1.Location = New System.Drawing.Point(370, 73)
+        Me.Button1.Name = "Button1"
+        Me.Button1.Size = New System.Drawing.Size(75, 23)
+        Me.Button1.TabIndex = 13
+        Me.Button1.Text = "发送"
+        Me.Button1.UseVisualStyleBackColor = True
+        '
         'frmWebSocketServer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
@@ -335,4 +346,5 @@ Partial Class frmWebSocketServer
     Friend WithEvents Label5 As Label
     Friend WithEvents txtServerAddr As TextBox
     Friend WithEvents chkAutoACK As CheckBox
+    Friend WithEvents Button1 As Button
 End Class

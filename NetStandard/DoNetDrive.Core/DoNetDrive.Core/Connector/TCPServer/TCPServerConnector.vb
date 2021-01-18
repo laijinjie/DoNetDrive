@@ -48,6 +48,8 @@ Namespace Connector.TCPServer
             Threading.Thread.Sleep(20)
             If t.IsCanceled Or t.IsFaulted Then
                 _IsActivity = False
+                Dim dtl = GetConnectorDetail()
+                dtl.SetError(t.Exception)
                 FireConnectorErrorEvent(GetConnectorDetail())
                 CloseConnector()
             Else

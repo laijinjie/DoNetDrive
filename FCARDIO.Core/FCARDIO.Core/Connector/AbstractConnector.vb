@@ -277,6 +277,11 @@ Namespace Connector
                     _ActivityCommand?.RemoveBinding()
                     _ActivityCommand = Nothing
                 End If
+                If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
+                    If _isRelease Then Return
+                    If _IsCloseing Then Return
+                    If Not _CommandList.IsEmpty Then CheckCommandList()
+                End If
             End If
         End Sub
 
@@ -285,6 +290,8 @@ Namespace Connector
         ''' </summary>
         Protected Friend Overridable Sub CheckCommandList()
             If (_isRelease) Then Return
+            If _ActivityCommand IsNot Nothing Then Return
+
             Dim status As INCommandStatus
 
             Try
@@ -304,10 +311,13 @@ Namespace Connector
                         RemoveCommand(_ActivityCommand)
                         CheckCommandList() '检查下一个指令
                     Else
-                        If (Not _ActivityCommand.IsWaitExecute) Then
-                            _ActivityCommand.IsWaitExecute = True
-                            GetEventLoop()?.Execute(_ActivityCommand)
-                        End If
+                        SyncLock _ActivityCommand
+                            If (Not _ActivityCommand.IsWaitExecute) Then
+                                _ActivityCommand.IsWaitExecute = True
+                                GetEventLoop()?.Execute(_ActivityCommand)
+                            End If
+                        End SyncLock
+
                     End If
                     UpdateActivityTime()
                 End If
@@ -798,9 +808,7 @@ Namespace Connector
             '检查是否需要发送下一条命令
 
 
-            If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
-                'If Not _CommandList.IsEmpty Then CheckCommandList()
-            End If
+
         End Sub
 #End Region
 

@@ -1,5 +1,6 @@
 ﻿Imports System.Threading
 Imports DotNetty.Transport.Channels
+Imports DotNetty.Transport.Libuv
 
 Namespace Connector
     Public MustInherit Class DotNettyAllocator
@@ -29,7 +30,7 @@ Namespace Connector
         ''' <summary>
         ''' 使用 Libuv 库
         ''' </summary>
-        Shared ReadOnly Property UseLibuv As Boolean = False
+        Public Shared UseLibuv As Boolean = False
 
         ''' <summary>
         ''' 是否已释放
@@ -50,6 +51,7 @@ Namespace Connector
 
 
         Shared Sub New()
+            UseLibuv = False
             mIsRelease = False
             'BufferAllocator = DotNetty.Buffers.PooledByteBufferAllocator.Default
             BufferAllocator = DotNetty.Buffers.UnpooledByteBufferAllocator.Default
@@ -74,17 +76,24 @@ Namespace Connector
                 SyncLock mLockObj
                     If Not ServerParentEventLoopGroup Is Nothing Then Return
 
-                    If DefaultServerEventLoopGroupCount <= 0 Then
-                        DefaultServerEventLoopGroupCount = Environment.ProcessorCount
+                    If DotNettyAllocator.UseLibuv Then
+                        ServerParentEventLoopGroup = New DispatcherEventLoopGroup()
+                        ServerChildEventLoopGroup = New WorkerEventLoopGroup(ServerParentEventLoopGroup)
+                    Else
+                        If DefaultServerEventLoopGroupCount <= 0 Then
+                            DefaultServerEventLoopGroupCount = Environment.ProcessorCount
+                        End If
+
+                        If DefaultChildEventLoopGroupCount <= 0 Then
+                            DefaultChildEventLoopGroupCount = Environment.ProcessorCount * 2
+                        End If
+                        '静态变量初始化
+                        'Trace.WriteLine("调用 DotNettyAllocator.CheckServerEventLoopGroup,创建时间循环组 ServerParentEventLoopGroup,ServerChildEventLoopGroup")
+                        ServerParentEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateServerParentThreadEventLoop, DefaultServerEventLoopGroupCount)
+                        ServerChildEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateServerChildThreadEventLoop, DefaultChildEventLoopGroupCount)
+
                     End If
 
-                    If DefaultChildEventLoopGroupCount <= 0 Then
-                        DefaultChildEventLoopGroupCount = Environment.ProcessorCount * 2
-                    End If
-                    '静态变量初始化
-                    'Trace.WriteLine("调用 DotNettyAllocator.CheckServerEventLoopGroup,创建时间循环组 ServerParentEventLoopGroup,ServerChildEventLoopGroup")
-                    ServerParentEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateServerParentThreadEventLoop, DefaultServerEventLoopGroupCount)
-                    ServerChildEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateServerChildThreadEventLoop, DefaultChildEventLoopGroupCount)
 
                 End SyncLock
             End If
