@@ -292,8 +292,6 @@ Namespace Connector
             If (_isRelease) Then Return
             If _ActivityCommand IsNot Nothing Then Return
 
-            Dim status As INCommandStatus
-
             Try
                 If _CommandList.TryPeek(_ActivityCommand) Then
                     If _ActivityCommand.IsRelease() Then
@@ -301,24 +299,8 @@ Namespace Connector
                         CheckCommandList() '检查下一个指令
                         Return
                     End If
-                    status = _ActivityCommand.GetStatus()
-                    If TypeOf status Is AbstractCommandStatus_Waiting Then
-                        status = _ActivityCommand.GetStatus_Runing()
-                        _ActivityCommand.SetStatus(status) '变更等待状态为运行中状态
-                    End If
+                    GetEventLoop()?.Execute(_ActivityCommand)
 
-                    If status.IsCompleted Then
-                        RemoveCommand(_ActivityCommand)
-                        CheckCommandList() '检查下一个指令
-                    Else
-                        SyncLock _ActivityCommand
-                            If (Not _ActivityCommand.IsWaitExecute) Then
-                                _ActivityCommand.IsWaitExecute = True
-                                GetEventLoop()?.Execute(_ActivityCommand)
-                            End If
-                        End SyncLock
-
-                    End If
                     UpdateActivityTime()
                 End If
             Catch ex As Exception
@@ -806,8 +788,6 @@ Namespace Connector
             DisposeRequest(tmpMsg)
             tmpMsg = Nothing
             '检查是否需要发送下一条命令
-
-
 
         End Sub
 #End Region
