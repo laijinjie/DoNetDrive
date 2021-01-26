@@ -111,7 +111,7 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         ''' <param name="oTsk"></param>
         Private Sub HandshakeOver(oTsk As Task)
-            Dim pnl As TcpServerSocketChannelEx = TryCast(_ClientChannel.Parent, TcpServerSocketChannelEx）
+            Dim pnl As IDoNetTCPServerChannel = TryCast(_ClientChannel.Parent, IDoNetTCPServerChannel）
             If oTsk.IsCanceled Or oTsk.IsFaulted Then
                 pnl.ServerConnector.FireConnectorErrorEvent(GetConnectorDetail())
             Else
@@ -185,7 +185,7 @@ Namespace Connector.WebSocket.Server.Client
 
 
             '取 WebSocket 地址
-            Dim pnl As TcpServerSocketChannelEx = TryCast(_ClientChannel.Parent, TcpServerSocketChannelEx）
+            Dim pnl As IDoNetTCPServerChannel = TryCast(_ClientChannel.Parent, IDoNetTCPServerChannel）
             Dim server As WebSocketServerConnector = TryCast(pnl.ServerConnector, WebSocketServerConnector)
             Dim oDetail As WebSocketServerDetail = server.GetConnectorDetail()
 

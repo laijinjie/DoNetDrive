@@ -89,11 +89,6 @@ Namespace Command
         ''' </summary>
         Protected _IsRelease As Boolean
 
-        ''' <summary>
-        ''' 指示数据包是否已经初始化（已经创建完毕）
-        ''' </summary>
-        Protected _PacketInitialize As Boolean
-
 
         ''' <summary>
         ''' 初始化两个重要参数，并进行参数检查
@@ -415,6 +410,7 @@ Namespace Command
         Protected Overridable Sub CommandReady()
             _ReSendCount = 0
             _Status = GetStatus_Runing()
+            If IsWaitExecute Then Return
             SendPacket()
             'SetRuningStatus()
         End Sub
@@ -424,8 +420,8 @@ Namespace Command
         ''' </summary>
         Protected Sub SetRuningStatus()
             _Status = GetStatus_Runing()
-            IsWaitExecute = True
-            _Connector?.GetEventLoop()?.Execute(Me)
+            If IsWaitExecute Then Return
+            SendPacket()
         End Sub
 
 
@@ -445,30 +441,41 @@ Namespace Command
         ''' </summary>
         Public Sub Run() Implements IRunnable.Run
             If _IsRelease Then Return
+            If IsWaitExecute Then
+                _Connector?.GetEventLoop()?.Execute(Me)
+                Return
+            End If
 
-            SyncLock Me
-                If _IsRelease Then Return
+            IsWaitExecute = True
 
-                _Connector?.UpdateActivityTime() '命令执行期间不应该超时
-                Try
-                    If _Status IsNot Nothing Then
-                        _Status.CheckStatus(Me)
-                    End If
-                Catch ex As Exception
-                    CommandError()
-                End Try
-                IsWaitExecute = False
-            End SyncLock
+
+            _Connector?.UpdateActivityTime() '命令执行期间不应该超时
+            Try
+                If _Status IsNot Nothing Then
+                    _Status.CheckStatus(Me)
+                End If
+                If _Status.IsNONE() Then
+
+                    CreatePacket()
+                    CommandDetail.BeginTime = Now
+                    _Status = GetStatus_Runing() '状态变化
+                    IsWaitExecute = False
+                    Run()
+                    Return
+                End If
+
+                If Not _Status.IsCompleted Then
+                    If _IsRelease Then Return
+                    _Connector?.GetEventLoop()?.Execute(Me)
+                End If
+
+            Catch ex As Exception
+                CommandError()
+            End Try
+            IsWaitExecute = False
+
         End Sub
 
-        'Private ThreadID As Integer
-        'Private Sub CheckThread()
-        '    Dim iID = Threading.Thread.CurrentThread.ManagedThreadId
-        '    If iID <> ThreadID Then
-        '        ThreadID = iID
-        '        Trace.WriteLine($"线程不同！{ThreadID}")
-        '    End If
-        'End Sub
 
         ''' <summary>
         ''' 发送数据包
@@ -476,15 +483,7 @@ Namespace Command
         Protected Friend Sub SendPacket()
             If _IsRelease Then Return
             If _Connector Is Nothing Then Return
-            If TypeOf _Status IsNot CommandStatus_Runing Then Return
-            If _PacketInitialize = False Then
-                '此时需要立刻编译此命令，生成 Packet ，方便发送时调用
-                CreatePacket()
-                _PacketInitialize = True
-                CommandDetail.BeginTime = DateTime.Now
-            ElseIf _Packet Is Nothing Then
-                '_Packet
-            End If
+            If TypeOf _Status IsNot AbstractCommandStatus_Runing Then Return
 
             If _Packet Is Nothing Then
                 _Status = CommandStatus.Faulted
@@ -492,10 +491,15 @@ Namespace Command
                 Return
             End If
 
+
+            IsWaitExecute = True
             Dim buf = _Packet.GetPacketData(_Connector.GetByteBufAllocator())
             'Trace.WriteLine($"{System.Threading.Thread.CurrentThread.ManagedThreadId} {_Connector.GetKey()} 发送数据:{ByteBufferUtil.HexDump(buf)}")
             Dim tWrite = _Connector.WriteByteBuf(buf)
-            If tWrite Is Nothing Then Return
+            If tWrite Is Nothing Then
+                IsWaitExecute = False
+                Return
+            End If
             _ReSendCount += 1
             '将状态变更为等待响应
             CommandWaitResponse()
@@ -519,6 +523,7 @@ Namespace Command
                                     fireCommandProcessEvent()
                                 End Sub)
             buf = Nothing
+            IsWaitExecute = False
         End Sub
 
         ''' <summary>

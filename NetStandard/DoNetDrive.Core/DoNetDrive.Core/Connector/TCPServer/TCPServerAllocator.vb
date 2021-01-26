@@ -7,6 +7,7 @@ Imports DotNetty.Transport.Channels.Sockets
 Imports DotNetty.Transport.Libuv
 Imports DoNetDrive.Core.Connector.TCPServer.Client
 Imports DotNetty.Handlers.Logging
+Imports System.Runtime.InteropServices
 
 Namespace Connector.TCPServer
     Public Class TCPServerAllocator
@@ -94,7 +95,18 @@ Namespace Connector.TCPServer
 
             With mServerBootstrap
                 .Group(serverGroup, ClientGroup)
-                .Channel(Of TcpServerSocketChannelEx)()
+
+                If DotNettyAllocator.UseLibuv Then
+                    .Channel(Of Connector.TCPServer.TcpServerSocketChannelLibuv)()
+                    If (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) Or
+                        RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Then
+                        .Option(ChannelOption.SoReuseport, True)
+                        .ChildOption(ChannelOption.SoReuseaddr, True)
+                    End If
+                Else
+                    .Channel(Of TcpServerSocketChannelEx)()
+                End If
+
                 .Option(ChannelOption.Allocator, DotNettyAllocator.GetBufferAllocator())
                 .Option(ChannelOption.SoBacklog, SoBacklog)
                 .Option(ChannelOption.SoRcvbuf, SoRcvbuf)

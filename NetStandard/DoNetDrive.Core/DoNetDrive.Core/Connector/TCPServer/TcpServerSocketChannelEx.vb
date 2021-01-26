@@ -8,13 +8,9 @@ Namespace Connector.TCPServer
     ''' </summary>
     Public Class TcpServerSocketChannelEx
         Inherits TcpServerSocketChannel
-        ''' <summary>
-        ''' 和通道相关联的连接器处理类
-        ''' </summary>
-        Public ServerConnector As TCPServerConnector
+        Implements IDoNetTCPServerChannel
 
-
-
+        Public Property ServerConnector As TCPServerConnector Implements IDoNetTCPServerChannel.ServerConnector
     End Class
 End Namespace
 

@@ -4,6 +4,8 @@ Imports DotNetty.Transport.Bootstrapping
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
 Imports DoNetDrive.Core.Connector.WebSocket.Server.Client
+Imports DotNetty.Transport.Libuv
+Imports System.Runtime.InteropServices
 
 Namespace Connector.WebSocket.Server
     ''' <summary>
@@ -89,7 +91,20 @@ Namespace Connector.WebSocket.Server
 
             With mServerBootstrap
                 .Group(serverGroup, ClientGroup)
-                .Channel(Of Connector.TCPServer.TcpServerSocketChannelEx)()
+
+
+                If DotNettyAllocator.UseLibuv Then
+                    .Channel(Of Connector.TCPServer.TcpServerSocketChannelLibuv)()
+                    If (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) Or
+                        RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Then
+                        .Option(ChannelOption.SoReuseport, True)
+                        .ChildOption(ChannelOption.SoReuseaddr, True)
+                    End If
+                Else
+                    .Channel(Of Connector.TCPServer.TcpServerSocketChannelEx)()
+                End If
+
+
                 .Option(ChannelOption.Allocator, DotNettyAllocator.GetBufferAllocator())
                 .Option(ChannelOption.SoBacklog, 8192)
 

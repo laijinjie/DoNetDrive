@@ -86,9 +86,11 @@ Namespace Connector.WebSocket.Client
             Dim oWebsocketIni As WebSocketClientChannelInitializer = TCPInitializer
             Dim oWebsocketDTL As WebSocketClientDetail = detail
 
+            Dim Scheme As String = "ws"
+            If oWebsocketDTL.IsSSL Then Scheme = "wss"
 
             Dim builder = New UriBuilder With {
-                .Scheme = IIf(oWebsocketDTL.IsSSL, "wss", "ws"),
+                .Scheme = Scheme,
                 .Host = oWebsocketDTL.RemoteHost,
                 .Port = oWebsocketDTL.Port
             }

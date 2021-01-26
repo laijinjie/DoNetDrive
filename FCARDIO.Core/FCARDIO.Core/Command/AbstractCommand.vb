@@ -110,7 +110,7 @@ Namespace Command
             _Connector = Nothing
             _ProcessMax = 1
             _ProcessStep = 0
-            _SendDate = Now
+            _SendDate = DateTime.Now
             _Packet = Nothing
             _Decompile = Nothing
             _ReSendCount = 0
@@ -317,7 +317,7 @@ Namespace Command
                 iMaxReSendCount = detail.RestartCount
             End If
 
-            Dim lElapse = (Now - _SendDate).TotalMilliseconds
+            Dim lElapse = (DateTime.Now - _SendDate).TotalMilliseconds
             Dim bIsTimeout = (lElapse > iTimeout)
 
             If (_ReSendCount > iMaxReSendCount) And iMaxReSendCount > 0 Then
@@ -356,7 +356,7 @@ Namespace Command
         ''' 命令结束的时候调用
         ''' </summary>
         Public Sub CommandOver() Implements INCommandRuntime.CommandOver
-            If CommandDetail IsNot Nothing Then CommandDetail.EndTime = Now
+            If CommandDetail IsNot Nothing Then CommandDetail.EndTime = DateTime.Now
             _ProcessStep = _ProcessMax
             _Packet?.Dispose()
             _Packet = Nothing

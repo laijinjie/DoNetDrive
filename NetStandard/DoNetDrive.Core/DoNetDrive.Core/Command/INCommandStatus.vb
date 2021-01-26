@@ -26,6 +26,12 @@
         ReadOnly Property IsCanceled As Boolean
 
         ''' <summary>
+        ''' 是否为未执行状态
+        ''' </summary>
+        ''' <returns></returns>
+        Function IsNONE() As Boolean
+
+        ''' <summary>
         ''' 触发命令事件
         ''' </summary>
         ''' <param name="cmd"></param>
@@ -58,6 +64,15 @@
                 Return False
             End Get
         End Property
+
+        Public Overridable Function IsNONE() As Boolean Implements INCommandStatus.IsNONE
+
+            If IsCompleted Or IsFaulted Or IsCanceled Or IsRuning Then
+                Return False
+            Else
+                Return True
+            End If
+        End Function
 
         Public MustOverride Sub CheckStatus(cmd As INCommand) Implements INCommandStatus.CheckStatus
     End Class

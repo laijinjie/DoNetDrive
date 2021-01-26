@@ -277,6 +277,11 @@ Namespace Connector
                     _ActivityCommand?.RemoveBinding()
                     _ActivityCommand = Nothing
                 End If
+                If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
+                    If _isRelease Then Return
+                    If _IsCloseing Then Return
+                    If Not _CommandList.IsEmpty Then CheckCommandList()
+                End If
             End If
         End Sub
 
@@ -285,7 +290,7 @@ Namespace Connector
         ''' </summary>
         Protected Friend Overridable Sub CheckCommandList()
             If (_isRelease) Then Return
-            Dim status As INCommandStatus
+            If _ActivityCommand IsNot Nothing Then Return
 
             Try
                 If _CommandList.TryPeek(_ActivityCommand) Then
@@ -294,21 +299,8 @@ Namespace Connector
                         CheckCommandList() '检查下一个指令
                         Return
                     End If
-                    status = _ActivityCommand.GetStatus()
-                    If TypeOf status Is AbstractCommandStatus_Waiting Then
-                        status = _ActivityCommand.GetStatus_Runing()
-                        _ActivityCommand.SetStatus(status) '变更等待状态为运行中状态
-                    End If
+                    GetEventLoop()?.Execute(_ActivityCommand)
 
-                    If status.IsCompleted Then
-                        RemoveCommand(_ActivityCommand)
-                        CheckCommandList() '检查下一个指令
-                    Else
-                        If (Not _ActivityCommand.IsWaitExecute) Then
-                            _ActivityCommand.IsWaitExecute = True
-                            GetEventLoop()?.Execute(_ActivityCommand)
-                        End If
-                    End If
                     UpdateActivityTime()
                 End If
             Catch ex As Exception
@@ -797,10 +789,6 @@ Namespace Connector
             tmpMsg = Nothing
             '检查是否需要发送下一条命令
 
-
-            If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
-                'If Not _CommandList.IsEmpty Then CheckCommandList()
-            End If
         End Sub
 #End Region
 

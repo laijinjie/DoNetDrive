@@ -20,7 +20,7 @@ Namespace Connector.WebSocket.Server.Client
         Protected Overrides Sub InitChannel(channel As IChannel)
             channel.Pipeline().AddLast(New IdleStateHandler(60, 60, 0)) '超时检查
             Dim serverAddress = channel.Parent.LocalAddress
-            Dim pnl As TcpServerSocketChannelEx = TryCast(channel.Parent, TcpServerSocketChannelEx）
+            Dim pnl As IDoNetTCPServerChannel = TryCast(channel.Parent, IDoNetTCPServerChannel）
             If channel.Allocator Is pnl.Allocator Then
 
             Else
