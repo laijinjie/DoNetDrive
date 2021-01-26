@@ -410,6 +410,7 @@ Namespace Command
         Protected Overridable Sub CommandReady()
             _ReSendCount = 0
             _Status = GetStatus_Runing()
+            If IsWaitExecute Then Return
             SendPacket()
             'SetRuningStatus()
         End Sub
@@ -419,7 +420,7 @@ Namespace Command
         ''' </summary>
         Protected Sub SetRuningStatus()
             _Status = GetStatus_Runing()
-
+            If IsWaitExecute Then Return
             SendPacket()
         End Sub
 
@@ -489,7 +490,7 @@ Namespace Command
                 fireFireCommandErrorEvent()
                 Return
             End If
-            If IsWaitExecute Then Return
+
 
             IsWaitExecute = True
             Dim buf = _Packet.GetPacketData(_Connector.GetByteBufAllocator())
