@@ -19,29 +19,29 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (dayOfMonth == 0 || dayOfMonth > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (hourOfDay > 23)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             if (minute > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             if (second > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             DateTime dTime = new DateTime(2000 + year, month, dayOfMonth, hourOfDay, minute, second);
@@ -58,19 +58,19 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (day == 0 || day > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (hour > 23)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             DateTime dTime = new DateTime(2000 + year, month, day, hour, 59, 59);
@@ -91,15 +91,15 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (day == 0 || day > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
 
@@ -109,7 +109,7 @@ namespace DoNetDrive.Protocol.Util
 
         public static void DateToBCD_yyMMddhh(byte[] btData, DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 for (int i = 0; i < 4; i++)
                 {
@@ -133,7 +133,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_ssmmhhddMMwwyy(byte[] btData, DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 for (int i = 0; i < 7; i++)
                 {
@@ -160,7 +160,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_ssmmhhddMMyy(byte[] btData, DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 for (int i = 0; i < 6; i++)
                 {
@@ -230,24 +230,24 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (day == 0 || day > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (hour > 23)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             if (minute > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             DateTime dTime = new DateTime(2000 + year, month, day, hour, minute, 59);
@@ -271,28 +271,28 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (day == 0 || day > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (hour > 23)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             if (minute > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (sec > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             DateTime dTime = new DateTime(2000 + year, month, day, hour, minute, sec);
@@ -315,28 +315,28 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (day == 0 || day > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (hour > 23)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             if (minute > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (sec > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             DateTime dTime = new DateTime(2000 + year, month, day, hour, minute, sec);
@@ -402,7 +402,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_yyMMddhhmm(IByteBuffer buf, DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -429,7 +429,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_yyMMdd(IByteBuffer buf, DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -449,7 +449,7 @@ namespace DoNetDrive.Protocol.Util
 
         public static void DateToBCD_yyMMddhhmmss(byte[] btData, DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 for (int i = 0; i < 6; i++)
                 {
@@ -475,7 +475,7 @@ namespace DoNetDrive.Protocol.Util
          */
         public static String FormatTime(DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 return "";
             }
@@ -491,7 +491,7 @@ namespace DoNetDrive.Protocol.Util
          */
         public static String FormatTimeHHmm(DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 return "";
             }
@@ -501,7 +501,7 @@ namespace DoNetDrive.Protocol.Util
 
         public static String FormatTimeMillisecond(DateTime date)
         {
-            if (date == null)
+            if (date == null || date == DateTime.MinValue)
             {
                 return "";
             }
@@ -528,28 +528,28 @@ namespace DoNetDrive.Protocol.Util
 
             if (year > 99)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (month == 0 || month > 12)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (day == 0 || day > 31)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (hour > 23)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             if (minute > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
             if (sec > 59)
             {
-                return DateTime.Now;
+                return DateTime.MinValue;
             }
 
             DateTime dTime = new DateTime(2000 + year, month, day, hour, minute, sec);
