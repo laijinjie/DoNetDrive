@@ -184,6 +184,7 @@
     <Compile Include="Connector\接口\INConnectorDetail.vb" />
     <Compile Include="Connector\接口\INConnectorStatus.vb" />
     <Compile Include="Data\AbstractData.vb" />
+    <Compile Include="Data\BigInt.vb" />
     <Compile Include="Data\INData.vb" />
     <Compile Include="Event\INConnectorEvent.vb" />
     <Compile Include="Event\INConnectorFireEvent.vb" />

@@ -4733,6 +4733,82 @@ DoNetDrive.Core
  <param name="databuf">具有足够缓冲空间的bytebuf</param>
  <returns>返回传入的bytebuf</returns>
 </member>
+<member name="T:DoNetDrive.Core.Util.BigInt">
+ <summary>
+ 可处理12个字节的大数据类型
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.BigValue">
+ <summary>
+ 最大包含12字节的整数
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.FloatDigit">
+ <summary>
+ 小数点精度
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.Negative">
+ <summary>
+ 符号位  0--正数，0x80--负数
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.UIntHeadValue">
+ <summary>
+ 前4字节
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.IntHeadValue">
+ <summary>
+ 前4字节
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.ByteValue_4">
+ <summary>
+ 第4字节
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.Int64Value">
+ <summary>
+ 后8字节
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.UInt64Value">
+ <summary>
+ 后8字节
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.Int32Value">
+ <summary>
+ 后4字节
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Util.BigInt.UInt32Value">
+ <summary>
+ 后4字节
+ </summary>
+</member>
+<member name="M:DoNetDrive.Core.Util.BigInt.toBytes(System.Int32)">
+ <summary>
+ 获取指定字节数的数组
+ </summary>
+ <param name="iLen"></param>
+ <returns></returns>
+</member>
+<member name="M:DoNetDrive.Core.Util.BigInt.toBytes(DotNetty.Buffers.IByteBuffer,System.Int32)">
+ <summary>
+ 将数值写入缓冲区
+ </summary>
+ <param name="buf"></param>
+ <param name="iLen"></param>
+</member>
+<member name="M:DoNetDrive.Core.Util.BigInt.SetBytes(DotNetty.Buffers.IByteBuffer,System.Int32)">
+ <summary>
+ 从缓冲区中读取指定字节
+ </summary>
+ <param name="buf"></param>
+ <param name="iLen"></param>
+</member>
 <member name="T:DoNetDrive.Core.Factory.DefaultConnectorFactory">
  <summary>
  默认的连接通道分配工厂，可以分配一下几种类型的连接器
