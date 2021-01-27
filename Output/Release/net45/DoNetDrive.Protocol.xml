@@ -1354,12 +1354,6 @@ DoNetDrive.Protocol
  <param name="dl">数据长度</param>
  <param name="cd">命令数据</param>
 </member>
-<member name="M:DoNetDrive.Protocol.USBDrive.USBDriveCommand.VerifyError(System.String)">
- <summary>
- 产生一个错误
- </summary>
- <param name="sText">错误描述</param>
-</member>
 <member name="M:DoNetDrive.Protocol.USBDrive.USBDriveCommand.Packet(System.Byte,System.Byte)">
  <summary>
  修改当前的数据包

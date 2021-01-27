@@ -141,7 +141,7 @@ Namespace Connector.TCPClient
                 Else
                     SetConnectOptionByDefault()
                 End If
-
+                _ActivityCommand = Nothing
             Else
                 SetConnectOption(_ActivityCommand.CommandDetail.Connector)
             End If
