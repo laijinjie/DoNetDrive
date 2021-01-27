@@ -10,7 +10,7 @@
     <AssemblyName>DoNetDrive.Core</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -48,34 +48,6 @@
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Codecs.Http">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.Http.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Transport.Libuv">
-      <HintPath>..\..\dotnetty\net45\DotNetty.Transport.Libuv.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
@@ -200,6 +172,7 @@
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -244,6 +217,36 @@
   <ItemGroup>
     <Folder Include="Connector\Http\Client\" />
     <Folder Include="Connector\Http\Server\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Buffers\DotNetty.Buffers.csproj">
+      <Project>{2293f281-4484-43da-b8e7-442b37b9f848}</Project>
+      <Name>DotNetty.Buffers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Codecs.Http\DotNetty.Codecs.Http.csproj">
+      <Project>{6d453627-0e12-4daa-abc0-e865d3fbc048}</Project>
+      <Name>DotNetty.Codecs.Http</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Codecs\DotNetty.Codecs.csproj">
+      <Project>{32ecc132-f1f3-43d5-ae0b-c1935674fd2c}</Project>
+      <Name>DotNetty.Codecs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Common\DotNetty.Common.csproj">
+      <Project>{f40b8366-22c1-4a14-bf60-9fd7e392712f}</Project>
+      <Name>DotNetty.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Handlers\DotNetty.Handlers.csproj">
+      <Project>{c1ffe42f-1de6-4922-a70c-24c5a1658f46}</Project>
+      <Name>DotNetty.Handlers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Transport.Libuv\DotNetty.Transport.Libuv.csproj">
+      <Project>{cad707c6-7ed5-4922-9e34-2404d9519a2d}</Project>
+      <Name>DotNetty.Transport.Libuv</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Transport\DotNetty.Transport.csproj">
+      <Project>{6b98fc01-71df-4e69-b0cf-48b73cdedfee}</Project>
+      <Name>DotNetty.Transport</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
