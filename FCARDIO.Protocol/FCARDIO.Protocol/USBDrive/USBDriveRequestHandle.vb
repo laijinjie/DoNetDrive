@@ -3,7 +3,7 @@
 Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
 Imports DoNetDrive.Core.Packet
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 Imports DotNetty.Buffers
 Imports DoNetDrive.Protocol.Transaction
 

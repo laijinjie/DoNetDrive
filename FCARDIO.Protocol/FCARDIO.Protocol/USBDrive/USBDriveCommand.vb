@@ -78,14 +78,6 @@ Namespace USBDrive
             End With
         End Sub
 
-        ''' <summary>
-        ''' 产生一个错误
-        ''' </summary>
-        ''' <param name="sText">错误描述</param>
-        Protected Sub VerifyError(ByVal sText As String)
-            Throw New ArgumentException(sText & " is Error")
-        End Sub
-
 
         ''' <summary>
         ''' 修改当前的数据包

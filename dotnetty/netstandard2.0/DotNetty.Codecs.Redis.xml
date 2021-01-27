@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DotNetty.Codecs.Redis</name>
+    </assembly>
+    <members>
+        <member name="T:DotNetty.Codecs.Redis.Messages.IRedisMessage">
+            <summary>
+            Base interface for redis messages.
+            </summary>
+        </member>
+        <member name="T:DotNetty.Codecs.Redis.Messages.RedisMessageType">
+            <summary>
+            Type of RESP (Redis Serialization Protocol)
+            see http://redis.io/topics/protocol
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net45</TargetFramework>
+    <RootNamespace>DoNetDrive.Common</RootNamespace>
+    <AssemblyName>DoNetDrive.Common</AssemblyName>
+    <Version>1.6.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>..\..\Output\Debug\Net45\DoNetDrive.Common.xml</DocumentationFile>
+    <OutputPath>..\..\Output\Debug</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\Output\Release</OutputPath>
+    <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Common.xml</DocumentationFile>
+  </PropertyGroup>
+
+
+
+</Project>

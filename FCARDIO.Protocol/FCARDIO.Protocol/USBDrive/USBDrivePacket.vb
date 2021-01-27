@@ -1,6 +1,6 @@
 ﻿Imports DoNetDrive.Core.Packet
 Imports DotNetty.Buffers
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 Imports DoNetDrive.Protocol.Packet
 
 Namespace USBDrive

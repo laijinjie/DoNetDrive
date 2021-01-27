@@ -1,6 +1,6 @@
 ﻿Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 
 ''' <summary>
 ''' 命令详情的创造工厂

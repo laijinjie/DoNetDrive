@@ -1,8 +1,9 @@
 ﻿Imports DoNetDrive.Core.Packet
 Imports DotNetty.Buffers
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 Imports DoNetDrive.Protocol.Packet
 Imports DoNetDrive.Protocol.FrameCommand
+Imports DoNetDrive.Protocol.Util
 
 Namespace OnlineAccess
     ''' <summary>
@@ -283,7 +284,7 @@ Namespace OnlineAccess
 
             buf.WriteBytes(SN) '设备SN
             buf.WriteBytes(Password) '密码
-            buf.WriteUnsignedInt(Code) '信息代码
+            buf.WriteUInt32(Code) '信息代码
             buf.WriteByte(CmdType) '分类
             buf.WriteByte(CmdIndex) '命令
             buf.WriteByte(CmdPar) '参数

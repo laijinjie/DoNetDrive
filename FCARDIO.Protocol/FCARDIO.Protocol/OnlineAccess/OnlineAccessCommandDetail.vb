@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 
 Namespace OnlineAccess
     ''' <summary>

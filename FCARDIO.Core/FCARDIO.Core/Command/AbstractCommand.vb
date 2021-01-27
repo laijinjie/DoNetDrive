@@ -457,7 +457,7 @@ Namespace Command
                 If _Status.IsNONE() Then
 
                     CreatePacket()
-                    CommandDetail.BeginTime = Now
+                    CommandDetail.BeginTime = DateTime.Now
                     _Status = GetStatus_Runing() '状态变化
                     IsWaitExecute = False
                     Run()
@@ -591,7 +591,7 @@ Namespace Command
         ''' 产生一个错误
         ''' </summary>
         ''' <param name="sText">错误描述</param>
-        Protected Sub VerifyError(ByVal sText As String)
+        Protected Overridable Sub VerifyError(ByVal sText As String)
             Throw New ArgumentException(sText & " is Error")
         End Sub
 

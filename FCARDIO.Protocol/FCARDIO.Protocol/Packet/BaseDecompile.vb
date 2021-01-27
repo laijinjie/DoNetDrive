@@ -101,14 +101,14 @@ Namespace Packet
         Public Function Decompile(bDataBuf As IByteBuffer, retPacketList As List(Of INPacket)) As Boolean Implements INPacketDecompile.Decompile
             '检查解码器中的数据是否已过期
             If Not ActivityTime = Date.MinValue Then
-                Dim iMil = (Now - ActivityTime).TotalMilliseconds
+                Dim iMil = (Date.Now - ActivityTime).TotalMilliseconds
                 If (iMil > DecompileTimeout) Then
                     ClearBuf()
                 End If
             End If
 
 
-            ActivityTime = Now
+            ActivityTime = Date.Now
 
             bDataBuf.MarkReaderIndex()
             'Trace.WriteLine($"解析数据包：{ByteBufferUtil.HexDump(bDataBuf)}")
