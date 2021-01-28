@@ -48,9 +48,6 @@
     <Reference Include="DotNetty.Transport">
       <HintPath>..\..\dotnetty\netstandard2.0\DotNetty.Transport.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Transport.Libuv">
-      <HintPath>..\..\dotnetty\netstandard2.0\DotNetty.Transport.Libuv.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

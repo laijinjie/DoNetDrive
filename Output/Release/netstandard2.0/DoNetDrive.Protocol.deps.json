@@ -171,14 +171,6 @@
           }
         }
       },
-      "DotNetty.Transport.Libuv/0.6.1.0": {
-        "runtime": {
-          "DotNetty.Transport.Libuv.dll": {
-            "assemblyVersion": "0.6.1.0",
-            "fileVersion": "0.6.1.0"
-          }
-        }
-      },
       "DotNetty.Codecs.Http/0.6.1.0": {
         "runtime": {
           "DotNetty.Codecs.Http.dll": {
@@ -339,11 +331,6 @@
       "sha512": ""
     },
     "DotNetty.Handlers/0.6.1.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "DotNetty.Transport.Libuv/0.6.1.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

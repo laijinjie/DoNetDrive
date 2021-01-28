@@ -16,8 +16,7 @@
           "DotNetty.Codecs.Http": "0.6.1.0",
           "DotNetty.Common": "0.6.1.0",
           "DotNetty.Handlers": "0.6.1.0",
-          "DotNetty.Transport": "0.6.1.0",
-          "DotNetty.Transport.Libuv": "0.6.1.0"
+          "DotNetty.Transport": "0.6.1.0"
         },
         "runtime": {
           "DoNetDrive.Core.dll": {}
@@ -171,14 +170,6 @@
             "fileVersion": "0.6.1.0"
           }
         }
-      },
-      "DotNetty.Transport.Libuv/0.6.1.0": {
-        "runtime": {
-          "DotNetty.Transport.Libuv.dll": {
-            "assemblyVersion": "0.6.1.0",
-            "fileVersion": "0.6.1.0"
-          }
-        }
       }
     }
   },
@@ -319,11 +310,6 @@
       "sha512": ""
     },
     "DotNetty.Transport/0.6.1.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "DotNetty.Transport.Libuv/0.6.1.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

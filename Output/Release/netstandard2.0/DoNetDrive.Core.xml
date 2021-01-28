@@ -3451,11 +3451,6 @@ DoNetDrive.Core
  处理服务器连接的通道类
  </summary>
 </member>
-<member name="T:DoNetDrive.Core.Connector.TCPServer.TcpServerSocketChannelLibuv">
- <summary>
- 处理服务器连接的通道类
- </summary>
-</member>
 <member name="T:DoNetDrive.Core.Connector.UDP.UDPAllocator">
  <summary>
  创建分配一个UDP连接通道
