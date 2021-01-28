@@ -17,8 +17,14 @@
         Protected Overrides Sub OpenConnector(connector As INConnector)
             Dim client As SerialPortConnector = TryCast(connector, SerialPortConnector)
             If client Is Nothing Then Return
+            Try
+                client.Open()
+            Catch ex As Exception
+                client.GetConnectorDetail().SetError(ex)
+                client.FireConnectorErrorEvent(client.GetConnectorDetail())
+                client.Close()
+            End Try
 
-            client.Open()
 
         End Sub
     End Class

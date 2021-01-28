@@ -16,6 +16,11 @@ DoNetDrive.Core
  命令计数器
  </summary>
 </member>
+<member name="F:DoNetDrive.Core.Command.AbstractCommand.CommandException">
+ <summary>
+ 命令发生错误时，错误的详情
+ </summary>
+</member>
 <member name="F:DoNetDrive.Core.Command.AbstractCommand._Parameter">
  <summary>
  保存用于命令的各种参数

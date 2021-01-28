@@ -830,7 +830,12 @@ Namespace Connector
                     _isRelease = True
                     SetInvalid()
                     _IsForcibly = False
-                    Release0()
+                    Try
+                        Release0()
+                    Catch ex As Exception
+
+                    End Try
+
                     _IsActivity = False
 
                     '触发通道关闭事件

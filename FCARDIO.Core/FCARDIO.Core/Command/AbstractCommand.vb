@@ -16,6 +16,11 @@ Namespace Command
         Public Shared CommandObjectTotal As Long
 
         ''' <summary>
+        ''' 命令发生错误时，错误的详情
+        ''' </summary>
+        Public CommandException As Exception
+
+        ''' <summary>
         ''' 保存用于命令的各种参数
         ''' 包含了通道连接参数，对端身份信息,以及命令参数等数据
         ''' </summary>
@@ -470,6 +475,7 @@ Namespace Command
                 End If
 
             Catch ex As Exception
+                CommandException = ex
                 CommandError()
             End Try
             IsWaitExecute = False
