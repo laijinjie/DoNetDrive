@@ -3062,11 +3062,6 @@ DoNetDrive.Core
  </summary>
  <returns></returns>
 </member>
-<member name="T:DoNetDrive.Core.Connector.TCPServer.TcpServerSocketChannelLibuv">
- <summary>
- 处理服务器连接的通道类
- </summary>
-</member>
 <member name="T:DoNetDrive.Core.Connector.ConnectorStatus_Invalid">
  <summary>
  指示通道已失效的状态

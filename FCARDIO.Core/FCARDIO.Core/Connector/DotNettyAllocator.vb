@@ -76,11 +76,11 @@ Namespace Connector
                 SyncLock mLockObj
                     If Not ServerParentEventLoopGroup Is Nothing Then Return
 
-                    If DotNettyAllocator.UseLibuv Then
-                        ServerParentEventLoopGroup = New DispatcherEventLoopGroup()
-                        ServerChildEventLoopGroup = New WorkerEventLoopGroup(ServerParentEventLoopGroup)
-                    Else
-                        If DefaultServerEventLoopGroupCount <= 0 Then
+                    'If DotNettyAllocator.UseLibuv Then
+                    '    ServerParentEventLoopGroup = New DispatcherEventLoopGroup()
+                    '    ServerChildEventLoopGroup = New WorkerEventLoopGroup(ServerParentEventLoopGroup)
+                    'Else
+                    If DefaultServerEventLoopGroupCount <= 0 Then
                             DefaultServerEventLoopGroupCount = Environment.ProcessorCount
                         End If
 
@@ -92,7 +92,7 @@ Namespace Connector
                         ServerParentEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateServerParentThreadEventLoop, DefaultServerEventLoopGroupCount)
                         ServerChildEventLoopGroup = New MultithreadEventLoopGroup(AddressOf CreateServerChildThreadEventLoop, DefaultChildEventLoopGroupCount)
 
-                    End If
+                    'End If
 
 
                 End SyncLock

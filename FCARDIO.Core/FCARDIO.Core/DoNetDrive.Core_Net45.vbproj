@@ -49,34 +49,6 @@
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetty.Buffers, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Codecs, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Codecs.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Codecs.Http, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Codecs.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Common, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Handlers, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Handlers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Transport, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Transport.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Transport.Libuv, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Transport.Libuv.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
@@ -157,7 +129,6 @@
     <Compile Include="Connector\TCPServer\TCPServerConnector.vb" />
     <Compile Include="Connector\TCPServer\TCPServerDetail.vb" />
     <Compile Include="Connector\ConnectorStatus_Bind.vb" />
-    <Compile Include="Connector\TCPServer\TcpServerSocketChannelLibuv.vb" />
     <Compile Include="Connector\UDP\UDPAllocator.vb" />
     <Compile Include="Connector\UDP\UDPClientDetail.vb" />
     <Compile Include="Connector\UDP\UDPClientDetail_ReadOnly.vb" />
@@ -234,6 +205,31 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Buffers\DotNetty.Buffers_Net45.csproj">
+      <Project>{212be5ed-e53c-4291-935f-b65016b35d9f}</Project>
+      <Name>DotNetty.Buffers_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Codecs.Http\DotNetty.Codecs.Http_Net45.csproj">
+      <Project>{ef39b044-c45e-4440-917b-98798f3b83d0}</Project>
+      <Name>DotNetty.Codecs.Http_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Codecs\DotNetty.Codecs_Net45.csproj">
+      <Project>{e60bfe3e-09e6-4fa7-bb5e-be6c94ff5a6b}</Project>
+      <Name>DotNetty.Codecs_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Common\DotNetty.Common_Net45.csproj">
+      <Project>{c1e6c832-0087-4f0d-8d23-af7a81abc924}</Project>
+      <Name>DotNetty.Common_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Handlers\DotNetty.Handlers_Net45.csproj">
+      <Project>{25b7cc7f-e5b2-4045-814e-a198187eb03b}</Project>
+      <Name>DotNetty.Handlers_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Transport\DotNetty.Transport_Net45.csproj">
+      <Project>{d919b32b-faf7-4b7f-8bab-f57946ab3e25}</Project>
+      <Name>DotNetty.Transport_Net45</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

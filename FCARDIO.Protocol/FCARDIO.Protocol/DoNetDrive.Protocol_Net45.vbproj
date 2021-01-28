@@ -45,23 +45,26 @@
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DocumentationFile>DoNetDrive.Protocol.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DocumentationFile>DoNetDrive.Protocol.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetty.Buffers, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Codecs, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Codecs.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Common, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Transport, Version=0.6.0.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\dotnetty\net45\DotNetty.Transport.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +143,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Buffers\DotNetty.Buffers_Net45.csproj">
+      <Project>{212be5ed-e53c-4291-935f-b65016b35d9f}</Project>
+      <Name>DotNetty.Buffers_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Common\DotNetty.Common_Net45.csproj">
+      <Project>{c1e6c832-0087-4f0d-8d23-af7a81abc924}</Project>
+      <Name>DotNetty.Common_Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Transport\DotNetty.Transport_Net45.csproj">
+      <Project>{d919b32b-faf7-4b7f-8bab-f57946ab3e25}</Project>
+      <Name>DotNetty.Transport_Net45</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\DoNetDrive.Common\DoNetDrive.Common\DoNetDrive.Common_Net45.csproj">
       <Project>{8b9850ef-2c94-44d1-b59d-3acd08c8a0cb}</Project>
       <Name>DoNetDrive.Common_Net45</Name>

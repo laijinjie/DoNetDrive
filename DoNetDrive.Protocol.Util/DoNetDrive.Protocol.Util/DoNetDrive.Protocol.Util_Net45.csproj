@@ -5,9 +5,15 @@
     <Version>1.16.0</Version>
     <RootNamespace>DoNetDrive.Protocol.Util</RootNamespace>
     <AssemblyName>DoNetDrive.Protocol.Util</AssemblyName>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\Output\Debug</OutputPath>
+    <DocumentationFile>..\..\Output\Debug\Net45\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutputPath>..\..\Output\Debug</OutputPath>
     <DocumentationFile>..\..\Output\Debug\Net45\DoNetDrive.Protocol.Util.xml</DocumentationFile>
   </PropertyGroup>
@@ -17,13 +23,14 @@
     <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Protocol.Util.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutputPath>..\..\Output\Release</OutputPath>
+    <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\dotnetty\net45\DotNetty.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Common">
-      <HintPath>..\..\dotnetty\net45\DotNetty.Common.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Buffers\DotNetty.Buffers_Net45.csproj" />
+    <ProjectReference Include="..\..\..\dotnetty\giteeSVN\src\DotNetty.Common\DotNetty.Common_Net45.csproj" />
   </ItemGroup>
 
 

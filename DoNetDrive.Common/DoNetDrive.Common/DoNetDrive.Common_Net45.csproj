@@ -5,6 +5,7 @@
     <RootNamespace>DoNetDrive.Common</RootNamespace>
     <AssemblyName>DoNetDrive.Common</AssemblyName>
     <Version>1.6.0</Version>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,7 +13,17 @@
     <OutputPath>..\..\Output\Debug</OutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DocumentationFile>..\..\Output\Debug\Net45\DoNetDrive.Common.xml</DocumentationFile>
+    <OutputPath>..\..\Output\Debug</OutputPath>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\Output\Release</OutputPath>
+    <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Common.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutputPath>..\..\Output\Release</OutputPath>
     <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Common.xml</DocumentationFile>
   </PropertyGroup>
