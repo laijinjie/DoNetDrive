@@ -18,6 +18,28 @@ namespace DoNetDrive.Common.Extensions
         public static System.Text.Encoding UserEncoding = System.Text.Encoding.ASCII;
 
         /// <summary>
+        /// 从对象序列化到字符串
+        /// </summary>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        public static string ToJSON(this object o)
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(o);
+        }
+
+        /// <summary>
+        /// 从JSON字符串反序列化到对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="jsonTexts"></param>
+        /// <returns></returns>
+        public static T FromJson<T>(this string jsonTexts)
+        {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(jsonTexts);
+        }
+
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="base64String"></param>

@@ -1,5 +1,6 @@
 ﻿Imports System.IO
 Imports System.Net.Security
+Imports System.Security.Authentication
 Imports System.Security.Cryptography.X509Certificates
 
 Namespace Connector.TCPClient
@@ -16,6 +17,11 @@ Namespace Connector.TCPClient
         ''' 用于SSL安全连接的数字证书
         ''' </summary>
         Public Certificate As X509Certificate2
+
+        ''' <summary>
+        ''' 使用SSL时的SSL协议版本
+        ''' </summary>
+        Public UseSSLProtocols As SslProtocols = SslProtocols.Tls12
 
         ''' <summary>
         ''' 用于创建SSL安全套接字的流工厂

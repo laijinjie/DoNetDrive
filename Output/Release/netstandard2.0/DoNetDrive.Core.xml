@@ -2707,6 +2707,11 @@ DoNetDrive.Core
  用于SSL安全连接的数字证书
  </summary>
 </member>
+<member name="F:DoNetDrive.Core.Connector.TCPClient.SSLCertificateDetail.UseSSLProtocols">
+ <summary>
+ 使用SSL时的SSL协议版本
+ </summary>
+</member>
 <member name="F:DoNetDrive.Core.Connector.TCPClient.SSLCertificateDetail.SSLStreamFactory">
  <summary>
  用于创建SSL安全套接字的流工厂
@@ -2808,7 +2813,7 @@ DoNetDrive.Core
  证书列表
  </summary>
 </member>
-<member name="M:DoNetDrive.Core.Connector.TCPClient.TCPClientChannelInitializer.SetSSLPar(System.Net.IPEndPoint,System.Boolean,System.Security.Cryptography.X509Certificates.X509Certificate2,System.Func{System.IO.Stream,System.Net.Security.SslStream})">
+<member name="M:DoNetDrive.Core.Connector.TCPClient.TCPClientChannelInitializer.SetSSLPar(System.Net.IPEndPoint,System.Boolean,System.Security.Cryptography.X509Certificates.X509Certificate2,System.Func{System.IO.Stream,System.Net.Security.SslStream},System.Security.Authentication.SslProtocols)">
  <summary>
  设置SSL参数
  </summary>
@@ -2965,6 +2970,11 @@ DoNetDrive.Core
 <member name="F:DoNetDrive.Core.Connector.TCPClient.TCPClientDetail.IsSSL">
  <summary>
  是否启用SSL安全连接
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Connector.TCPClient.TCPClientDetail.UseSSLProtocols">
+ <summary>
+ 使用SSL时的SSL协议版本
  </summary>
 </member>
 <member name="F:DoNetDrive.Core.Connector.TCPClient.TCPClientDetail.Certificate">
@@ -3381,6 +3391,11 @@ DoNetDrive.Core
 <member name="F:DoNetDrive.Core.Connector.TCPServer.TCPServerDetail.Certificate">
  <summary>
  用于SSL安全连接的数字证书
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Connector.TCPServer.TCPServerDetail.UseSSLProtocols">
+ <summary>
+ 使用SSL时的SSL协议版本
  </summary>
 </member>
 <member name="F:DoNetDrive.Core.Connector.TCPServer.TCPServerDetail.SSLStreamFactory">

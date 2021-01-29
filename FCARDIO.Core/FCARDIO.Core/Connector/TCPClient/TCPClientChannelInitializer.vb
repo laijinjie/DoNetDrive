@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports System.Net
 Imports System.Net.Security
+Imports System.Security.Authentication
 Imports System.Security.Cryptography.X509Certificates
 Imports DotNetty.Handlers.Timeout
 Imports DotNetty.Handlers.Tls
@@ -37,18 +38,20 @@ Namespace Connector.TCPClient
         ''' <param name="oSSLFac"></param>
         Public Sub SetSSLPar(oRemotePoint As IPEndPoint, bSSL As Boolean,
                              oX509 As X509Certificate2,
-                             oSSLFac As Func(Of Stream, SslStream))
+                             oSSLFac As Func(Of Stream, SslStream), UseSSLProtocols As SslProtocols)
             Dim sKey = oRemotePoint.ToString()
 
             If Not _CertificateList.ContainsKey(sKey) Then
                 SyncLock Me
                     If Not _CertificateList.ContainsKey(sKey) Then
-                        _CertificateList.Add(sKey, New SSLCertificateDetail(bSSL, oX509, oSSLFac))
+                        _CertificateList.Add(sKey, New SSLCertificateDetail(bSSL, oX509, oSSLFac) With
+                                             {.UseSSLProtocols = UseSSLProtocols})
                     End If
                 End SyncLock
             Else
                 Dim oCer = _CertificateList(sKey)
                 oCer.SetCertificate(bSSL, oX509, oSSLFac)
+                oCer.UseSSLProtocols = UseSSLProtocols
             End If
 
 
@@ -80,7 +83,7 @@ Namespace Connector.TCPClient
 
 
 
-                Dim sslsetting = New ClientTlsSettings(System.Security.Authentication.SslProtocols.Tls12,
+                Dim sslsetting = New ClientTlsSettings(oCer.UseSSLProtocols,
                                                        False, oCerLst, targetHost)
 
                 Dim tls As TlsHandler

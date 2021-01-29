@@ -169,7 +169,8 @@ Namespace Connector.TCPClient
         ''' </summary>
         ''' <param name="detail"></param>
         Protected Overridable Sub SetTCPInitializerPar(oRemotePoint As IPEndPoint, detail As TCPClientDetail)
-            TCPInitializer.SetSSLPar(oRemotePoint, detail.IsSSL, detail.Certificate, detail.SSLStreamFactory)
+            TCPInitializer.SetSSLPar(oRemotePoint,
+            detail.IsSSL, detail.Certificate, detail.SSLStreamFactory, detail.UseSSLProtocols)
         End Sub
 
     End Class

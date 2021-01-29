@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.0": {},
     ".NETStandard,Version=v2.0/": {
-      "DoNetDrive.Core/1.16.0": {
+      "DoNetDrive.Core/1.18.0": {
         "dependencies": {
           "NETStandard.Library": "2.0.3",
           "System.IO.Ports": "5.0.0",
@@ -174,7 +174,7 @@
     }
   },
   "libraries": {
-    "DoNetDrive.Core/1.16.0": {
+    "DoNetDrive.Core/1.18.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

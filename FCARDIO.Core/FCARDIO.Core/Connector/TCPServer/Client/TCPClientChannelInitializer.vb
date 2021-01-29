@@ -37,7 +37,7 @@ Namespace Connector.TCPServer.Client
                 Dim ServerDetail = TryCast(ServerConnt.GetConnectorDetail(), TCPServer.TCPServerDetail)
                 If ServerDetail.IsSSL Then
                     Dim sslpar = New ServerTlsSettings(ServerDetail.Certificate, False, False,
-                                    System.Security.Authentication.SslProtocols.Tls12) 'tls1.2
+                                    ServerDetail.UseSSLProtocols) 'tls1.2
                     If ServerDetail.SSLStreamFactory Is Nothing Then
                         channel.Pipeline().AddLast(New TlsHandler(sslpar))
                     Else
