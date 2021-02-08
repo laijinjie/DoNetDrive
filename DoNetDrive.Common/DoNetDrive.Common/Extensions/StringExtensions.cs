@@ -1,4 +1,5 @@
 ﻿
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,29 @@ namespace DoNetDrive.Common.Extensions
     /// </summary>
     public static class StringExtensions
     {
+        static StringExtensions()
+        {
+            Newtonsoft.Json.JsonSerializerSettings setting = new Newtonsoft.Json.JsonSerializerSettings();
+            JsonConvert.DefaultSettings = new Func<JsonSerializerSettings>(() =>
+            {
+                //日期类型默认格式化处理
+                setting.DateFormatHandling = Newtonsoft.Json.DateFormatHandling.MicrosoftDateFormat;
+                setting.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+
+                //空值处理
+                setting.NullValueHandling = NullValueHandling.Ignore;
+
+                //setting.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+
+                return setting;
+
+            });
+        }
+
+
+
+
+
         /// <summary>
         /// 编码
         /// </summary>

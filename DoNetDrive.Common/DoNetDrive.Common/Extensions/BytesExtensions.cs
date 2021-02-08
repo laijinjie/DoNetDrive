@@ -175,5 +175,39 @@ namespace DoNetDrive.Common.Extensions
         {
             return Arrays<byte>.BytesEquals(b, eb);
         }
+
+
+        /// <summary>
+        /// 检查缓冲区是否达到指定长度，长度不够则补充，长度超过则截断
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks></remarks>
+        public static byte[] GetBuffLen(this byte[] bBuf, int iLen)
+        {
+            if (bBuf == null)
+            {
+                bBuf = new byte[iLen - 1 + 1];
+                return bBuf;
+            }
+            if (bBuf.Length == iLen)
+                return bBuf;
+
+            if (bBuf.Length > iLen)//截断
+                bBuf = Arrays<byte>.copyOfRange(bBuf, 0, iLen);  
+            else if (bBuf.Length < iLen)
+            {//补位数
+                var bList = new List<byte>();
+                bList.Capacity = iLen;
+                bList.AddRange(bBuf);
+                byte[] b;
+                b = new byte[iLen - bBuf.Length - 1 + 1];
+                bList.AddRange(b);
+                bBuf = bList.ToArray();
+                bList = null;
+            }
+            return bBuf;
+        }
+
+
     }
 }

@@ -539,7 +539,9 @@ Namespace Connector
             Try
                 If (_isRelease) Then Return
                 CheckStatus()
-
+                If (_isInvalid) Then
+                    Dispose()
+                End If
             Catch ex As Exception
                 Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.ToString()}")
             End Try

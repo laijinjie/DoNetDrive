@@ -61,13 +61,6 @@
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:DoNetDrive.Common.DataUtil.IsNumeric(System.String)">
-            <summary>
-            检查符合数字类型格式
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
         <member name="M:DoNetDrive.Common.DataUtil.GetBCDTime">
             <summary>
             返回BCD 格式yyMMddHHmmss
@@ -79,6 +72,39 @@
             返回BCD 格式yyMMddHHmmss
             </summary>
             <param name="oDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.DataUtil.BCDToDateMMdd(System.Byte[])">
+            <summary>
+            将BCD数组转换为日期，BCD数据格式为 MMDD，只有 月和日
+            </summary>
+            <param name="bData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.DataUtil.DateToBCDYYMMdd(System.DateTime)">
+            <summary>
+            将日期转换为BCD码，格式为 YYMMDD
+            </summary>
+            <param name="oDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.DataUtil.DateToBCDMMdd(System.DateTime)">
+            <summary>
+            将日期转换为BCD码，格式为 MMDD,只有 月和日
+            </summary>
+            <param name="oDate"></param>
+            <returns></returns>
+        </member>
+        <member name="F:DoNetDrive.Common.FaceImageUtil.ImageSizeMax">
+            <summary>
+            文件最大尺寸
+            </summary>
+        </member>
+        <member name="M:DoNetDrive.Common.FaceImageUtil.ConvertImage(System.Byte[])">
+            <summary>
+            进行图片转换，图片像素不能超过 480*640，大小尺寸不能超过50K
+            </summary>
+            <param name="strFile"></param>
             <returns></returns>
         </member>
         <member name="T:DoNetDrive.Common.NumUtil">
@@ -1216,6 +1242,13 @@
             <param name="b"></param>
             <param name="eb"></param>
             <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.Extensions.BytesExtensions.GetBuffLen(System.Byte[],System.Int32)">
+            <summary>
+            检查缓冲区是否达到指定长度，长度不够则补充，长度超过则截断
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
         </member>
         <member name="T:DoNetDrive.Common.Extensions.DateExtensions">
             <summary>

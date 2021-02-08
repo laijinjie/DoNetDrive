@@ -75,24 +75,6 @@ namespace DoNetDrive.Common
             }
         }
 
-        /// <summary>
-        /// 检查符合数字类型格式
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool IsNumeric(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return false;
-            }
-
-            value = value.Trim();
-
-            Regex r = new Regex("^\\d+$");
-
-            return r.IsMatch(value);
-        }
 
         /// <summary>
         /// 返回BCD 格式yyMMddHHmmss
@@ -113,28 +95,78 @@ namespace DoNetDrive.Common
             byte[] bData = new byte[7];
             string sHex;
             sHex = oDate.ToString("yyMMddHHmmss");
-            Array.Copy(HexToByte(sHex), bData, 6);
+            Array.Copy(StringUtil.HexToByte(sHex), bData, 6);
             bData[6] = (byte)oDate.DayOfWeek; // 周
             return bData;
         }
 
-        private static byte[] HexToByte(string sHex)
+        /// <summary>
+        /// 将BCD数组转换为日期，BCD数据格式为 MMDD，只有 月和日
+        /// </summary>
+        /// <param name="bData"></param>
+        /// <returns></returns>
+        public static DateTime BCDToDateMMdd(byte[] bData)
         {
-            try
-            {
-                sHex = sHex.ToUpper().Replace(" ", "");
-                int len = sHex.Length / 2;
-                byte[] data = new byte[len];
-                for (int i = 0; i < len; i++)
-                {
-                    data[i] = Convert.ToByte(sHex.Substring(i * 2, 2), 16);
-                }
-                return data;
-            }
-            catch (Exception ex)
-            { }
-            return null;
+            bData = NumUtil.BCDToByte(bData);
+            if (bData[0] > 12 | bData[0] == 0)
+                return default(DateTime);
+
+            if (bData[1] > 31 | bData[1] == 0)
+                return default(DateTime);
+
+            return new DateTime(DateTime.Now.Year, bData[0], bData[1]);
         }
+        /// <summary>
+        /// 将日期转换为BCD码，格式为 YYMMDD
+        /// </summary>
+        /// <param name="oDate"></param>
+        /// <returns></returns>
+        public static byte[] DateToBCDYYMMdd(DateTime oDate)
+        {
+            byte[] bData;
+            if (oDate == default(DateTime) || oDate == null)
+            {
+                bData = new byte[3];
+                return bData;
+            }
+
+            if (oDate.Equals(DateTime.MinValue))
+            {
+                bData = new byte[3];
+                return bData;
+            }
+            else
+                bData = new byte[] { (byte)(oDate.Year - 2000), (byte)oDate.Month, (byte)oDate.Day };
+
+            return NumUtil.ByteToBCD(bData);
+        }
+
+
+        /// <summary>
+        /// 将日期转换为BCD码，格式为 MMDD,只有 月和日
+        /// </summary>
+        /// <param name="oDate"></param>
+        /// <returns></returns>
+        public static byte[] DateToBCDMMdd(DateTime oDate)
+        {
+            byte[] bData;
+            if (oDate == default(DateTime) || oDate == null)
+            {
+                bData = new byte[2];
+                return bData;
+            }
+
+            if (oDate.Equals(DateTime.MinValue))
+            {
+                bData = new byte[2];
+                return bData;
+            }
+            else
+                bData = new byte[] {  (byte)oDate.Month, (byte)oDate.Day };
+
+            return NumUtil.ByteToBCD(bData);
+        }
+
 
     }
 }
