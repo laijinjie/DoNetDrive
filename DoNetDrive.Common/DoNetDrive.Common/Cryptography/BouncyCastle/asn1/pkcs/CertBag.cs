@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly DerObjectIdentifier certID;
         private readonly Asn1Object certValue;
 
-        [Obsolete("Use 'GetInstance' instead")]
+
 		public CertBag(
             Asn1Sequence seq)
         {

@@ -4,8 +4,16 @@ using System;
 
 namespace DoNetDrive.Protocol.Util
 {
+    /// <summary>
+    /// 时间操作实用工具
+    /// </summary>
     public class TimeUtil
     {
+        /// <summary>
+        /// 将BCD数组转换为时间，数组格式 ssmmhhddMMyy
+        /// </summary> 
+        /// <param name="btTime"></param>
+        /// <returns></returns>
         public static DateTime BCDTimeToDate_ssmmhhddMMyy(byte[] btTime)
         {
             btTime = ByteUtil.BCDToByte(btTime);
@@ -47,7 +55,11 @@ namespace DoNetDrive.Protocol.Util
             DateTime dTime = new DateTime(2000 + year, month, dayOfMonth, hourOfDay, minute, second);
             return dTime;
         }
-
+        /// <summary>
+        /// 将BCD缓存转换为时间，数组格式 yyMMddhh
+        /// </summary>
+        /// <param name="buf">可用长度为4的缓存区</param>
+        /// <returns></returns>
         public static DateTime BCDTimeToDate_yyMMddhh(IByteBuffer buf)
         {
             buf = ByteUtil.BCDToByte(buf, buf.ReaderIndex, 4);
@@ -106,10 +118,14 @@ namespace DoNetDrive.Protocol.Util
             DateTime dTime = new DateTime(2000 + year, month, day);
             return dTime;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="btData"></param>
+        /// <param name="date"></param>
         public static void DateToBCD_yyMMddhh(byte[] btData, DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 for (int i = 0; i < 4; i++)
                 {
@@ -127,13 +143,13 @@ namespace DoNetDrive.Protocol.Util
         }
 
         /// <summary>
-        /// 日期类型转换为BCD格式日期字节数组
+        /// 日期类型转换为BCD格式日期字节数组，格式 ssmmhhddMMwwyy
         /// </summary>
         /// <param name="btData"></param>
         /// <param name="date"></param>
         public static void DateToBCD_ssmmhhddMMwwyy(byte[] btData, DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 for (int i = 0; i < 7; i++)
                 {
@@ -160,7 +176,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_ssmmhhddMMyy(byte[] btData, DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 for (int i = 0; i < 6; i++)
                 {
@@ -402,7 +418,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_yyMMddhhmm(IByteBuffer buf, DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -429,7 +445,7 @@ namespace DoNetDrive.Protocol.Util
         /// <param name="date"></param>
         public static void DateToBCD_yyMMdd(IByteBuffer buf, DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -446,10 +462,14 @@ namespace DoNetDrive.Protocol.Util
                 ByteUtil.ByteToBCD(buf, iWriteIndex, 3);
             }
         }
-
+        /// <summary>
+        /// 将日期编码为BCD数组，格式为  yyMMddhhmmss
+        /// </summary>
+        /// <param name="btData">目标数组 最少6个元素</param>
+        /// <param name="date"></param>
         public static void DateToBCD_yyMMddhhmmss(byte[] btData, DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 for (int i = 0; i < 6; i++)
                 {
@@ -463,6 +483,7 @@ namespace DoNetDrive.Protocol.Util
                 btData[2] = (byte)date.Day;
                 btData[3] = (byte)date.Hour;
                 btData[4] = (byte)date.Minute;
+                btData[5] = (byte)date.Second;
                 btData = ByteUtil.ByteToBCD(btData);
             }
         }
@@ -475,7 +496,7 @@ namespace DoNetDrive.Protocol.Util
          */
         public static String FormatTime(DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 return "";
             }
@@ -491,7 +512,7 @@ namespace DoNetDrive.Protocol.Util
          */
         public static String FormatTimeHHmm(DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 return "";
             }
@@ -499,20 +520,25 @@ namespace DoNetDrive.Protocol.Util
             return format;
         }
 
+        /// <summary>
+        /// 返回格式为 HH:mm:ss.fff 的字符串
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
         public static String FormatTimeMillisecond(DateTime date)
         {
-            if (date == null || date == DateTime.MinValue)
+            if ( date == DateTime.MinValue)
             {
                 return "";
             }
-            string format = date.ToString("HH:mm:ss.sss");
+            string format = date.ToString("HH:mm:ss.fff");
             return format;
         }
 
         /// <summary>
         /// BCD格式日期字节数组转换为日期类型
         /// </summary>
-        /// <param name="btTime"></param>
+        /// <param name="buf"></param>
         /// <returns></returns>
         public static DateTime BCDTimeToDate_ssmmHHddMMWWyy(IByteBuffer buf)
         {

@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.bagAttributes = bagAttributes;
         }
 
-        [Obsolete("Use 'GetInstance' instead")]
+
 		public SafeBag(
             Asn1Sequence seq)
         {

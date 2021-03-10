@@ -1,6 +1,6 @@
 ﻿Imports System.Threading
 Imports DotNetty.Transport.Channels
-Imports DotNetty.Transport.Libuv
+
 
 Namespace Connector
     Public MustInherit Class DotNettyAllocator
@@ -187,7 +187,7 @@ Namespace Connector
 
                 BufferAllocator = Nothing
             Catch ex As Exception
-                'Trace.WriteLine("DotNettyAllocator.shutdownGracefully" & vbNewLine & ex.ToString())
+                'Trace.WriteLine("DotNettyAllocator.shutdownGracefully" & System.Environment.NewLine & ex.ToString())
             End Try
             'Trace.WriteLine("调用 DotNettyAllocator.shutdownGracefully,事件循环组释放完毕")
 

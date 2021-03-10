@@ -188,7 +188,7 @@ Public NotInheritable Class ConnectorAllocator
         If cdtl Is Nothing Then Return Nothing
         If _IsRelease Then Return Nothing
         Dim sKey = cdtl.GetKey()
-        Dim Conn As INConnector
+        Dim Conn As INConnector = Nothing
         If Not Connectors.TryGetValue(sKey, Conn) Then
             '通道不存在，创建一个通道
             SyncLock lockObj
@@ -374,7 +374,7 @@ Public NotInheritable Class ConnectorAllocator
         Dim Conn As INConnector = GetConnector(cdtl)
         If Conn Is Nothing Then Return False
         Conn.StopCommand(cmdDetail)
-
+        Return True
     End Function
 #End Region
 
@@ -430,7 +430,7 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl?.FireCommandCompleteEvent(e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandCompleteEvent.CommandDetail {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandCompleteEvent.CommandDetail {System.Environment.NewLine} {ex.ToString}")
         End Try
 
 
@@ -438,7 +438,7 @@ Public NotInheritable Class ConnectorAllocator
             RaiseEvent CommandCompleteEvent(Me, e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandCompleteEvent {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandCompleteEvent {System.Environment.NewLine} {ex.ToString}")
         End Try
 
     End Sub
@@ -453,13 +453,13 @@ Public NotInheritable Class ConnectorAllocator
         Try
             cmdDtl?.FireCommandProcessEvent(e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent.CommandDetail  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent.CommandDetail  {System.Environment.NewLine} {ex.ToString}")
         End Try
 
         Try
             RaiseEvent CommandProcessEvent(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireCommandProcessEvent  {System.Environment.NewLine} {ex.ToString}")
         End Try
 
     End Sub
@@ -477,7 +477,7 @@ Public NotInheritable Class ConnectorAllocator
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
 
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent.CommandDetail  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent.CommandDetail  {System.Environment.NewLine} {ex.ToString}")
         End Try
 
         Try
@@ -485,7 +485,7 @@ Public NotInheritable Class ConnectorAllocator
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
 
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandErrorEvent  {System.Environment.NewLine} {ex.ToString}")
         End Try
     End Sub
 
@@ -500,14 +500,14 @@ Public NotInheritable Class ConnectorAllocator
             cmdDtl?.FireCommandTimeout(e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout.CommandDetail  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout.CommandDetail  {System.Environment.NewLine} {ex.ToString}")
         End Try
 
         Try
             RaiseEvent CommandTimeout(Me, e)
         Catch ex As Exception
             Dim oCommand = e?.Command?.GetType()?.Name
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} {oCommand} FireCommandTimeout  {System.Environment.NewLine} {ex.ToString}")
         End Try
     End Sub
 
@@ -522,13 +522,13 @@ Public NotInheritable Class ConnectorAllocator
         Try
             cmdDtl?.FireCommandTimeout(e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent.CommandDetail  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent.CommandDetail  {System.Environment.NewLine} {ex.ToString}")
         End Try
 
         Try
             RaiseEvent CommandTimeout(Me, e)
         Catch ex As Exception
-            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent  {vbNewLine} {ex.ToString}")
+            Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent  {System.Environment.NewLine} {ex.ToString}")
         End Try
     End Sub
 

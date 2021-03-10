@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace DoNetDrive.Protocol.Util
 {
+    /// <summary>
+    /// 字节实用工具
+    /// </summary>
     public class ByteUtil
     {
+        /// <summary>
+        /// 十进制字节转BCD
+        /// </summary>
+        /// <param name="iNum"></param>
+        /// <returns></returns>
         public static byte ByteToBCD(byte iNum)
         {
             int iValue = iNum;
@@ -16,7 +24,11 @@ namespace DoNetDrive.Protocol.Util
             return (byte)iValue;
         }
 
-
+        /// <summary>
+        /// BCD 转 十进制字节
+        /// </summary>
+        /// <param name="iNum"></param>
+        /// <returns></returns>
         public static byte[] ByteToBCD(byte[] iNum)
         {
             int iLen = iNum.Length;
@@ -29,7 +41,7 @@ namespace DoNetDrive.Protocol.Util
 
 
         /// <summary>
-        /// BCD 转 字节
+        /// BCD 转 十进制字节
         /// </summary>
         /// <param name="iNum"></param>
         /// <returns></returns>
@@ -46,6 +58,8 @@ namespace DoNetDrive.Protocol.Util
         /// 从一个ByteBuf中现有索引，开始转换指定长度，BCD数据 转 十进制字节
         /// </summary>
         /// <param name="buf"></param>
+        /// <param name="iIndex"></param>
+        /// <param name="iLen"></param>
         /// <returns></returns>
         public static IByteBuffer BCDToByte(IByteBuffer buf, int iIndex, int iLen)
         {
@@ -69,6 +83,8 @@ namespace DoNetDrive.Protocol.Util
         /// 从一个ByteBuf中现有索引，开始转换指定长度，十进制字节 转  BCD数据 
         /// </summary>
         /// <param name="buf"></param>
+        /// <param name="iIndex"></param>
+        /// <param name="iLen"></param>
         /// <returns></returns>
         public static IByteBuffer ByteToBCD(IByteBuffer buf, int iIndex, int iLen)
         {
@@ -88,7 +104,11 @@ namespace DoNetDrive.Protocol.Util
         }
 
 
-        //BCD 转 字节
+        /// <summary>
+        /// BCD 转 字节
+        /// </summary>
+        /// <param name="iNum"></param>
+        /// <returns></returns>
         public static byte[] BCDToByte(byte[] iNum)
         {
             int iLen = iNum.Length;

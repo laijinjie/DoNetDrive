@@ -3,8 +3,6 @@ Imports DotNetty.Buffers
 Imports DotNetty.Transport.Bootstrapping
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
-Imports DotNetty.Transport.Libuv
-
 Namespace Connector.TCPClient
     Public Class TCPClientAllocator
         Implements INConnectorAllocator

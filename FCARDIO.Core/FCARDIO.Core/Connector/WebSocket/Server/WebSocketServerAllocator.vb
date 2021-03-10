@@ -4,7 +4,6 @@ Imports DotNetty.Transport.Bootstrapping
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
 Imports DoNetDrive.Core.Connector.WebSocket.Server.Client
-Imports DotNetty.Transport.Libuv
 Imports System.Runtime.InteropServices
 
 Namespace Connector.WebSocket.Server
