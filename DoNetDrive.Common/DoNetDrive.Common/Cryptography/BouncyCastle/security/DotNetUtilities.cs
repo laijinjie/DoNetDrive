@@ -243,7 +243,8 @@ namespace Org.BouncyCastle.Security
         {
             //CspParameters csp = new CspParameters();
             //csp.KeyContainerName = string.Format("BouncyCastle-{0}", Guid.NewGuid());
-            RSA rsaCsp =RSA.Create(rp);
+            //RSA rsaCsp =RSA.Create(rp);
+            RSA rsaCsp = RSA.Create();
             rsaCsp.ImportParameters(rp);
             return rsaCsp;
         }

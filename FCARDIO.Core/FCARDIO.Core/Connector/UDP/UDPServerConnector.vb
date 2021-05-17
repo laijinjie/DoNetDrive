@@ -127,6 +127,7 @@ Namespace Connector.UDP
             _Status = ConnectorStatus_Invalid.Invalid
             SetInvalid()
             RaiseEvent ConnectorDisposeEvent(_Detail)
+            Dispose()
         End Sub
 
         ''' <summary>

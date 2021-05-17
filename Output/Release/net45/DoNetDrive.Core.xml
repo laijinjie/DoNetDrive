@@ -4519,6 +4519,13 @@ DoNetDrive.Core
  <param name="connectDtl"></param>
  <returns></returns>
 </member>
+<member name="M:DoNetDrive.Core.ConnectorAllocator.GetConnector(System.String)">
+ <summary>
+ 获取一个连接通道
+ </summary>
+ <param name="sKey"></param>
+ <returns></returns>
+</member>
 <member name="M:DoNetDrive.Core.ConnectorAllocator.RemoveConnector(System.String,DoNetDrive.Core.Connector.INConnector)">
  <summary>
  删除一个通道

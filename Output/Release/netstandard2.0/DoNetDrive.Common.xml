@@ -61,13 +61,6 @@
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:DoNetDrive.Common.DataUtil.IsNumeric(System.String)">
-            <summary>
-            检查符合数字类型格式
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
         <member name="M:DoNetDrive.Common.DataUtil.GetBCDTime">
             <summary>
             返回BCD 格式yyMMddHHmmss
@@ -79,6 +72,39 @@
             返回BCD 格式yyMMddHHmmss
             </summary>
             <param name="oDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.DataUtil.BCDToDateMMdd(System.Byte[])">
+            <summary>
+            将BCD数组转换为日期，BCD数据格式为 MMDD，只有 月和日
+            </summary>
+            <param name="bData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.DataUtil.DateToBCDYYMMdd(System.DateTime)">
+            <summary>
+            将日期转换为BCD码，格式为 YYMMDD
+            </summary>
+            <param name="oDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.DataUtil.DateToBCDMMdd(System.DateTime)">
+            <summary>
+            将日期转换为BCD码，格式为 MMDD,只有 月和日
+            </summary>
+            <param name="oDate"></param>
+            <returns></returns>
+        </member>
+        <member name="F:DoNetDrive.Common.FaceImageUtil.ImageSizeMax">
+            <summary>
+            文件最大尺寸
+            </summary>
+        </member>
+        <member name="M:DoNetDrive.Common.FaceImageUtil.ConvertImage(System.Byte[])">
+            <summary>
+            进行图片转换，图片像素不能超过 480*640，大小尺寸不能超过50K
+            </summary>
+            <param name="strFile"></param>
             <returns></returns>
         </member>
         <member name="T:DoNetDrive.Common.NumUtil">
@@ -1217,6 +1243,13 @@
             <param name="eb"></param>
             <returns></returns>
         </member>
+        <member name="M:DoNetDrive.Common.Extensions.BytesExtensions.GetBuffLen(System.Byte[],System.Int32)">
+            <summary>
+            检查缓冲区是否达到指定长度，长度不够则补充，长度超过则截断
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
         <member name="T:DoNetDrive.Common.Extensions.DateExtensions">
             <summary>
             日期扩展方法类
@@ -1479,6 +1512,21 @@
             编码
             </summary>
         </member>
+        <member name="M:DoNetDrive.Common.Extensions.StringExtensions.ToJSON(System.Object)">
+            <summary>
+            从对象序列化到字符串
+            </summary>
+            <param name="o"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.Extensions.StringExtensions.FromJson``1(System.String)">
+            <summary>
+            从JSON字符串反序列化到对象
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="jsonTexts"></param>
+            <returns></returns>
+        </member>
         <member name="M:DoNetDrive.Common.Extensions.StringExtensions.IsBase64(System.String,System.Byte[]@)">
             <summary>
             
@@ -1622,6 +1670,210 @@
             <param name="s"></param>
             <param name="iLen"></param>
             <param name="sFillStr"></param>
+            <returns></returns>
+        </member>
+        <member name="T:DoNetDrive.Common.MyXML">
+            <summary>
+            Xml 工具类
+            </summary>
+        </member>
+        <member name="F:DoNetDrive.Common.MyXML.mXMLDoc">
+            <summary>
+            XML文档
+            </summary>
+        </member>
+        <member name="F:DoNetDrive.Common.MyXML.mElement">
+            <summary>
+            XML根节点
+            </summary>
+        </member>
+        <member name="F:DoNetDrive.Common.MyXML.mMajorNode">
+            <summary>
+            XML主节点
+            </summary>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.#ctor">
+            <summary>
+            构造函数
+            </summary>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.#ctor(System.String)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="sFileName"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.IsOpen">
+            <summary>
+            返回xml 是否已打开
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.LoadXMLOnFile(System.String)">
+            <summary>
+            从文件中中提取XML对象
+            </summary>
+            <param name="sFileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.LoadXMLOnString(System.String)">
+            <summary>
+            从字符串中提取XML对象
+            </summary>
+            <param name="strXML"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.SelectDocumentElement(System.String)">
+            <summary>
+            选择根节点
+            </summary>
+            <param name="sNodes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.setDocumentElementAttribute(System.String,System.String)">
+            <summary>
+            设置根节点属性值
+            </summary>
+            <param name="sName"></param>
+            <param name="sValue"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetDocumentElementAttribute(System.String,System.String)">
+            <summary>
+            读取根节点属性值
+            </summary>
+            <param name="sName"></param>
+            <param name="sDefault_value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.DeleteDocumentElementAttribute(System.String)">
+            <summary>
+            删除根节点属性
+            </summary>
+            <param name="sName"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.SelectElement(System.String)">
+            <summary>
+            选择主节点
+            </summary>
+            <param name="sNodes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.setElementAttribute(System.String,System.String)">
+            <summary>
+            设置主节点属性值
+            </summary>
+            <param name="sName"></param>
+            <param name="sValue"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetElementAttribute(System.String,System.String)">
+            <summary>
+            读取主节点属性值
+            </summary>
+            <param name="sName"></param>
+            <param name="sDefault_value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.DeleteElementAttribute(System.String)">
+            <summary>
+            删除主节点属性
+            </summary>
+            <param name="sName"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.SetElementValue(System.String,System.String)">
+            <summary>
+            主节点赋值
+            </summary>
+            <param name="sKey"></param>
+            <param name="sVaues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetElementValue(System.String,System.String)">
+            <summary>
+            主节点取值
+            </summary>
+            <param name="sKey"></param>
+            <param name="sDefault_value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.SetValue(System.String,System.String)">
+            <summary>
+            子节点赋值
+            </summary>
+            <param name="sKey"></param>
+            <param name="sVaues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.Space(System.Int32)">
+            <summary>
+            返回指定空格字符串
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetValue(System.String,System.String)">
+            <summary>
+            子节点取值
+            </summary>
+            <param name="sKey"></param>
+            <param name="sDefault_value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.DeleteValue(System.String)">
+            <summary>
+            删除子节点
+            </summary>
+            <param name="sName"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.SetNodeAttribute(System.String,System.String,System.String)">
+            <summary>
+            设置子节点属性值
+            </summary>
+            <param name="sNodeKey"></param>
+            <param name="sName"></param>
+            <param name="sValue"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetNodeAttribute(System.String,System.String,System.String)">
+            <summary>
+            读取子节点属性值
+            </summary>
+            <param name="sName"></param>
+            <param name="sDefault_value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.DeleteNodeAttribute(System.String,System.String)">
+            <summary>
+            删除子节点属性
+            </summary>
+            <param name="sName"></param>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.Save(System.String)">
+            <summary>
+            保存XML
+            </summary>
+            <param name="sPath"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.Document">
+            <summary>
+            返回 XML 对象
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetElement">
+            <summary>
+            返回 XML根节点
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.GetNode">
+            <summary>
+            返回 XML根节点
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DoNetDrive.Common.MyXML.ToString">
+            <summary>
+            返回xml InnerXml
+            </summary>
             <returns></returns>
         </member>
         <member name="M:Org.BouncyCastle.Asn1.Anssi.AnssiNamedCurves.GetByOid(Org.BouncyCastle.Asn1.DerObjectIdentifier)">

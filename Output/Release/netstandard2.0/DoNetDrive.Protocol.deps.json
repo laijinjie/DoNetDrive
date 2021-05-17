@@ -10,7 +10,7 @@
       "DoNetDrive.Protocol/1.0.0": {
         "dependencies": {
           "DoNetDrive.Common": "1.16.0",
-          "DoNetDrive.Core": "1.16.0",
+          "DoNetDrive.Core": "1.18.0",
           "DoNetDrive.Protocol.Util": "1.16.0",
           "NETStandard.Library": "2.0.3",
           "DotNetty.Buffers": "0.6.1.0",
@@ -126,7 +126,7 @@
           "DoNetDrive.Common.dll": {}
         }
       },
-      "DoNetDrive.Core/1.16.0": {
+      "DoNetDrive.Core/1.18.0": {
         "dependencies": {
           "System.IO.Ports": "5.0.0"
         },
@@ -305,7 +305,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "DoNetDrive.Core/1.16.0": {
+    "DoNetDrive.Core/1.18.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
