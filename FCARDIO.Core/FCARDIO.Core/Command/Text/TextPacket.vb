@@ -18,6 +18,10 @@ Namespace Command.Text
             TextPar = par
         End Sub
 
+        Public Function GetValue() As String
+            Return TextPar.Text
+        End Function
+
         Public Sub ReleaseDataBuf() Implements INPacket.ReleaseDataBuf
             Return
         End Sub

@@ -1019,6 +1019,16 @@ DoNetDrive.Core
  文本的编码方式
  </summary>
 </member>
+<member name="F:DoNetDrive.Core.Command.Text.TextCommandParameter.Wait">
+ <summary>
+ 是否等待回应
+ </summary>
+</member>
+<member name="F:DoNetDrive.Core.Command.Text.TextCommandParameter.WaitLen">
+ <summary>
+ 回应长度
+ </summary>
+</member>
 <member name="M:DoNetDrive.Core.Command.Text.TextCommandParameter.#ctor(System.String)">
  <summary>
  使用一个文本初始化参数
@@ -1049,6 +1059,11 @@ DoNetDrive.Core
  </summary>
  <param name="Allocator"></param>
  <returns></returns>
+</member>
+<member name="F:DoNetDrive.Core.Command.Text.TextPacketDecompile.Encoding">
+ <summary>
+ 文本的编码方式
+ </summary>
 </member>
 <member name="T:DoNetDrive.Core.ConnectorAllocator">
  <summary>
@@ -1235,6 +1250,13 @@ DoNetDrive.Core
  获取一个连接通道
  </summary>
  <param name="connectDtl"></param>
+ <returns></returns>
+</member>
+<member name="M:DoNetDrive.Core.ConnectorAllocator.GetConnector(System.String)">
+ <summary>
+ 获取一个连接通道
+ </summary>
+ <param name="sKey"></param>
  <returns></returns>
 </member>
 <member name="M:DoNetDrive.Core.ConnectorAllocator.RemoveConnector(System.String,DoNetDrive.Core.Connector.INConnector)">

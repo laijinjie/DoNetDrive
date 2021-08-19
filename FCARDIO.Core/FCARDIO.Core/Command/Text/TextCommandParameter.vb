@@ -15,6 +15,16 @@
         Public Encoding As System.Text.Encoding
 
         ''' <summary>
+        ''' 是否等待回应
+        ''' </summary>
+        Public Wait As Boolean
+
+        ''' <summary>
+        ''' 回应长度
+        ''' </summary>
+        Public WaitLen As Integer
+
+        ''' <summary>
         ''' 使用一个文本初始化参数
         ''' </summary>
         ''' <param name="t"></param>

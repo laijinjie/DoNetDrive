@@ -14,7 +14,8 @@ Namespace Command.Text
         ''' <param name="cd">表示命令详情，包含通道信息，对端信息，超时时间，重发次数</param>
         Sub New(cd As INCommandDetail, par As TextCommandParameter)
             MyBase.New(cd, par)
-            _IsWaitResponse = False
+            _IsWaitResponse = par.Wait
+            _Decompile = New TextPacketDecompile(par.Encoding)
         End Sub
 
         ''' <summary>
@@ -38,7 +39,9 @@ Namespace Command.Text
         ''' </summary>
         ''' <param name="readPacket">收到的数据包</param>
         Protected Overrides Sub CommandNext(readPacket As INPacket)
-            Return
+            Dim tp = TryCast(readPacket, TextPacket)
+            _Result = New TextCommandResult(tp.GetValue())
+            CommandCompleted()
         End Sub
 
         ''' <summary>

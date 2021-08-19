@@ -284,6 +284,21 @@ Public NotInheritable Class ConnectorAllocator
         Return Nothing
     End Function
 
+
+    ''' <summary>
+    ''' 获取一个连接通道
+    ''' </summary>
+    ''' <param name="sKey"></param>
+    ''' <returns></returns>
+    Public Function GetConnector(sKey As String) As INConnector
+        If _IsRelease Then Return Nothing
+        Dim connector As INConnector = Nothing
+        If Connectors.TryGetValue(sKey, connector) Then
+            Return connector
+        End If
+        Return Nothing
+    End Function
+
     ''' <summary>
     ''' 删除一个通道
     ''' </summary>
