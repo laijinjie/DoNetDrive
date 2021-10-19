@@ -301,7 +301,7 @@ namespace DoNetDrive.Protocol.Util
         {
             string empty = string.Empty;
             empty = databuf.ReadString(iLen, uc);
-            int iIndex = empty.IndexOf("\0");
+            int iIndex = empty.IndexOf('\0');
             if (iIndex >= 0)
             {
                 if (iIndex > 0)
