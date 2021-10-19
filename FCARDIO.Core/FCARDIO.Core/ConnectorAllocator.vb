@@ -535,13 +535,13 @@ Public NotInheritable Class ConnectorAllocator
     Private Sub FireAuthenticationErrorEvent(sender As Object, e As CommandEventArgs)
         Dim cmdDtl = e?.CommandDetail
         Try
-            cmdDtl?.FireCommandTimeout(e)
+            cmdDtl?.FireAuthenticationErrorEvent(e)
         Catch ex As Exception
             Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent.CommandDetail  {System.Environment.NewLine} {ex.ToString}")
         End Try
 
         Try
-            RaiseEvent CommandTimeout(Me, e)
+            RaiseEvent AuthenticationErrorEvent(Me, e)
         Catch ex As Exception
             Trace.WriteLine($"{cmdDtl?.Connector?.GetKey()} ConnectorAllocator FireAuthenticationErrorEvent  {System.Environment.NewLine} {ex.ToString}")
         End Try
