@@ -70,11 +70,12 @@ Namespace Packet
         Public Sub ReleaseDataBuf() Implements INPacket.ReleaseDataBuf
             Try
                 If (CmdData IsNot Nothing) Then
-                    If (CmdData.ReferenceCount <> 1) Then
-                        Debug.Print("内存泄漏")
-                    Else
-
+                    If (CmdData.ReferenceCount > 0) Then
                         CmdData.Release()
+                    End If
+
+                    If (CmdData.ReferenceCount <> 0) Then
+                        'Debug.Print("内存泄漏")
                     End If
                 End If
                 CmdData = Nothing

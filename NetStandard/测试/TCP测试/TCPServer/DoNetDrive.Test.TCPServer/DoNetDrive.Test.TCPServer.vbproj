@@ -18,39 +18,40 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="DoNetDrive.Common">
-      <HintPath>..\..\..\..\netstandard2.0\DoNetDrive.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DoNetDrive.Common.dll</HintPath>
     </Reference>
     <Reference Include="DoNetDrive.Core">
-      <HintPath>..\..\..\..\netstandard2.0\DoNetDrive.Core.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DoNetDrive.Core.dll</HintPath>
     </Reference>
     <Reference Include="DoNetDrive.Protocol">
-      <HintPath>..\..\..\..\netstandard2.0\DoNetDrive.Protocol.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DoNetDrive.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="DoNetDrive.Protocol.Util">
-      <HintPath>..\..\..\..\netstandard2.0\DoNetDrive.Protocol.Util.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DoNetDrive.Protocol.Util.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\..\netstandard2.0\DotNetty.Buffers.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DotNetty\DotNetty.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\..\netstandard2.0\DotNetty.Codecs.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DotNetty\DotNetty.Codecs.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Codecs.Http">
-      <HintPath>..\..\..\..\netstandard2.0\DotNetty.Codecs.Http.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DotNetty\DotNetty.Codecs.Http.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\..\netstandard2.0\DotNetty.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DotNetty\DotNetty.Common.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\..\netstandard2.0\DotNetty.Handlers.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DotNetty\DotNetty.Handlers.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\..\netstandard2.0\DotNetty.Transport.dll</HintPath>
+      <HintPath>..\..\..\..\..\Output\Release\net5\net5.0\DotNetty\DotNetty.Transport.dll</HintPath>
     </Reference>
   </ItemGroup>
 

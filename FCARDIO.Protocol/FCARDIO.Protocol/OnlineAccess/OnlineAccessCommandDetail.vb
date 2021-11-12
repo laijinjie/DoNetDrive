@@ -95,7 +95,11 @@ Namespace OnlineAccess
                 If String.IsNullOrEmpty(SN) Then
                     Return EmptySN
                 End If
-                Return SN.GetBytes()
+                Dim buf = SN.GetBytes()
+                If buf.Length <> 16 Then
+                    buf = EmptySN
+                End If
+                Return buf
             End Get
         End Property
 

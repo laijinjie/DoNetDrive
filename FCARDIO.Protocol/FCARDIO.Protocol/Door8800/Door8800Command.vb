@@ -68,29 +68,29 @@ Namespace Door8800
         ''' <summary>
         ''' 命令返回值成功
         ''' </summary>
-        ''' <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+        ''' <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
         ''' <returns></returns>
-        Protected Overrides Function CheckResponse_OK(oPck As OnlineAccessPacket) As Boolean
-            Return (oPck.CmdType = &H21 And oPck.CmdIndex = 1)
+        Protected Overrides Function CheckResponse_OK(oResultPck As OnlineAccessPacket) As Boolean
+            Return (oResultPck.CmdType = &H21 And oResultPck.CmdIndex = 1)
         End Function
 
 
         ''' <summary>
         ''' 通讯密码错误
         ''' </summary>
-        ''' <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+        ''' <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
         ''' <returns></returns>
-        Protected Overrides Function CheckResponse_PasswordErr(oPck As OnlineAccessPacket) As Boolean
-            Return (oPck.CmdType = &H21 And oPck.CmdIndex = 2)
+        Protected Overrides Function CheckResponse_PasswordErr(oResultPck As OnlineAccessPacket) As Boolean
+            Return (oResultPck.CmdType = &H21 And oResultPck.CmdIndex = 2)
         End Function
 
         ''' <summary>
         ''' 检验和错误
         ''' </summary>
-        ''' <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+        ''' <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
         ''' <returns></returns>
-        Protected Overrides Function CheckResponse_CheckSumErr(oPck As OnlineAccessPacket) As Boolean
-            Return (oPck.CmdType = &H21 And oPck.CmdIndex = 3)
+        Protected Overrides Function CheckResponse_CheckSumErr(oResultPck As OnlineAccessPacket) As Boolean
+            Return (oResultPck.CmdType = &H21 And oResultPck.CmdIndex = 3)
         End Function
 
 
@@ -102,39 +102,42 @@ Namespace Door8800
         ''' <summary>
         ''' 检查返回指令是否正确
         ''' </summary>
-        ''' <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+        ''' <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
         ''' <returns></returns>
-        Protected Overridable Function CheckResponse(oPck As OnlineAccessPacket) As Boolean
+        Protected Overridable Function CheckResponse(oResultPck As OnlineAccessPacket) As Boolean
 
-            Return CheckResponse(oPck, oPck.DataLen)
+            Return CheckResponse(oResultPck, oResultPck.DataLen)
         End Function
 
         ''' <summary>
         ''' 检查返回指令是否正确
         ''' </summary>
-        ''' <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
-        ''' <param name="dl">返回值的长度要求</param>
+        ''' <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
+        ''' <param name="ResultDataLen">返回值的长度要求</param>
         ''' <returns></returns>
-        Protected Overridable Function CheckResponse(oPck As OnlineAccessPacket, dl As Integer) As Boolean
+        Protected Overridable Function CheckResponse(oResultPck As OnlineAccessPacket, ResultDataLen As Integer) As Boolean
 
-            Return CheckResponse(oPck, DoorPacket.CmdType, DoorPacket.CmdIndex, DoorPacket.CmdPar, dl)
+            Return CheckResponse(oResultPck, DoorPacket.CmdType, DoorPacket.CmdIndex, DoorPacket.CmdPar, ResultDataLen)
         End Function
 
 
         ''' <summary>
         ''' 检查返回指令是否符合规则
         ''' </summary>
-        ''' <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
-        ''' <param name="CmdType">返回值的命令类型</param>
-        ''' <param name="CmdIndex">返回值的命令索引</param>
-        ''' <param name="CmdPar">返回值的命令参数</param>
-        ''' <param name="DataLen">返回值的长度要求</param>
+        ''' <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
+        ''' <param name="ResultCmdType">返回值的命令类型</param>
+        ''' <param name="ResultCmdIndex">返回值的命令索引</param>
+        ''' <param name="ResultCmdPar">返回值的命令参数</param>
+        ''' <param name="ResultDataLen">返回值的长度要求</param>
         ''' <returns></returns>
-        Protected Overridable Function CheckResponse(oPck As OnlineAccessPacket,
-                                                     CmdType As Byte, CmdIndex As Byte, CmdPar As Byte,
-                                                     DataLen As Integer) As Boolean
+        Protected Overridable Function CheckResponse(oResultPck As OnlineAccessPacket,
+                                                     ResultCmdType As Byte, ResultCmdIndex As Byte, ResultCmdPar As Byte,
+                                                     ResultDataLen As Integer) As Boolean
 
-            Return (oPck.CmdType = ResultCmdTypeAddValkue + CmdType And oPck.CmdIndex = CmdIndex And oPck.CmdPar = CmdPar And oPck.DataLen = DataLen)
+            Return (oResultPck.CmdType = ResultCmdTypeAddValkue + ResultCmdType And
+                oResultPck.CmdIndex = ResultCmdIndex And
+                oResultPck.CmdPar = ResultCmdPar And
+                oResultPck.DataLen = ResultDataLen)
         End Function
 
     End Class

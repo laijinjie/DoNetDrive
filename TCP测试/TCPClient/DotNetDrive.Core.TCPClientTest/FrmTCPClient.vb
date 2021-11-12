@@ -4,7 +4,6 @@ Imports System.Threading
 Imports DoNetDrive.Core
 Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
-Imports DoNetDrive.Core.Extension
 Imports DotNetty.Buffers
 Imports DotNetty.Common.Utilities
 Imports System.Collections.Concurrent
@@ -252,7 +251,7 @@ Public Class FrmTCPClient
             Case ConnectorType.TCPClient
                 Dim dtl As TCPClient.TCPClientDetail_Readonly = oConn.GetConnectorDetail()
 
-                Return $"R:{dtl.Addr}:{dtl.Port} L:{dtl.LocalAddr}:L:{dtl.LocalPort} T:{Now.ToTimeffff()}"
+                Return $"R:{dtl.Addr}:{dtl.Port} L:{dtl.LocalAddr}:L:{dtl.LocalPort} T:{Now:ss.ffff}"
         End Select
         Return conn.ToString()
     End Function

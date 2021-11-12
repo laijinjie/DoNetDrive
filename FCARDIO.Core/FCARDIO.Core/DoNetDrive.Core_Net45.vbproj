@@ -110,7 +110,9 @@
     <Compile Include="Command\INRequestHandle.vb" />
     <Compile Include="Command\Text\TextCommandDetail.vb" />
     <Compile Include="Command\Text\TextCommandParameter.vb" />
+    <Compile Include="Command\Text\TextCommandResult.vb" />
     <Compile Include="Command\Text\TextPacket.vb" />
+    <Compile Include="Command\Text\TextPacketDecompile.vb" />
     <Compile Include="Connector\AbstractConnector.vb" />
     <Compile Include="Command\INCommand.vb" />
     <Compile Include="Command\Event\CommandEventArgs.vb" />

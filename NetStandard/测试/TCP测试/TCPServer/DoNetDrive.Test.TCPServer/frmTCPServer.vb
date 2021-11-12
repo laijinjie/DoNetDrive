@@ -87,7 +87,7 @@ Public Class frmTCPServer
                 Return
             End If
             Dim x509Data = File.ReadAllBytes(sSSLFile)
-            Dim x509 As X509Certificate2 = New X509Certificate2(x509Data, "YA73lJbk")
+            Dim x509 As X509Certificate2 = New X509Certificate2(x509Data, "2FTMK3xz")
             serverDtl = New TCPServerDetail(sAddr, sPort, True, x509)
         Else
             serverDtl = New TCPServerDetail(sAddr, sPort)

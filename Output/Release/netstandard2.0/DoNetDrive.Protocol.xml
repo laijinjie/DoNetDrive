@@ -147,21 +147,21 @@ DoNetDrive.Protocol
  <summary>
  命令返回值成功
  </summary>
- <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+ <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
  <returns></returns>
 </member>
 <member name="M:DoNetDrive.Protocol.Door8800.Door8800Command.CheckResponse_PasswordErr(DoNetDrive.Protocol.OnlineAccess.OnlineAccessPacket)">
  <summary>
  通讯密码错误
  </summary>
- <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+ <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
  <returns></returns>
 </member>
 <member name="M:DoNetDrive.Protocol.Door8800.Door8800Command.CheckResponse_CheckSumErr(DoNetDrive.Protocol.OnlineAccess.OnlineAccessPacket)">
  <summary>
  检验和错误
  </summary>
- <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+ <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
  <returns></returns>
 </member>
 <member name="F:DoNetDrive.Protocol.Door8800.Door8800Command.ResultCmdTypeAddValkue">
@@ -173,26 +173,26 @@ DoNetDrive.Protocol
  <summary>
  检查返回指令是否正确
  </summary>
- <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
+ <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
  <returns></returns>
 </member>
 <member name="M:DoNetDrive.Protocol.Door8800.Door8800Command.CheckResponse(DoNetDrive.Protocol.OnlineAccess.OnlineAccessPacket,System.Int32)">
  <summary>
  检查返回指令是否正确
  </summary>
- <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
- <param name="dl">返回值的长度要求</param>
+ <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
+ <param name="ResultDataLen">返回值的长度要求</param>
  <returns></returns>
 </member>
 <member name="M:DoNetDrive.Protocol.Door8800.Door8800Command.CheckResponse(DoNetDrive.Protocol.OnlineAccess.OnlineAccessPacket,System.Byte,System.Byte,System.Byte,System.Int32)">
  <summary>
  检查返回指令是否符合规则
  </summary>
- <param name="oPck">需要检查的指令--一般值接收到的数据包</param>
- <param name="CmdType">返回值的命令类型</param>
- <param name="CmdIndex">返回值的命令索引</param>
- <param name="CmdPar">返回值的命令参数</param>
- <param name="DataLen">返回值的长度要求</param>
+ <param name="oResultPck">需要检查的指令--一般指接收到的数据包</param>
+ <param name="ResultCmdType">返回值的命令类型</param>
+ <param name="ResultCmdIndex">返回值的命令索引</param>
+ <param name="ResultCmdPar">返回值的命令参数</param>
+ <param name="ResultDataLen">返回值的长度要求</param>
  <returns></returns>
 </member>
 <member name="T:DoNetDrive.Protocol.Door8800.Door8800RequestHandle">
