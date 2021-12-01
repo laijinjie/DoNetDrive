@@ -8,7 +8,7 @@ Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
 Imports DoNetDrive.Core.Connector.WebSocket
 Imports DoNetDrive.Core.Connector.WebSocket.Server.Client
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 Imports DotNetty.Buffers
 
 Public Class frmWebSocketServer
@@ -83,13 +83,13 @@ Public Class frmWebSocketServer
         Dim serverDtl As WebSocket.Server.WebSocketServerDetail
 
         If chkSSL.Checked Then
-            Dim sSSLFile = Path.Combine(Application.StartupPath, "SSLX509.pfx")
+            Dim sSSLFile = "D:\5650833_duijie.my137.top_iis\5650833_duijie.my137.top.pfx" 'Path.Combine(Application.StartupPath, "SSLX509.pfx")
             If Not File.Exists(sSSLFile) Then
                 MsgBox("证书不存在！", 16, "错误")
                 Return
             End If
             Dim x509Data = File.ReadAllBytes(sSSLFile)
-            Dim x509 As X509Certificate2 = New X509Certificate2(x509Data, "YA73lJbk")
+            Dim x509 As X509Certificate2 = New X509Certificate2(sSSLFile, "bcn6HjNN")
             serverDtl = New WebSocket.Server.WebSocketServerDetail(sAddr, sPort, True, x509, txtServerAddr.Text)
         Else
             serverDtl = New WebSocket.Server.WebSocketServerDetail(sAddr, sPort, txtServerAddr.Text)
@@ -427,6 +427,10 @@ Public Class frmWebSocketServer
         For i = 0 To 100
             butTCPClientSend_Click(Nothing, Nothing)
         Next
+
+    End Sub
+
+    Private Sub chkSSL_CheckedChanged(sender As Object, e As EventArgs) Handles chkSSL.CheckedChanged
 
     End Sub
 

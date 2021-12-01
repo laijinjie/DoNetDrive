@@ -92,33 +92,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Buffers.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Codecs.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\Output\Release\netstandard2.0\DotNetty.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="DotNetty.Common">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Common.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\Output\Release\netstandard2.0\DotNetty.Common.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Handlers.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="log4net, Version=2.0.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\log4net.2.0.13\lib\net45\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\..\..\FCARDIO.Protocol.Door\DLL\DotNetty.Transport.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\DLL\log4net.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -187,11 +177,16 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+    <ProjectReference Include="..\..\..\DoNetDrive.Common\DoNetDrive.Common\DoNetDrive.Common_NetStandard20.csproj">
+      <Project>{3a4ec509-eb6b-4c06-985f-6c57cb1534ee}</Project>
+      <Name>DoNetDrive.Common_NetStandard20</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj">
       <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
-      <Name>DoNetDrive.Core</Name>
+      <Name>DoNetDrive.Core_NetStandard20</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

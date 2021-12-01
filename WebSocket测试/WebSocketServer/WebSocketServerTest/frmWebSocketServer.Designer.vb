@@ -38,6 +38,7 @@ Partial Class frmWebSocketServer
         Me.cmbTCPClient = New System.Windows.Forms.ComboBox()
         Me.btnGC = New System.Windows.Forms.Button()
         Me.GroupBox3 = New System.Windows.Forms.GroupBox()
+        Me.Button1 = New System.Windows.Forms.Button()
         Me.txtTCPClientText = New System.Windows.Forms.TextBox()
         Me.txtLog = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
@@ -48,7 +49,6 @@ Partial Class frmWebSocketServer
         Me.Label5 = New System.Windows.Forms.Label()
         Me.txtServerAddr = New System.Windows.Forms.TextBox()
         Me.chkAutoACK = New System.Windows.Forms.CheckBox()
-        Me.Button1 = New System.Windows.Forms.Button()
         Me.GroupBox3.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -189,6 +189,15 @@ Partial Class frmWebSocketServer
         Me.GroupBox3.TabStop = False
         Me.GroupBox3.Text = "TCP客户端_被动连接"
         '
+        'Button1
+        '
+        Me.Button1.Location = New System.Drawing.Point(370, 73)
+        Me.Button1.Name = "Button1"
+        Me.Button1.Size = New System.Drawing.Size(75, 23)
+        Me.Button1.TabIndex = 13
+        Me.Button1.Text = "发送"
+        Me.Button1.UseVisualStyleBackColor = True
+        '
         'txtTCPClientText
         '
         Me.txtTCPClientText.Location = New System.Drawing.Point(11, 46)
@@ -278,15 +287,6 @@ Partial Class frmWebSocketServer
         Me.chkAutoACK.TabIndex = 80
         Me.chkAutoACK.Text = "自动回应"
         Me.chkAutoACK.UseVisualStyleBackColor = True
-        '
-        'Button1
-        '
-        Me.Button1.Location = New System.Drawing.Point(370, 73)
-        Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(75, 23)
-        Me.Button1.TabIndex = 13
-        Me.Button1.Text = "发送"
-        Me.Button1.UseVisualStyleBackColor = True
         '
         'frmWebSocketServer
         '
