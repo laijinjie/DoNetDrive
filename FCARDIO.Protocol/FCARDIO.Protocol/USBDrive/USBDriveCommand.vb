@@ -115,11 +115,11 @@ Namespace USBDrive
             '检查命令返回值是否为校验和错误
             If CheckResponse_CheckSumErr(oPck) Then
                 If _ReSendCount <= 100 Then
-                    _Status = GetStatus_Runing()
+                    SetStatus(GetStatus_Runing())
                     CommandReSend()
                     SetRuningStatus()
                 Else
-                    _Status = CheckSumErrorStatus
+                    SetStatus(CheckSumErrorStatus)
                     fireFireCommandErrorEvent()
                 End If
                 Return

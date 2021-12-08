@@ -137,11 +137,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+    <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj">
       <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
       <Name>DoNetDrive.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\FCARDIO.Protocol\FCARDIO.Protocol\DoNetDrive.Protocol.vbproj">
+    <ProjectReference Include="..\..\..\FCARDIO.Protocol\FCARDIO.Protocol\DoNetDrive.Protocol_NetStandard20.vbproj">
       <Project>{4c9b06e5-da6b-49af-8e4d-a0d75046c044}</Project>
       <Name>DoNetDrive.Protocol</Name>
     </ProjectReference>

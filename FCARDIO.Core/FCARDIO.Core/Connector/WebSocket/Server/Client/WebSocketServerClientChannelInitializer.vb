@@ -14,20 +14,25 @@ Namespace Connector.WebSocket.Server.Client
         Inherits ChannelInitializer(Of IChannel)
 
         ''' <summary>
+        ''' http最大载荷
+        ''' </summary>
+        Public Shared maxContentLength As Long = 65535
+
+
+        ''' <summary>
         ''' 初始化服务器客户端(子节点)
         ''' </summary>
         ''' <param name="channel"></param>
         Protected Overrides Sub InitChannel(channel As IChannel)
-            channel.Pipeline().AddLast(New IdleStateHandler(60, 60, 0)) '超时检查
+            'channel.Pipeline().AddLast(New IdleStateHandler(60, 60, 0)) '超时检查
             Dim serverAddress = channel.Parent.LocalAddress
             Dim pnl As IDoNetTCPServerChannel = TryCast(channel.Parent, IDoNetTCPServerChannel）
-            If channel.Allocator Is pnl.Allocator Then
 
-            Else
-                channel.Configuration.Allocator = pnl.Allocator
-
-            End If
             If pnl IsNot Nothing Then
+                If channel.Allocator IsNot pnl.Allocator Then
+                    channel.Configuration.Allocator = pnl.Allocator
+                End If
+
                 If pnl.ServerConnector Is Nothing Then
                     channel.CloseAsync()
                     Return
@@ -47,11 +52,10 @@ Namespace Connector.WebSocket.Server.Client
 
                 End If
                 channel.Pipeline().AddLast(New HttpServerCodec())
-                channel.Pipeline().AddLast(New HttpObjectAggregator(65536))
+                channel.Pipeline().AddLast(New HttpObjectAggregator(maxContentLength))
 
                 Dim conn As WebSocketServerClientConnector =
                     New WebSocketServerClientConnector(sKey, channel, iClientID)
-                'pnl.ServerConnector.FireClientOnline(conn)
             Else
                 channel.CloseAsync()
             End If

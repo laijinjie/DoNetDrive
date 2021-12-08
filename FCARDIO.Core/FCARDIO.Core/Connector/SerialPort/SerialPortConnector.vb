@@ -15,45 +15,30 @@ Namespace Connector.SerialPort
         ''' </summary>
         Private mConnectorWriteError As Integer
 
-
         ''' <summary>
         ''' 串口操作类
         ''' </summary>
         Private mSerialPort As IO.Ports.SerialPort
 
-        ''' <summary>
-        ''' 保存和此通道相关联的描述
-        ''' </summary>
-        Private _Detail As SerialPortDetail
-
-        ''' <summary>
-        ''' 此通道所在的事件循环
-        ''' </summary>
-        Private _EventLoop As IEventLoop
 
         ''' <summary>
         ''' 根据指定的串口参数，创建连接通道
         ''' </summary>
         ''' <param name="dtl"></param>
         Public Sub New(ByVal dtl As SerialPortDetail)
-            _Detail = dtl.Clone
-            _EventLoop = DotNettyAllocator.GetClientEventLoopGroup().GetNext()
+            MyBase._ConnectorDetail = dtl
         End Sub
 
-        ''' <summary>
-        ''' 返回描述此通道的连接对象描述符
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetConnectorDetail() As INConnectorDetail
-            Return _Detail
+        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
+            Return SerialPortStatus.Closed
         End Function
 
-        ''' <summary>
-        ''' 返回此通道的初始化状态
-        ''' </summary>
-        ''' <returns></returns>
-        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
-            Return SerialPortStatus_Free.Free
+        Public Overrides Function RemoteAddress() As IPDetail
+            Return Nothing
+        End Function
+
+        Public Overrides Function LocalAddress() As IPDetail
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -83,13 +68,6 @@ Namespace Connector.SerialPort
             Return _EventLoop
         End Function
 
-        ''' <summary>
-        ''' 获取本地绑定地址
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function LocalAddress() As IPDetail
-            Return New IPDetail("SerialPort", _Detail.Port)
-        End Function
 
 #Region "打开串口"
         ''' <summary>
@@ -157,7 +135,7 @@ Namespace Connector.SerialPort
         ''' <summary>
         ''' 关闭串口
         ''' </summary>
-        Public Overrides Sub CloseConnector()
+        Public Overrides Async Function CloseAsync() As Task
             If _isRelease Then Return
 
             If mSerialPort Is Nothing Then
@@ -172,7 +150,10 @@ Namespace Connector.SerialPort
             End If
             _IsActivity = False
             _Status = GetInitializationStatus()
-        End Sub
+
+            Await Task.CompletedTask()
+        End Function
+
 #End Region
 
         ''' <summary>
@@ -280,6 +261,8 @@ Namespace Connector.SerialPort
             CloseConnector()
 
         End Sub
+
+
     End Class
 End Namespace
 

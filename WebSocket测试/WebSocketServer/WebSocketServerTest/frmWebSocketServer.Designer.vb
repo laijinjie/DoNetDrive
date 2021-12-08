@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class frmWebSocketServer
     Inherits System.Windows.Forms.Form
 
     'Form 重写 Dispose，以清理组件列表。
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class frmWebSocketServer
     '注意: 以下过程是 Windows 窗体设计器所必需的
     '可以使用 Windows 窗体设计器修改它。  
     '不要使用代码编辑器修改它。
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Me.butDebugList = New System.Windows.Forms.Button()
@@ -49,6 +49,7 @@ Partial Class frmWebSocketServer
         Me.Label5 = New System.Windows.Forms.Label()
         Me.txtServerAddr = New System.Windows.Forms.TextBox()
         Me.chkAutoACK = New System.Windows.Forms.CheckBox()
+        Me.Button2 = New System.Windows.Forms.Button()
         Me.GroupBox3.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -103,6 +104,8 @@ Partial Class frmWebSocketServer
         'chkShowLog
         '
         Me.chkShowLog.AutoSize = True
+        Me.chkShowLog.Checked = True
+        Me.chkShowLog.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkShowLog.Location = New System.Drawing.Point(15, 170)
         Me.chkShowLog.Name = "chkShowLog"
         Me.chkShowLog.Size = New System.Drawing.Size(72, 16)
@@ -149,12 +152,12 @@ Partial Class frmWebSocketServer
         '
         'cmbLocalIP
         '
-        Me.cmbLocalIP.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbLocalIP.FormattingEnabled = True
         Me.cmbLocalIP.Location = New System.Drawing.Point(129, 14)
         Me.cmbLocalIP.Name = "cmbLocalIP"
         Me.cmbLocalIP.Size = New System.Drawing.Size(140, 20)
         Me.cmbLocalIP.TabIndex = 69
+        Me.cmbLocalIP.Text = "192.168.1.86"
         '
         'cmbTCPClient
         '
@@ -258,7 +261,7 @@ Partial Class frmWebSocketServer
         Me.txtWatchPort.Name = "txtWatchPort"
         Me.txtWatchPort.Size = New System.Drawing.Size(70, 21)
         Me.txtWatchPort.TabIndex = 66
-        Me.txtWatchPort.Text = "9001"
+        Me.txtWatchPort.Text = "8600"
         '
         'Label5
         '
@@ -281,6 +284,8 @@ Partial Class frmWebSocketServer
         'chkAutoACK
         '
         Me.chkAutoACK.AutoSize = True
+        Me.chkAutoACK.Checked = True
+        Me.chkAutoACK.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkAutoACK.Location = New System.Drawing.Point(737, 162)
         Me.chkAutoACK.Name = "chkAutoACK"
         Me.chkAutoACK.Size = New System.Drawing.Size(72, 16)
@@ -288,11 +293,21 @@ Partial Class frmWebSocketServer
         Me.chkAutoACK.Text = "自动回应"
         Me.chkAutoACK.UseVisualStyleBackColor = True
         '
+        'Button2
+        '
+        Me.Button2.Location = New System.Drawing.Point(760, 126)
+        Me.Button2.Name = "Button2"
+        Me.Button2.Size = New System.Drawing.Size(70, 23)
+        Me.Button2.TabIndex = 81
+        Me.Button2.Text = "释放"
+        Me.Button2.UseVisualStyleBackColor = True
+        '
         'frmWebSocketServer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(848, 493)
+        Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.chkAutoACK)
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.txtServerAddr)
@@ -347,4 +362,5 @@ Partial Class frmWebSocketServer
     Friend WithEvents txtServerAddr As TextBox
     Friend WithEvents chkAutoACK As CheckBox
     Friend WithEvents Button1 As Button
+    Friend WithEvents Button2 As Button
 End Class

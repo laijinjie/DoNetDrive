@@ -27,9 +27,9 @@ Namespace Connector.Client
         ''' <param name="ctx"></param>
         ''' <param name="ex"></param>
         Public Overrides Sub ExceptionCaught(ctx As IChannelHandlerContext, ex As Exception)
-            If _Client IsNot Nothing Then
-                _Client?.ExceptionCaught(ctx, ex)
-            End If
+
+            _Client?.ExceptionCaught(ctx, ex)
+
             MyBase.ExceptionCaught(ctx, ex)
         End Sub
 
@@ -39,7 +39,6 @@ Namespace Connector.Client
         ''' <param name="ctx"></param>
         ''' <param name="msg"></param>
         Protected Overrides Sub ChannelRead0(ctx As IChannelHandlerContext, msg As T)
-            If _Client Is Nothing Then Return
             _Client?.channelRead0(ctx, msg)
         End Sub
 
@@ -57,28 +56,22 @@ Namespace Connector.Client
         ''' </summary>
         ''' <param name="ctx"></param>
         Public Overrides Sub ChannelInactive(ctx As IChannelHandlerContext)
-            Try
-                If _Client IsNot Nothing Then
-                    _Client?.ChannelInactive(ctx)
-                End If
-            Catch ex As Exception
 
-            End Try
-
+            _Client?.ChannelInactive(ctx)
             MyBase.ChannelInactive(ctx)
         End Sub
 
-        ''' <summary>
-        ''' 自定义用户事件，在这里用于接收超时事件
-        ''' </summary>
-        ''' <param name="ctx"></param>
-        ''' <param name="evt"></param>
-        Public Overrides Sub UserEventTriggered(ctx As IChannelHandlerContext, evt As Object)
-            If _Client IsNot Nothing Then
-                _Client?.UserEventTriggered(ctx, evt)
-            End If
-            MyBase.UserEventTriggered(ctx, evt)
-        End Sub
+        '''' <summary>
+        '''' 自定义用户事件，在这里用于接收超时事件
+        '''' </summary>
+        '''' <param name="ctx"></param>
+        '''' <param name="evt"></param>
+        'Public Overrides Sub UserEventTriggered(ctx As IChannelHandlerContext, evt As Object)
+        '    If _Client IsNot Nothing Then
+        '        _Client?.UserEventTriggered(ctx, evt)
+        '    End If
+        '    MyBase.UserEventTriggered(ctx, evt)
+        'End Sub
 
     End Class
 

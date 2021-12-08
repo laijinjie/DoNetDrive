@@ -53,6 +53,42 @@
         ''' </summary>
         ''' <returns></returns>
         ReadOnly Property IsFaulted As Boolean
+
+
+
+        ''' <summary>
+        ''' 当连接通道，连接建立成功后，会触发此函数回调
+        ''' </summary>
+        Property ConnectedCallBlack As Action(Of INConnectorDetail)
+
+        ''' <summary>
+        ''' 当连接通道关闭时，触发此函数
+        ''' </summary>
+        ''' <returns></returns>
+        Property ClosedCallBlack As Action(Of INConnectorDetail)
+
+        ''' <summary>
+        ''' 当连接通道，连接建立失败后
+        ''' </summary>
+        Property ErrorCallBlack As Action(Of INConnectorDetail)
+
+        ''' <summary>
+        ''' 当通道为服务监听管道时生效，管道客户端离线时发生回调
+        ''' </summary>
+        ''' <returns></returns>
+        Property ClientOfflineCallBlack As Action(Of INConnector)
+
+        ''' <summary>
+        ''' 当通道为服务监听管道时生效，管道新增客户端时发生回调
+        ''' </summary>
+        ''' <returns></returns>
+        Property ClientOnlineCallBlack As Action(Of INConnector)
+
+        ''' <summary>
+        ''' 通道保活时间，超过指定时间未收到任意数据包则发送一个保活包,单位秒
+        ''' </summary>
+        ''' <returns></returns>
+        Property KeepaliveTime As Integer
     End Interface
 
 End Namespace

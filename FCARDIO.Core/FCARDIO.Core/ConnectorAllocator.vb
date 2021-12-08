@@ -21,12 +21,6 @@ Public NotInheritable Class ConnectorAllocator
     Public Shared DefaultConnectorFactory As INConnectorFactory = New DefaultConnectorFactory()
 
     ''' <summary>
-    ''' 默认的事件循环数量
-    ''' </summary>
-    Public Shared DefaultEventLoopGroupTaskCount As Integer = 0
-
-
-    ''' <summary>
     ''' 单例模式中的全局变量
     ''' </summary>
     Private Shared staticConnectorAllocator As ConnectorAllocator
@@ -62,20 +56,16 @@ Public NotInheritable Class ConnectorAllocator
     ''' 保存所有的连接通道
     ''' </summary>
     Private Connectors As ConcurrentDictionary(Of String, INConnector)
-
-    ''' <summary>
-    ''' 连接分配器的工作线程，用于检查连接，分配
-    ''' </summary>
-    Private WorkEventLoopGroup As MultithreadEventLoopGroup
-
     ''' <summary>
     ''' 是否已释放
     ''' </summary>
     Private _IsRelease As Boolean
+
     ''' <summary>
-    ''' 连接管理器工厂
+    ''' 连接器主线程
     ''' </summary>
-    Private mManagers As ConnectorManageFactory
+    Private _ConnectorManageTask As Task
+
 #Region "事件定义"
     ''' <summary>
     ''' 当命令完成时，会触发此函数回调
@@ -169,16 +159,54 @@ Public NotInheritable Class ConnectorAllocator
         Connectors = New ConcurrentDictionary(Of String, INConnector)()
         ConnectorFactory = DefaultConnectorFactory
         _IsRelease = False
-        If DefaultEventLoopGroupTaskCount <= 0 Then
-            DefaultEventLoopGroupTaskCount = Environment.ProcessorCount
-        End If
-        WorkEventLoopGroup = New MultithreadEventLoopGroup(DefaultEventLoopGroupTaskCount)
 
-        mManagers = New ConnectorManageFactory(WorkEventLoopGroup, Me)
+        Task.Run(AddressOf ConnectorManageTask)
     End Sub
 
 
 #Region "连接通道操作"
+
+    ''' <summary>
+    ''' 连接通道管理器
+    ''' </summary>
+    Private Async Function ConnectorManageTask() As Task
+        Do
+            Try
+                Dim sKeys = Connectors.Keys
+                Dim oClient As INConnector = Nothing
+                If sKeys.Count > 0 Then
+                    For Each k In sKeys
+                        If _IsRelease Then Return
+                        Try
+                            If Connectors.TryGetValue(k, oClient) Then
+                                If _IsRelease Then Return
+                                If (oClient.CheckIsInvalid) Then
+                                    Connectors.TryRemove(k, oClient)
+                                    oClient.Dispose()
+                                Else
+                                    oClient.Run()
+                                End If
+                            End If
+                            oClient = Nothing
+                        Catch ex As Exception
+                            Trace.WriteLine($"ConnectorManageTask.Run 出现错误 {ex.ToString()}")
+                        End Try
+
+                        If _IsRelease Then Return
+                    Next
+                End If
+
+                If _IsRelease Then Return
+            Catch ex As Exception
+                Trace.WriteLine($"ConnectorManageTask.Run 出现错误 {ex.ToString()}")
+            End Try
+
+            Await Task.Delay(5)
+        Loop While True
+
+    End Function
+
+
     ''' <summary>
     ''' 获取一个已存在的通道，不存在时则创建一个
     ''' </summary>
@@ -196,24 +224,27 @@ Public NotInheritable Class ConnectorAllocator
                     '通道不存在，创建一个通道
                     Conn = ConnectorFactory.CreateConnector(cdtl)
                     If Conn IsNot Nothing Then
-                        If Not Connectors.TryAdd(sKey, Conn) Then
-                            Dim oTmpConn As INConnector = Nothing
-                            If Connectors.TryGetValue(sKey, oTmpConn) Then
-                                If Not Object.ReferenceEquals(oTmpConn, Conn) Then
-                                    '通道已存在
-                                    Conn.Dispose()
-                                    Conn = Nothing
-                                End If
-
-                                Return oTmpConn
-                            Else
-                                Return Nothing
+                        Dim oTmpConn As INConnector = Nothing
+                        If Connectors.TryGetValue(sKey, oTmpConn) Then
+                            If Not Object.ReferenceEquals(oTmpConn, Conn) Then
+                                '通道已存在
+                                Conn.Dispose()
+                                Conn = Nothing
                             End If
+
+                            Return oTmpConn
+
+
                         Else
                             '通道添加成功
                             '添加通道的事件绑定
                             AddEventListener(Conn)
-                            mManagers.GetManager().Add(Conn)
+                            If Not Connectors.TryAdd(sKey, Conn) Then
+                                RemoveEventListener(Conn)
+                                Conn.Dispose()
+                                Conn = Nothing
+                                Return Nothing
+                            End If
                         End If
                     Else
                         '分配器工厂无法创建连接通道，可能 cdtl 指示了一个无效的值
@@ -231,12 +262,13 @@ Public NotInheritable Class ConnectorAllocator
     ''' </summary>
     ''' <param name="connectDtl">表示连接通道的信息</param>
     ''' <returns></returns>
-    Public Function OpenConnector(connectDtl As INConnectorDetail) As Boolean
-        If _IsRelease Then Return False
+    Public Function OpenConnector(connectDtl As INConnectorDetail) As INConnector
+        If _IsRelease Then Return Nothing
         Dim connector As INConnector = GetOrCreateConnector(connectDtl)
 
-        Return True
+        Return connector
     End Function
+
 
     ''' <summary>
     ''' 强制打开一个连接通道
@@ -245,7 +277,7 @@ Public NotInheritable Class ConnectorAllocator
     ''' <returns></returns>
     Public Function OpenForciblyConnect(connectDtl As INConnectorDetail) As Boolean
         If _IsRelease Then Return False
-        Dim connector As INConnector = GetOrCreateConnector(connectDtl)
+        Dim connector As INConnector = OpenConnector(connectDtl)
         If connector Is Nothing Then Return False
         connector.OpenForciblyConnect()
         Return True
@@ -262,8 +294,7 @@ Public NotInheritable Class ConnectorAllocator
         Dim connector As INConnector = Nothing
         Dim sKey = connectDtl.GetKey()
         If Connectors.TryGetValue(sKey, connector) Then
-
-            connector.Close()
+            connector.CloseAsync()
         End If
         Return True
     End Function
@@ -307,9 +338,8 @@ Public NotInheritable Class ConnectorAllocator
     Public Sub RemoveConnector(ByVal sKey As String, oConn As INConnector)
         If _IsRelease Then Return
         If Connectors.TryRemove(sKey, oConn) Then
-            'Trace.WriteLine("从 ConnectorAllocator 分配器中移除通道：" & sKey)
-
             RemoveEventListener(oConn)
+            oConn.Dispose()
         End If
     End Sub
 
@@ -327,8 +357,6 @@ Public NotInheritable Class ConnectorAllocator
             If Connectors.TryAdd(sKey, conn) Then
                 '添加通道的事件绑定
                 AddEventListener(conn)
-
-                mManagers.GetManager().Add(conn)
                 Return True
             Else
                 Return False
@@ -343,6 +371,94 @@ Public NotInheritable Class ConnectorAllocator
     ''' <returns></returns>
     Public Function GetAllConnectorKeys() As List(Of String)
         Return Connectors.Keys.ToList()
+    End Function
+#End Region
+
+#Region "连接通道操作异步"
+    ''' <summary>
+    ''' 获取一个已存在的通道，不存在时则创建一个
+    ''' </summary>
+    ''' <param name="cdtl"></param>
+    ''' <returns></returns>
+    Private Async Function GetOrCreateConnectorAsync(cdtl As INConnectorDetail) As Task(Of INConnector)
+        If cdtl Is Nothing Then Return Nothing
+        If _IsRelease Then Return Nothing
+        Dim sKey = cdtl.GetKey()
+        Dim Conn As INConnector = Nothing
+
+        If Not Connectors.TryGetValue(sKey, Conn) Then
+            '通道不存在，创建一个通道
+            Conn = Await ConnectorFactory.CreateConnectorAsync(cdtl)
+            If Conn IsNot Nothing Then
+                If Not Connectors.TryAdd(sKey, Conn) Then
+                    Dim oTmpConn As INConnector = Nothing
+                    If Connectors.TryGetValue(sKey, oTmpConn) Then
+                        If Not Object.ReferenceEquals(oTmpConn, Conn) Then
+                            '通道已存在
+                            Await Conn.CloseAsync()
+                            Conn.Dispose()
+                            Conn = Nothing
+                        End If
+
+                        Return oTmpConn
+                    Else
+                        Return Nothing
+                    End If
+                Else
+                    '通道添加成功
+                    '添加通道的事件绑定
+                    AddEventListener(Conn)
+                End If
+            Else
+                '分配器工厂无法创建连接通道，可能 cdtl 指示了一个无效的值
+                Return Nothing
+            End If
+        End If
+        Return Conn
+    End Function
+
+
+    ''' <summary>
+    ''' 打开一个连接通道,空闲通道会自动关闭
+    ''' </summary>
+    ''' <param name="connectDtl">表示连接通道的信息</param>
+    ''' <returns></returns>
+    Public Async Function OpenConnectorAsync(connectDtl As INConnectorDetail) As Task(Of INConnector)
+        If _IsRelease Then Return Nothing
+        Dim connector = Await GetOrCreateConnectorAsync(connectDtl)
+        Await connector.ConnectAsync()
+        Return connector
+    End Function
+
+
+
+    ''' <summary>
+    ''' 打开一个连接通道，并保持连接
+    ''' </summary>
+    ''' <param name="connectDtl">表示连接通道的信息</param>
+    ''' <returns></returns>
+    Public Async Function OpenForciblyConnectAsync(connectDtl As INConnectorDetail) As Task(Of INConnector)
+        If _IsRelease Then Return Nothing
+        Dim connector As INConnector = Await OpenConnectorAsync(connectDtl)
+        connector.OpenForciblyConnect()
+        Return connector
+    End Function
+
+    ''' <summary>
+    ''' 关闭通道连接
+    ''' </summary>
+    ''' <param name="connectDtl">表示连接通道的信息</param>
+    ''' <returns></returns>
+    Public Async Function CloseConnectorAsync(connectDtl As INConnectorDetail) As Task(Of Boolean)
+        If _IsRelease Then Return False
+        If connectDtl Is Nothing Then Return False
+        Dim connector As INConnector = Nothing
+        Dim sKey = connectDtl.GetKey()
+
+        If Connectors.TryGetValue(sKey, connector) Then
+            Await connector.CloseAsync()
+        End If
+        Return True
     End Function
 #End Region
 
@@ -390,6 +506,35 @@ Public NotInheritable Class ConnectorAllocator
         If Conn Is Nothing Then Return False
         Conn.StopCommand(cmdDetail)
         Return True
+    End Function
+#End Region
+
+#Region "异步的命令的操作"
+    ''' <summary>
+    ''' 添加一个指令到分配器，如果通道已存在将推送到通道上，不存在则创建一个通道。
+    ''' </summary>
+    ''' <param name="cmd">需要执行的命令</param>
+    ''' <returns></returns>
+    Public Async Function AddCommandAsync(cmd As INCommand) As Task(Of INCommand)
+        If _IsRelease Then Return Nothing
+        If cmd Is Nothing Then Return Nothing
+
+        Dim cdtl = cmd?.CommandDetail?.Connector
+        If cdtl Is Nothing Then
+            Return Nothing
+        End If
+
+        If ConnectorFactory Is Nothing Then
+            Throw New ArgumentException("ConnectorFactory  is  Null")
+        End If
+
+        Dim Conn As INConnector = Await GetOrCreateConnectorAsync(cdtl)
+
+        If Conn Is Nothing Then
+            Throw New ArgumentException("Connector is  Null")
+        End If
+
+        Return Await Conn.RunCommandAsync(cmd)
     End Function
 #End Region
 
@@ -609,41 +754,48 @@ Public NotInheritable Class ConnectorAllocator
 #End Region
 
 #Region "IDisposable Support"
+    ''' <summary>
+    ''' 释放连接器资源
+    ''' </summary>
+    ''' <returns></returns>
+    Public Async Function Release() As Task
+        _IsRelease = True
+        Await _ConnectorManageTask
+        For Each kv In Connectors
+            Await kv.Value.CloseAsync()
+        Next
+        ClearConnector()
+    End Function
+
+    Private Sub ClearConnector()
+        If Connectors Is Nothing Then
+            For Each kv In Connectors
+                kv.Value.Dispose()
+            Next
+            Connectors.Clear()
+        End If
+    End Sub
+
+
     Private disposedValue As Boolean ' 要检测冗余调用
 
     ' IDisposable
-    Private Sub Dispose(disposing As Boolean)
+    Public Sub Dispose(disposing As Boolean)
+
         If Not disposedValue Then
+            disposedValue = True
             If disposing Then
                 'Trace.WriteLine("调用 ConnectorAllocator.Dispose 准备释放动态库资源")
                 ' TODO: 释放托管状态(托管对象)。
                 _IsRelease = True
-                For Each kv In Connectors
-                    kv.Value.Dispose()
-                Next
-                Connectors.Clear()
 
-
-                mManagers.Dispose()
-                'Trace.WriteLine("调用 ConnectorAllocator.Dispose,动态库资源已释放，正在等待线程池退出事件...")
-                WorkEventLoopGroup.ShutdownGracefullyAsync().ContinueWith(AddressOf AsyncDisposeCallblack)
-
+                ClearConnector()
             End If
 
             ' TODO: 释放未托管资源(未托管对象)并在以下内容中替代 Finalize()。
             ' TODO: 将大型字段设置为 null。
         End If
-        disposedValue = True
-    End Sub
 
-    Private Sub AsyncDisposeCallblack()
-        'Trace.WriteLine("调用 ConnectorAllocator.AsyncDispose 动态库 WorkEventLoopGroup 线程池已完全退出,准备释放 DefaultConnectorFactory 工厂中创建的事件循环组 ")
-        WorkEventLoopGroup = Nothing
-        DefaultConnectorFactory.Release().ContinueWith(AddressOf AsyncDisposeConnectorFactory)
-    End Sub
-
-    Private Sub AsyncDisposeConnectorFactory()
-        RaiseEvent DisposeCallBlack()
     End Sub
 
     ' TODO: 仅当以上 Dispose(disposing As Boolean)拥有用于释放未托管资源的代码时才替代 Finalize()。
@@ -670,10 +822,6 @@ Public NotInheritable Class ConnectorAllocator
 
 
 #End Region
-
-
-
-
 End Class
 
 

@@ -40,6 +40,15 @@ Namespace Command
         Public Property UserData As Object Implements INCommandDetail.UserData
 
 
+
+        Protected _Key As String
+        Public ReadOnly Property Key As String Implements INCommandDetail.Key
+            Get
+                Return _Key
+            End Get
+        End Property
+
+
 #Region "事件定义"
         ''' <summary>
         ''' 当命令完成时，会触发此函数回调
@@ -134,6 +143,7 @@ Namespace Command
 
 
 #End Region
+
         ''' <summary>
         ''' 初始化详情，登记连接通道信息，并初始化命令超时时间和重发次数
         ''' </summary>
@@ -142,6 +152,7 @@ Namespace Command
             Connector = cnt
             Timeout = 300
             RestartCount = 2
+            _Key = Guid.NewGuid.ToString
         End Sub
 
         ''' <summary>

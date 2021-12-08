@@ -9,8 +9,7 @@ Namespace Connector
     ''' 所有连接器的顶级接口
     ''' </summary>
     Public Interface INConnector
-        Inherits IRunnable, IDisposable, INConnectorEvent, INFireConnectorEvent, INCommandEvent, INFireCommandEvent,
-            TaskManage.ITaskClient
+        Inherits IRunnable, IDisposable, INConnectorEvent, INFireConnectorEvent, INCommandEvent, INFireCommandEvent
 
         ''' <summary>
         ''' 获取此通道的连接器类型
@@ -18,15 +17,33 @@ Namespace Connector
         ''' <returns>连接器类型</returns>
         Function GetConnectorType() As String
 
+
+        ''' <summary>
+        ''' 获取一个表示连接通道唯一性的Key
+        ''' </summary>
+        ''' <returns></returns>
+        Function GetKey() As String
+
         ''' <summary>
         ''' 获取连接器的详情对象
         ''' </summary>
         ''' <returns></returns>
         Function GetConnectorDetail() As INConnectorDetail
 
-        ''' <summary>''' 检查通道是否已失效 1分钟无连接，无命令任务则自动失效
+        ''' <summary>
+        ''' 检查通道是否已失效,达到失效的条件
+        ''' 1、通道内没有待发送的命令
+        ''' 2、通道内已达到指定时间未发送和接收到任何数据
+        ''' 3、通道不需要保持打开
+        ''' 4、通道已被手动关闭
         ''' </summary>
-        Sub CheckIsInvalid()
+        Function CheckIsInvalid() As Boolean
+
+        ''' <summary>
+        ''' 让通道检查命令管道，检测命令状态,驱动命令继续执行
+        ''' </summary>
+        Sub CheckCommandList()
+
 
         ''' <summary>
         ''' 获取通道中的命令队列数量
@@ -45,6 +62,12 @@ Namespace Connector
         ''' </summary>
         ''' <param name="cd">命令封装类，执行具体指令</param>
         Sub AddCommand(cd As INCommandRuntime)
+
+        ''' <summary>
+        ''' 将一个命令添加到本通道的命令队列中，并等待命令执行完毕
+        ''' </summary>
+        ''' <param name="cd">命令封装类，执行具体指令</param>
+        Function RunCommandAsync(cd As INCommandRuntime) As Task(Of INCommand)
 
         ''' <summary>
         ''' 当需要解析监控指令时，添加数据包解析器到解析器列表中
@@ -81,6 +104,19 @@ Namespace Connector
         ReadOnly Property IsInvalid As Boolean
 
         ''' <summary>
+        ''' 最后读取数据的时间
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property LastReadDataTime As Date
+
+        ''' <summary>
+        ''' 最后发送数据的时间
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property LastSendDataTime As Date
+
+
+        ''' <summary>
         ''' 通道是否为活动状态(已连接)
         ''' </summary>
         ''' <returns></returns>
@@ -91,6 +127,12 @@ Namespace Connector
         ''' </summary>
         ''' <returns></returns>
         Function LocalAddress() As IPDetail
+
+        ''' <summary>
+        ''' 获取远程服务器地址
+        ''' </summary>
+        ''' <returns></returns>
+        Function RemoteAddress() As IPDetail
 
         ''' <summary>
         ''' 获取此连接通道的状态
@@ -129,10 +171,18 @@ Namespace Connector
         ''' </summary>
         ''' <returns></returns>
         Overloads Function GetEventLoop() As IEventLoop
+
         ''' <summary>
         ''' 关闭链接
         ''' </summary>
-        Sub Close()
+        Function CloseAsync() As Task
+
+        ''' <summary>
+        ''' 建立连接
+        ''' </summary>
+        ''' <returns></returns>
+        Function ConnectAsync() As Task
+
     End Interface
 End Namespace
 

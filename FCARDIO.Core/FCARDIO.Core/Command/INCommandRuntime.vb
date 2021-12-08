@@ -9,7 +9,7 @@ Namespace Command
         ''' 是否正在等待执行
         ''' </summary>
         ''' <returns></returns>
-        Property IsWaitExecute As Boolean
+        Property IsExecuteing As Boolean
 
         ''' <summary>
         ''' 获取用于表示命令已停止的状态
@@ -77,6 +77,12 @@ Namespace Command
         ''' </summary>
         ''' <returns></returns>
         Function IsRelease() As Boolean
+
+        ''' <summary>
+        ''' 设置和此命令绑定的Task源
+        ''' </summary>
+        ''' <param name="source"></param>
+        Sub SetTaskCompletionSource(source As TaskCompletionSource(Of INCommand))
     End Interface
 End Namespace
 

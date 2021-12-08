@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.Concurrent
 Imports System.IO
 Imports System.Net
+Imports System.Net.Sockets
 Imports System.Security.Cryptography.X509Certificates
 Imports System.Threading
 Imports DoNetDrive.Core
@@ -10,6 +11,10 @@ Imports DoNetDrive.Core.Connector.WebSocket
 Imports DoNetDrive.Core.Connector.WebSocket.Server.Client
 Imports DoNetDrive.Common.Extensions
 Imports DotNetty.Buffers
+Imports DotNetty.Transport.Channels
+Imports DotNetty.Transport.Bootstrapping
+Imports DotNetty.Transport.Channels.Sockets
+Imports DotNetty.Codecs.Http
 
 Public Class frmWebSocketServer
 
@@ -25,6 +30,17 @@ Public Class frmWebSocketServer
     Private UTF8 As System.Text.Encoding = System.Text.Encoding.UTF8
     Private mAutoAck As Boolean
 
+    Shared Sub New()
+        '使用池化的缓冲区
+        DotNettyAllocator.BufferAllocator = DotNetty.Buffers.PooledByteBufferAllocator.Default
+    End Sub
+    Sub New()
+
+        ' 此调用是设计器所必需的。
+        InitializeComponent()
+
+        ' 在 InitializeComponent() 调用之后添加任何初始化。
+    End Sub
 
     ''' <summary>
     ''' 连接通道观察者，可以观察连接通道上的数据收发 十六进制格式输出
@@ -53,7 +69,8 @@ Public Class frmWebSocketServer
             Dim iLen = msg.ReadableBytes
 
             msg.MarkReaderIndex()
-            sHex = msg.ReadString(iLen, UTF8)
+            'sHex = msg.ReadString(iLen, UTF8)
+            sHex = UTF8.GetString(msg.Array, msg.ArrayOffset, msg.ReadableBytes)
             msg.ResetReaderIndex()
 
             RaiseEvent DisposeRequestEvent(connector, iLen, sHex)
@@ -77,7 +94,7 @@ Public Class frmWebSocketServer
     End Class
 
 
-    Private Sub butTCPServer_Click(sender As Object, e As EventArgs) Handles butOpenTCPServer.Click
+    Private Async Sub butTCPServer_Click(sender As Object, e As EventArgs) Handles butOpenTCPServer.Click
         Dim sAddr As String = cmbLocalIP.Text
         Dim sPort As Integer = txtWatchPort.Text.ToInt32()
         Dim serverDtl As WebSocket.Server.WebSocketServerDetail
@@ -95,15 +112,24 @@ Public Class frmWebSocketServer
             serverDtl = New WebSocket.Server.WebSocketServerDetail(sAddr, sPort, txtServerAddr.Text)
         End If
 
-        Allocator.OpenConnector(serverDtl)
+        Try
+            serverDtl.ClientOfflineCallBlack = AddressOf Allocator_ClientOffline
+            serverDtl.ClientOnlineCallBlack = AddressOf Allocator_ClientOnline
+            Await Allocator.OpenConnectorAsync(serverDtl)
+            AddLog($"服务启动成功，连接地址 ws://{sAddr}:{sPort} ")
+        Catch ex As Exception
+            AddLog($"服务启动失败，端口可能已被占用 {ex.Message} ")
+        End Try
+
     End Sub
 
 
-    Private Sub butCloseTCPServer_Click(sender As Object, e As EventArgs) Handles butCloseTCPServer.Click
+    Private Async Sub butCloseTCPServer_Click(sender As Object, e As EventArgs) Handles butCloseTCPServer.Click
         Dim sAddr As String = cmbLocalIP.Text
         Dim sPort As Integer = txtWatchPort.Text.ToInt32()
         Dim serverDtl As TCPServer.TCPServerDetail = New WebSocket.Server.WebSocketServerDetail(sAddr, sPort)
-        Allocator.CloseConnector(serverDtl)
+        Await Allocator.CloseConnectorAsync(serverDtl)
+        AddLog($"关闭服务器，连接地址 ws://{sAddr}:{sPort} ")
     End Sub
 
 
@@ -112,12 +138,16 @@ Public Class frmWebSocketServer
         Allocator = ConnectorAllocator.GetAllocator()
         DotNettyAllocator.UseLibuv = True
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 100
-        mAutoAck = chkAutoACK.Checked
+
         obServer = New TCPIOObserverHandler()
         InITCPServerClient()
         IniLoadLocalIP()
-
+        mAutoAck = chkAutoACK.Checked
         mShowLog = chkShowLog.Checked
+    End Sub
+
+    Private Sub frmWebSocketServer_FormClosed(sender As Object, e As FormClosedEventArgs) Handles Me.FormClosed
+        Allocator.Dispose()
     End Sub
 
     Private Sub IniLoadLocalIP()
@@ -132,14 +162,13 @@ Public Class frmWebSocketServer
                 cmbLocalIP.Items.Add(ip.ToString())
             End If
         Next
-        If (cmbLocalIP.Items.Count > 0) Then
-            cmbLocalIP.SelectedIndex = cmbLocalIP.Items.Count - 1
-        End If
+        'If (cmbLocalIP.Items.Count > 0) Then
+        '    cmbLocalIP.SelectedIndex = cmbLocalIP.Items.Count - 1
+        'End If
     End Sub
 
 
-    Private Sub Allocator_ClientOffline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOffline
-        Dim inc = TryCast(sender, INConnector)
+    Private Sub Allocator_ClientOffline(inc As INConnector)
 
         If inc.GetConnectorType = ConnectorType.WebSocketServerClient Then
             RemoveTCPClientItem(inc.GetConnectorDetail())
@@ -148,8 +177,8 @@ Public Class frmWebSocketServer
         AddLog($"连接断开  {GetConnectorDetail(inc)}")
     End Sub
 
-    Private Sub Allocator_ClientOnline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOnline
-        Dim inc = TryCast(sender, INConnector)
+    Private Sub Allocator_ClientOnline(inc As INConnector)
+
         inc.AddRequestHandle(obServer)
         AddLog($"连接建立  {GetConnectorDetail(inc)}")
         If inc.GetConnectorType = ConnectorType.WebSocketServerClient Then
@@ -157,8 +186,6 @@ Public Class frmWebSocketServer
             Dim wbcDTl = TryCast(inc.GetConnectorDetail(), WebSocketServerClientDetail)
 
             Dim sURL = wbcDTl.RequestURL
-
-
 
             AddLog($"客户端请求的URL  {wbcDTl.RequestURL} ")
         End If
@@ -205,37 +232,20 @@ Public Class frmWebSocketServer
 
     End Sub
 
-    Private Sub Allocator_ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorClosedEvent
-        AddLog($"连接关闭  {GetConnectorDetail(connector)} ")
-    End Sub
-
-    Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorConnectedEvent
-        Allocator.GetConnector(connector).AddRequestHandle(obServer)
-        AddLog($"连接成功  {GetConnectorDetail(connector)} ")
-    End Sub
-
-    Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorErrorEvent
-        AddLog($"连接发生错误！  {GetConnectorDetail(connector)} ")
-    End Sub
 
     Private Function GetConnectorDetail(conn As INConnector) As String
-        Return GetConnectorDetail(conn.GetConnectorDetail())
-    End Function
+        Dim oConnDTL = conn.GetConnectorDetail()
 
-    Private Function GetConnectorDetail(conn As INConnectorDetail) As String
-        Dim oConn = Allocator.GetConnector(conn)
-        If oConn Is Nothing Then Return conn?.ToString()
+        Select Case oConnDTL.GetTypeName
+            Case ConnectorType.WebSocketServerClient
+                Dim dtl As Connector.WebSocket.Server.Client.WebSocketServerClientDetail = oConnDTL
 
-        Select Case conn.GetTypeName
-            Case ConnectorType.TCPServerClient
-                Dim dtl As Connector.WebSocket.Server.Client.WebSocketServerClientDetail = oConn.GetConnectorDetail()
-
-                Return $"R:{dtl.Remote.ToString()} T:{Now.ToTimeffff()}"
-            Case ConnectorType.TCPServer
-                Dim local = oConn.LocalAddress
+                Return $"客户端ID:{dtl.ClientID} T:{Now.ToTimeffff()}"
+            Case ConnectorType.WebSocketServer
+                Dim local = conn.LocalAddress
                 Return $"Server  本地绑定IP：{local.Addr}:{local.Port} :{Now.ToTimeffff()}"
         End Select
-        Return conn.ToString()
+        Return oConnDTL.ToString()
     End Function
 
     Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeRequestEvent
@@ -423,16 +433,6 @@ Public Class frmWebSocketServer
         mAutoAck = chkAutoACK.Checked
     End Sub
 
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        For i = 0 To 100
-            butTCPClientSend_Click(Nothing, Nothing)
-        Next
-
-    End Sub
-
-    Private Sub chkSSL_CheckedChanged(sender As Object, e As EventArgs) Handles chkSSL.CheckedChanged
-
-    End Sub
 
     Private Sub butDebugList_Click(sender As Object, e As EventArgs) Handles butDebugList.Click
         Dim oKeys = Allocator.GetAllConnectorKeys()
@@ -443,4 +443,6 @@ Public Class frmWebSocketServer
 
         txtLog.Text = sBuf.ToString()
     End Sub
+
+
 End Class

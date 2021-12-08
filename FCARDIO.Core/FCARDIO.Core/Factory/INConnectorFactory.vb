@@ -11,10 +11,13 @@ Namespace Factory
         ''' <param name="cd">包含一个描述连接通道详情的内容用于创建连接通道</param>
         ''' <returns></returns>
         Function CreateConnector(cd As INConnectorDetail) As INConnector
+
         ''' <summary>
-        ''' 释放资源
+        ''' 创建一个连接通道
         ''' </summary>
-        Function Release() As Task
+        ''' <param name="cd">包含一个描述连接通道详情的内容用于创建连接通道</param>
+        ''' <returns></returns>
+        Function CreateConnectorAsync(cd As INConnectorDetail) As Task(Of INConnector)
     End Interface
 End Namespace
 

@@ -40,14 +40,14 @@ Namespace Connector
         ''' 客户端上线
         ''' </summary>
         ''' <param name="e">包含事件所代表的客户端及服务器信息</param>
-        Sub FireClientOnline(e As ServerEventArgs)
+        Sub FireClientOnline(e As INConnector)
 
 
         ''' <summary>
         ''' 客户端离线
         ''' </summary>
         ''' <param name="e">包含事件所代表的客户端及服务器信息</param>
-        Sub FireClientOffline(e As ServerEventArgs)
+        Sub FireClientOffline(e As INConnector)
     End Interface
 End Namespace
 

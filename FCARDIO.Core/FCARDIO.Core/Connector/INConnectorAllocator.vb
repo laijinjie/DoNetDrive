@@ -14,6 +14,13 @@
         Function GetNewConnector(detail As INConnectorDetail) As INConnector
 
         ''' <summary>
+        ''' 创建一个新的连接通道
+        ''' </summary>
+        ''' <param name="detail"></param>
+        ''' <returns></returns>
+        Function GetNewConnectorAsync(detail As INConnectorDetail) As Task(Of INConnector)
+
+        ''' <summary>
         ''' 关闭这个连接通道分配器
         ''' </summary>
         Sub shutdownGracefully()

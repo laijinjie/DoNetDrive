@@ -52,16 +52,17 @@ Partial Class FrmTCPClient
         Me.chkShowLog = New System.Windows.Forms.CheckBox()
         Me.Button5 = New System.Windows.Forms.Button()
         Me.butDebugList = New System.Windows.Forms.Button()
+        Me.Button6 = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'cmbLocalIP
         '
-        Me.cmbLocalIP.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbLocalIP.FormattingEnabled = True
         Me.cmbLocalIP.Location = New System.Drawing.Point(246, 39)
         Me.cmbLocalIP.Name = "cmbLocalIP"
         Me.cmbLocalIP.Size = New System.Drawing.Size(140, 20)
         Me.cmbLocalIP.TabIndex = 2
+        Me.cmbLocalIP.Text = "192.168.1.86"
         '
         'txtLocalPort
         '
@@ -121,6 +122,7 @@ Partial Class FrmTCPClient
         Me.txtRemoteIP.Name = "txtRemoteIP"
         Me.txtRemoteIP.Size = New System.Drawing.Size(140, 21)
         Me.txtRemoteIP.TabIndex = 0
+        Me.txtRemoteIP.Text = "192.168.1.86"
         '
         'butConnect
         '
@@ -282,6 +284,8 @@ Partial Class FrmTCPClient
         'chkShowLog
         '
         Me.chkShowLog.AutoSize = True
+        Me.chkShowLog.Checked = True
+        Me.chkShowLog.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkShowLog.Location = New System.Drawing.Point(12, 206)
         Me.chkShowLog.Name = "chkShowLog"
         Me.chkShowLog.Size = New System.Drawing.Size(72, 16)
@@ -307,11 +311,21 @@ Partial Class FrmTCPClient
         Me.butDebugList.Text = "打印列表"
         Me.butDebugList.UseVisualStyleBackColor = True
         '
+        'Button6
+        '
+        Me.Button6.Location = New System.Drawing.Point(779, 199)
+        Me.Button6.Name = "Button6"
+        Me.Button6.Size = New System.Drawing.Size(75, 23)
+        Me.Button6.TabIndex = 63
+        Me.Button6.Text = "发送"
+        Me.Button6.UseVisualStyleBackColor = True
+        '
         'FrmTCPClient
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(997, 547)
+        Me.Controls.Add(Me.Button6)
         Me.Controls.Add(Me.butDebugList)
         Me.Controls.Add(Me.Button5)
         Me.Controls.Add(Me.chkShowLog)
@@ -376,4 +390,5 @@ Partial Class FrmTCPClient
     Friend WithEvents chkShowLog As CheckBox
     Friend WithEvents Button5 As Button
     Friend WithEvents butDebugList As Button
+    Friend WithEvents Button6 As Button
 End Class

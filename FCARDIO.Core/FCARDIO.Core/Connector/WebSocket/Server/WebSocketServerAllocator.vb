@@ -13,6 +13,13 @@ Namespace Connector.WebSocket.Server
     Friend Class WebSocketServerAllocator
         Implements INConnectorAllocator
 
+        Public Shared SoRcvbuf As Integer = 209600
+        Public Shared SoSndbuf As Integer = 102400
+        ''' <summary>
+        ''' BACKLOG用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
+        ''' </summary>
+        Public Shared SoBacklog As Integer = 200
+
 #Region "单例模式"
 
         ''' <summary>
@@ -105,7 +112,9 @@ Namespace Connector.WebSocket.Server
 
 
                 .Option(ChannelOption.Allocator, DotNettyAllocator.GetBufferAllocator())
-                .Option(ChannelOption.SoBacklog, 8192)
+                .Option(ChannelOption.SoBacklog, SoBacklog)
+                .Option(ChannelOption.SoRcvbuf, SoRcvbuf)
+                .Option(ChannelOption.SoSndbuf, SoSndbuf)
 
                 mWebSocketClientHandler = New WebSocketServerClientChannelInitializer()
                 .ChildHandler(mWebSocketClientHandler)
@@ -117,7 +126,7 @@ Namespace Connector.WebSocket.Server
         ''' </summary>
         ''' <returns></returns>
         Public Function GetConnectorTypeName() As String Implements INConnectorAllocator.GetConnectorTypeName
-            Return "DoNetDrive.Core.Connector.WebSocket.WebSocketServerConnector"
+            Return "WebSocket.WebSocketServerConnector"
         End Function
 
         ''' <summary>
@@ -138,6 +147,28 @@ Namespace Connector.WebSocket.Server
             '开始绑定本地端口
             Dim tsk = mServerBootstrap.BindAsync(oIP, serverDtl.LocalPort)
             Dim server = New WebSocketServerConnector(tsk, detail)
+            Return server
+        End Function
+
+
+        ''' <summary>
+        ''' 创建一个新的连接通道
+        ''' </summary>
+        ''' <param name="detail"></param>
+        ''' <returns></returns>
+        Public Async Function GetNewConnectorAsync(detail As INConnectorDetail) As Task(Of INConnector) Implements INConnectorAllocator.GetNewConnectorAsync
+            Dim serverDtl As WebSocketServerDetail = TryCast(detail, WebSocketServerDetail)
+            Dim oIP As IPAddress = Nothing
+            If String.IsNullOrEmpty(serverDtl.LocalAddr) Then
+                oIP = IPAddress.Any
+            Else
+                If Not IPAddress.TryParse(serverDtl.LocalAddr, oIP) Then
+                    Throw New ArgumentException("LocalAddr Is Error")
+                End If
+            End If
+            '开始绑定本地端口
+            Dim c = Await mServerBootstrap.BindAsync(oIP, serverDtl.LocalPort)
+            Dim server = New WebSocketServerConnector(Task.FromResult(c), detail)
             Return server
 
         End Function

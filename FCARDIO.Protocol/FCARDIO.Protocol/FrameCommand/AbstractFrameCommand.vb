@@ -132,7 +132,7 @@ Namespace FrameCommand
             '检查命令返回值是否为密码错误
             If CheckResponse_PasswordErr(oPck) Then
                 '发生错误
-                _Status = PasswordErrorStatus
+                SetStatus(PasswordErrorStatus)
                 fireAuthenticationErrorEvent()
                 Return
             End If
@@ -140,11 +140,11 @@ Namespace FrameCommand
             '检查命令返回值是否为校验和错误
             If CheckResponse_CheckSumErr(oPck) Then
                 If _ReSendCount <= 100 Then
-                    _Status = GetStatus_Runing()
+                    SetStatus(GetStatus_Runing())
                     CommandReSend()
                     SetRuningStatus()
                 Else
-                    _Status = CheckSumErrorStatus
+                    SetStatus(CheckSumErrorStatus)
                     fireFireCommandErrorEvent()
                 End If
                 Return

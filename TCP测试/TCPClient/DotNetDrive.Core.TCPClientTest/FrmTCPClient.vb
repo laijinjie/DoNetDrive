@@ -7,7 +7,7 @@ Imports DoNetDrive.Core.Connector
 Imports DotNetty.Buffers
 Imports DotNetty.Common.Utilities
 Imports System.Collections.Concurrent
-
+Imports System.Text
 Public Class FrmTCPClient
     Private mIsUnload As Boolean
 
@@ -16,108 +16,6 @@ Public Class FrmTCPClient
     ''' 连接通道观察者，检查数据收发
     ''' </summary>
     Private WithEvents obServer As TCPIOObserverHandler
-
-
-
-    ''' <summary>
-    ''' 连接通道观察者，可以观察连接通道上的数据收发 十六进制格式输出
-    ''' </summary>
-    Public Class TCPIOObserverHandler
-        Implements INRequestHandle
-
-        Private Const MsgDebugLen = 40
-        ''' <summary>
-        ''' 接收到数据
-        ''' </summary>
-        ''' <param name="connector"></param>
-        ''' <param name="msgLen"></param>
-        Event DisposeRequestEvent(connector As INConnector, msgLen As Integer, msg As String)
-
-        ''' <summary>
-        ''' 接收消息日志
-        ''' </summary>
-        ''' <param name="connector"></param>
-        Event OnRequestLog(connector As INConnector, msg As String)
-
-        ''' <summary>
-        ''' 准备发送数据
-        ''' </summary>
-        ''' <param name="connector"></param>
-        ''' <param name="msgLen"></param>
-        Event DisposeResponseEvent(connector As INConnector, msgLen As Integer, msg As String)
-
-        Private mRequestMsgCRC As UInt32
-        Private mBeginRead As Boolean
-        Private mRequestMax As Integer
-        Private mRequestLen As Integer
-
-        Private mRequestBuf As List(Of Byte)
-
-        Public Overridable Sub DisposeRequest(connector As INConnector, msg As IByteBuffer) Implements INRequestHandle.DisposeRequest
-            Dim sHex As String
-            Dim iLen = msg.ReadableBytes
-
-            If iLen > MsgDebugLen Then
-                iLen = MsgDebugLen
-            End If
-            sHex = ByteBufferUtil.HexDump(msg, 0, iLen)
-
-            msg.MarkReaderIndex()
-            iLen = msg.ReadableBytes
-            If mBeginRead Then
-                If (mRequestLen + iLen) > mRequestMax Then
-                    iLen = mRequestMax - mRequestLen
-                End If
-                mRequestLen += iLen
-                mRequestBuf.AddRange(msg.Array.Slice(msg.ArrayOffset, iLen))
-                mRequestMsgCRC = MyCRC32.CalculateDigest_Continue(mRequestMsgCRC, msg.Array, msg.ArrayOffset, iLen)
-                If mRequestLen = mRequestMax Then
-                    Debug.Print($"接收长度：{mRequestLen}")
-                    mBeginRead = False
-                    RaiseEvent OnRequestLog(connector, $"接收消息完毕，消息总长度：{mRequestLen} 自己计算CRC：{mRequestMsgCRC:X}")
-                    mRequestMsgCRC = MyCRC32.CalculateDigest(mRequestBuf.ToArray(), 0, mRequestBuf.Count)
-                    RaiseEvent OnRequestLog(connector, $"自己计算CRC2：{mRequestMsgCRC:X}")
-                    mRequestBuf.Clear()
-                    mRequestMsgCRC = msg.GetUnsignedInt(iLen)
-                    RaiseEvent OnRequestLog(connector, $"接收的CRC：{mRequestMsgCRC:X}")
-                End If
-            Else
-                If iLen > 10 Then
-                    Dim str = msg.ReadString(10, System.Text.Encoding.ASCII)
-                    If str = "DDDDDDDDDD" Then
-                        mRequestBuf = New List(Of Byte)
-                        mRequestBuf.AddRange(msg.Array.Slice(msg.ArrayOffset, iLen))
-                        mRequestMax = msg.ReadInt() + 14
-                        mRequestMsgCRC = MyCRC32.CalculateDigest(msg.Array, msg.ArrayOffset, iLen)
-                        mBeginRead = True
-                        RaiseEvent OnRequestLog(connector, $"开始接收消息，消息总长度：{mRequestMax}")
-                        mRequestLen = iLen
-                    End If
-
-                End If
-            End If
-
-            msg.ResetReaderIndex()
-
-            RaiseEvent DisposeRequestEvent(connector, msg.ReadableBytes, sHex)
-
-        End Sub
-
-        Public Overridable Sub DisposeResponse(connector As INConnector, msg As IByteBuffer) Implements INRequestHandle.DisposeResponse
-            Dim sHex As String
-            Dim iLen = msg.ReadableBytes
-            If iLen > MsgDebugLen Then
-                iLen = MsgDebugLen
-            End If
-            sHex = ByteBufferUtil.HexDump(msg, 0, iLen)
-
-            RaiseEvent DisposeResponseEvent(connector, msg.ReadableBytes, sHex)
-        End Sub
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-            Return
-        End Sub
-    End Class
 
 
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -153,6 +51,10 @@ Public Class FrmTCPClient
 
         txtRemoteIP.Text = ConfigurationManager.AppSettings("ServerIP")
         txtRemotePort.Text = ConfigurationManager.AppSettings("ServerPort")
+        If Not String.IsNullOrEmpty(ConfigurationManager.AppSettings("chkShowLog")) Then
+            chkShowLog.Checked = CBool(ConfigurationManager.AppSettings("chkShowLog"))
+        End If
+
     End Sub
 
 
@@ -163,6 +65,7 @@ Public Class FrmTCPClient
         SetConfigKey(config, "LocalPort", txtLocalPort.Text)
         SetConfigKey(config, "ServerIP", txtRemoteIP.Text)
         SetConfigKey(config, "ServerPort", txtRemotePort.Text)
+        SetConfigKey(config, "chkShowLog", chkShowLog.Checked)
         config.Save(ConfigurationSaveMode.Modified)
         ConfigurationManager.RefreshSection("appSettings")
     End Sub
@@ -198,13 +101,10 @@ Public Class FrmTCPClient
                 cmbLocalIP.Items.Add(ip.ToString())
             End If
         Next
-        If (cmbLocalIP.Items.Count > 0) Then
-            cmbLocalIP.SelectedIndex = cmbLocalIP.Items.Count - 1
-        End If
+        'If (cmbLocalIP.Items.Count > 0) Then
+        '    cmbLocalIP.SelectedIndex = cmbLocalIP.Items.Count - 1
+        'End If
     End Sub
-
-
-
 
     Private Sub Allocator_CommandCompleteEvent(sender As Object, e As CommandEventArgs) Handles Allocator.CommandCompleteEvent
         If mIsUnload Then Return
@@ -235,6 +135,8 @@ Public Class FrmTCPClient
 
     Private Sub Allocator_ConnectorErrorEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorErrorEvent
         If mIsUnload Then Return
+        Dim sKey = connector.GetKey()
+        mConnectKeys.TryRemove(sKey, sKey)
         AddLog($"连接发生错误！  {GetConnectorDetail(connector)} {connector.GetError()} ")
     End Sub
 
@@ -249,27 +151,23 @@ Public Class FrmTCPClient
 
         Select Case conn.GetTypeName
             Case ConnectorType.TCPClient
-                Dim dtl As TCPClient.TCPClientDetail_Readonly = oConn.GetConnectorDetail()
+                Dim dtl As TCPClient.TCPClientDetail = oConn.GetConnectorDetail()
 
                 Return $"R:{dtl.Addr}:{dtl.Port} L:{dtl.LocalAddr}:L:{dtl.LocalPort} T:{Now:ss.ffff}"
         End Select
         Return conn.ToString()
     End Function
 
-    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHEX As String) Handles obServer.DisposeRequestEvent
+    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msg As String) Handles obServer.DisposeRequestEvent
         If mIsUnload Then Return
-        AddLog($"{GetConnectorDetail(connector)} 接收  长度：{msgLen}  0x{msgHEX}")
+        AddLog($"{GetConnectorDetail(connector)} 接收  长度：{msgLen}  {msg}")
     End Sub
 
-    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHEX As String) Handles obServer.DisposeResponseEvent
+    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msg As String) Handles obServer.DisposeResponseEvent
         If mIsUnload Then Return
-        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  0x{msgHEX}")
+        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  {msg}")
     End Sub
 
-    Private Sub obServer_OnRequestLog(connector As INConnector, msg As String) Handles obServer.OnRequestLog
-        If mIsUnload Then Return
-        AddLog($"{GetConnectorDetail(connector)}  {msg}")
-    End Sub
 
 
     Private Sub AddLog(ByVal sTxt As String)
@@ -332,15 +230,16 @@ Public Class FrmTCPClient
     Private Sub butTCPClientSend_200K_Click(sender As Object, e As EventArgs) Handles butTCPClientSend_200K.Click
         Dim ilen = 200 * 1024
         Dim buf = UnpooledByteBufferAllocator.Default.Buffer(ilen + 16)
-        buf.WriteString("DDDDDDDDDD", System.Text.Encoding.ASCII)
-        buf.WriteInt(ilen)
+        'buf.WriteString("DDDDDDDDDD", System.Text.Encoding.ASCII)
+        'buf.WriteInt(ilen)
+        Dim rd = New Random
 
         For i = 1 To ilen
-            buf.WriteByte(i Mod 255)
+            buf.WriteByte(rd.Next(33, 122))
         Next
-        Dim crc32 = MyCRC32.CalculateDigest(buf.Array, buf.ArrayOffset, ilen)
-        buf.WriteInt(UInt32ToInt32(crc32))
-        AddLog($"CRC32:{crc32:X}")
+        'Dim crc32 = MyCRC32.CalculateDigest(buf.Array, buf.ArrayOffset, ilen)
+        'buf.WriteInt(UInt32ToInt32(crc32))
+        'AddLog($"CRC32:{crc32:X}")
         Dim oTCPDTL = GetTCPClientDetail()
 
         Dim cmd As New Command.Byte.ByteCommand(New Command.Byte.ByteCommandDetail(oTCPDTL),
@@ -492,5 +391,11 @@ Public Class FrmTCPClient
         Next
 
         txtLog.Text = sBuf.ToString()
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        For index = 1 To 100000
+            butTCPClientSend_Click(Nothing, Nothing)
+        Next
     End Sub
 End Class

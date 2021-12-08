@@ -149,24 +149,24 @@ Namespace Connector.Client
         ''' <summary>
         ''' 关闭连接
         ''' </summary>
-        Public Overrides Sub CloseConnector()
+        Public Overrides Async Function CloseAsync() As Task
             If _ClientChannel IsNot Nothing Then
 
                 If _ClientChannel.Active Then
-                    'Trace.WriteLine($"{GetKey()} ，线程ID:{Thread.CurrentThread.ManagedThreadId} 准备关闭TCP连接")
-                    _ClientChannel.CloseAsync()
-                    '链接断开后会自动触发 ChannelInactive 事件，再此事件中再增加通知消息
-                Else
-                    'Trace.WriteLine($"{GetKey()} TCP连接关闭时发现通过未活动，直接触发事件 ")
+                    Await _ClientChannel.CloseAsync()
                     FireConnectorClosedEvent(GetConnectorDetail())
-                    _IsActivity = False
-                    CloseConnectCheck()
+                    '链接断开后会自动触发 ChannelInactive 事件，再此事件中再增加通知消息
                 End If
             End If
 
+            _IsActivity = False
+            CloseConnectCheck()
+
             '_ClientChannel = Nothing
             _Status = GetInitializationStatus()
-        End Sub
+        End Function
+
+
 #End Region
 
 #Region "接收数据"

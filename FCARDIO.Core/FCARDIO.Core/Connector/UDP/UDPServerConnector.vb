@@ -103,15 +103,12 @@ Namespace Connector.UDP
         End Function
 
 
-        ''' <summary>
-        ''' 关闭连接
-        ''' </summary>
-        Public Overrides Sub CloseConnector()
+
+        Public Overrides Async Function CloseAsync() As Task
             If _Channel IsNot Nothing Then
                 If _Channel.Active Then
+                    Await _Channel.CloseAsync() '关闭通道
                     FireConnectorClosedEvent(GetConnectorDetail())
-                    _Channel.CloseAsync() '关闭通道
-
                 End If
             End If
             CloseClientConnector()
@@ -128,7 +125,8 @@ Namespace Connector.UDP
             SetInvalid()
             RaiseEvent ConnectorDisposeEvent(_Detail)
             Dispose()
-        End Sub
+        End Function
+
 
         ''' <summary>
         ''' 关闭所有子节点通道

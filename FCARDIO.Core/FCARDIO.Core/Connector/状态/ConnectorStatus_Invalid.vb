@@ -4,10 +4,7 @@
     ''' </summary>
     Public Class ConnectorStatus_Invalid
         Implements INConnectorStatus
-        ''' <summary>
-        ''' 指示通道已失效
-        ''' </summary>
-        Public Shared ReadOnly Invalid As ConnectorStatus_Invalid = New ConnectorStatus_Invalid()
+
 
         ''' <summary>
         ''' 获取当前状态的描述

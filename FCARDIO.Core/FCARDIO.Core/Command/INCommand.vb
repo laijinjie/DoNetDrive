@@ -45,6 +45,12 @@ Namespace Command
         ''' </summary>
         ''' <returns></returns>
         Function getProcessStep() As Integer
+
+        ''' <summary>
+        ''' 设置和命令相关联的错误
+        ''' </summary>
+        ''' <param name="ex"></param>
+        Sub SetException(ex As Exception)
     End Interface
 
 End Namespace

@@ -141,7 +141,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core.vbproj">
+    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj">
       <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
       <Name>DoNetDrive.Core</Name>
     </ProjectReference>

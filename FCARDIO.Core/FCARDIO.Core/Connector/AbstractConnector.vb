@@ -15,14 +15,25 @@ Namespace Connector
         Implements INConnector
 
         ''' <summary>
+        ''' 默认的保活包
+        ''' </summary>
+        Public Shared DefaultKeepalivePacket As Byte() = System.Text.Encoding.ASCII.GetBytes("PING")
+
+        ''' <summary>
         ''' 默认的通道连接保持时间
         ''' </summary>
         Public Shared DefaultChannelKeepaliveMaxTime As Integer = 60
 
         ''' <summary>
-        ''' 用来进行通道锁操作的对象
+        ''' 通道保活时长，单位秒，超过这个时间没有调用  UpdateActivityTime 函数就会自动断开连接
         ''' </summary>
-        Protected Lockobject As Object = New Object()
+        Public Property ChannelKeepaliveMaxTime As Integer = 60
+
+        ''' <summary>
+        ''' 命令间的发送间隔，单位毫秒
+        ''' </summary>
+        ''' <returns></returns>
+        Public Property CommandSendIntervalTimeMS As Integer = 0
 
         ''' <summary>
         ''' 连接通道中存在于队列中的命令列表，先进先出集合
@@ -30,7 +41,7 @@ Namespace Connector
         Protected _CommandList As ConcurrentQueue(Of INCommandRuntime)
 
         ''' <summary>
-        ''' 连接通道中附加的消息解释器集合，可对通道收到的数据进行解码，并生成事物消息事件 TransactionMessage
+        ''' 解码器列表，处理连接管道接收和发送的所有数据
         ''' </summary>
         Protected _DecompileList As ConcurrentDictionary(Of String, INRequestHandle)
 
@@ -55,28 +66,68 @@ Namespace Connector
         Protected _isRelease As Boolean
 
         ''' <summary>
-        ''' 表示此通道已失效
+        ''' 表示此通道已失效,失效表示连接已断开并达到重试上限或已被手动关闭
         ''' </summary>
         Private _isInvalid As Boolean
 
         ''' <summary>
-        ''' 表示此通道上次的活动时间
+        ''' 表示此通道上次的活动时间，最近收发数据的时间
         ''' </summary>
         Protected _ActivityDate As Date
 
+
         ''' <summary>
-        ''' 任务是否已加入队列或正在执行
+        ''' 表示此通道最近一次接受数据的时间
         ''' </summary>
-        Protected _IsRuning As Boolean
+        Protected _LastReadDataTime As Date
+
+        ''' <summary>
+        ''' 表示此通道最近一次的发送数据的时间
+        ''' </summary>
+        Protected _LastSendDataTime As Date
+
+        ''' <summary>
+        ''' 发送保活包时间
+        ''' </summary>
+        Protected _SendKeepaliveTime As Date
+
+        ''' <summary>
+        ''' 保活包最大间隔
+        ''' </summary>
+        Protected _KeepAliveMaxTime As Integer
+
+        ''' <summary>
+        ''' 发送字节数
+        ''' </summary>
+        Protected _SendTotalBytes As Long
+
+        ''' <summary>
+        ''' 接收字节数
+        ''' </summary>
+        Protected _ReadTotalBytes As Long
+
 
         ''' <summary>
         ''' 检查通道是否为活动的状态（已连接的）
         ''' </summary>
         Protected _IsActivity As Boolean
+
+
         ''' <summary>
-        ''' 指示是否需要关闭通道
+        ''' 连接开始时间
         ''' </summary>
-        Protected _IsCloseing As Boolean
+        Protected _ConnectDate As Date
+
+        ''' <summary>
+        ''' 连接通道的唯一身份标识
+        ''' </summary>
+        Private mKey As String
+
+        ''' <summary>
+        ''' 标识本通道的信息类，只读
+        ''' </summary>
+        Protected _ConnectorDetail As INConnectorDetail
+
 
 #Region "事件定义"
         ''' <summary>
@@ -151,23 +202,28 @@ Namespace Connector
         ''' <param name="sender"></param>
         ''' <param name="connector"></param>
         Public Event ConnectorClosedEvent(sender As Object, connector As INConnectorDetail) Implements INConnectorEvent.ConnectorClosedEvent
-        Public Event TaskCloseEvent(client As ITaskClient) Implements ITaskClient.TaskCloseEvent
 #End Region
 
         ''' <summary>
         ''' 初始化连接通道中的队列列表和解析器列表，并初始化连接通道状态
         ''' </summary>
-        Sub New()
+        Public Sub New()
             _CommandList = New ConcurrentQueue(Of INCommandRuntime)
             _DecompileList = New ConcurrentDictionary(Of String, INRequestHandle)
+            _ActivityCommand = Nothing
+
             _IsForcibly = False
             _IsActivity = False
             _isRelease = False
             _isInvalid = False
-            _IsRuning = False
-            _IsCloseing = False
+
             _Status = GetInitializationStatus()
             _ActivityDate = Date.Now
+            _LastReadDataTime = Date.MinValue
+            _LastSendDataTime = Date.MinValue
+            _SendKeepaliveTime = Date.MinValue
+            _KeepAliveMaxTime = 30
+
             ChannelKeepaliveMaxTime = DefaultChannelKeepaliveMaxTime
         End Sub
 
@@ -185,18 +241,44 @@ Namespace Connector
         ''' 获取初始化通道状态
         ''' </summary>
         Protected MustOverride Function GetInitializationStatus() As INConnectorStatus
+
         ''' <summary>
         ''' 获取此通道的连接器类型
         ''' </summary>
         ''' <returns>连接器类型</returns>
         Public MustOverride Function GetConnectorType() As String Implements INConnector.GetConnectorType
 
+        ''' <summary>
+        ''' 返回记录此通道信息的类
+        ''' </summary>
+        ''' <returns></returns>
+        Public Overridable Function GetConnectorDetail() As INConnectorDetail Implements INConnector.GetConnectorDetail
+            If _ConnectorDetail Is Nothing Then
+                _ConnectorDetail = GetConnectorDetail0()
+            End If
+            Return _ConnectorDetail
+        End Function
+
+
+        Public Overridable Function GetKey() As String Implements INConnector.GetKey
+            If String.IsNullOrEmpty(mKey) Then
+                Dim dtl = GetConnectorDetail()
+                If dtl IsNot Nothing Then
+                    mKey = dtl.GetKey()
+                Else
+                    mKey = String.Empty
+                End If
+            End If
+            Return mKey
+        End Function
 
         ''' <summary>
         ''' 获取关于本通道的详情
         ''' </summary>
         ''' <returns></returns>
-        Public MustOverride Function GetConnectorDetail() As INConnectorDetail Implements INConnector.GetConnectorDetail
+        Protected Overridable Function GetConnectorDetail0() As INConnectorDetail
+            Return _ConnectorDetail
+        End Function
 
 
         ''' <summary>
@@ -204,25 +286,27 @@ Namespace Connector
         ''' </summary>
         ''' <returns></returns>
         Public MustOverride Function GetByteBufAllocator() As IByteBufferAllocator Implements INConnector.GetByteBufAllocator
-        ''' <summary>
-        ''' 将生成的bytebuf写入到通道中
-        ''' 写入完毕后自动释放
-        ''' </summary>
-        ''' <param name="buf"></param>
-        ''' <returns></returns>
-        Public MustOverride Function WriteByteBuf(buf As IByteBuffer) As Task Implements INConnector.WriteByteBuf
+
+
 
         ''' <summary>
         ''' 获取此通道所依附的事件循环通道
         ''' </summary>
         ''' <returns></returns>
-        Public MustOverride Function GetEventLoop() As IEventLoop Implements INConnector.GetEventLoop, TaskManage.ITaskClient.GetEventLoop
+        Public MustOverride Function GetEventLoop() As IEventLoop Implements INConnector.GetEventLoop
 
         ''' <summary>
         ''' 获取本地绑定地址
         ''' </summary>
         ''' <returns></returns>
         Public MustOverride Function LocalAddress() As IPDetail Implements INConnector.LocalAddress
+
+
+        ''' <summary>
+        ''' 获取远程服务器地址
+        ''' </summary>
+        ''' <returns></returns>
+        Public MustOverride Function RemoteAddress() As IPDetail Implements INConnector.RemoteAddress
 #End Region
 
 
@@ -245,29 +329,52 @@ Namespace Connector
             Return _CommandList.IsEmpty()
         End Function
 
-        ''' <summary>
-        ''' 将一个命令添加到本通道的命令队列中
-        ''' </summary>
-        ''' <param name="cd"></param>
+
         Public Sub AddCommand(cd As INCommandRuntime) Implements INConnector.AddCommand
-            If (_isRelease) Then Return
-            _CommandList.Enqueue(cd)
             cd.SetConnector(Me)
+
+            If (_isRelease) Then
+                cd.RemoveBinding()
+                cd.SetStatus(cd.GetStatus_Faulted())
+
+                Return
+            End If
+            _CommandList.Enqueue(cd)
         End Sub
 
+        ''' <summary>
+        ''' 将一个命令添加到本通道的命令队列中，并等待命令执行完毕
+        ''' </summary>
+        ''' <param name="cd"></param>
+        ''' <returns></returns>
+        Public Overridable Async Function RunCommandAsync(cd As INCommandRuntime) As Task(Of INCommand) Implements INConnector.RunCommandAsync
+            Dim CommandTaskCompletionSource As TaskCompletionSource(Of INCommand) = New TaskCompletionSource(Of INCommand)
+            cd.SetConnector(Me)
 
+            If (_isRelease) Then
+                cd.RemoveBinding()
+                cd.SetStatus(cd.GetStatus_Faulted())
+
+                Return cd
+            End If
+            cd.SetTaskCompletionSource(CommandTaskCompletionSource)
+
+            _CommandList.Enqueue(cd)
+
+            Return Await CommandTaskCompletionSource.Task
+        End Function
 
         ''' <summary>
         ''' 从队列中删除一个命令
         ''' </summary>
         ''' <param name="eventCommand"></param>
-        Protected Overridable Sub RemoveCommand(ByVal eventCommand As INCommandRuntime)
+        Protected Overridable Sub RemoveCommand(ByVal eventCommand As INCommandRuntime, ByVal bAutoCheckCommandList As Boolean)
             If (_isRelease) Then Return
             If eventCommand IsNot Nothing Then
-                If _ActivityCommand Is eventCommand Then
+                If Object.ReferenceEquals(_ActivityCommand, eventCommand) Then
                     Dim tmp As INCommandRuntime = Nothing
                     If _CommandList.TryPeek(tmp) Then
-                        If tmp Is _ActivityCommand Then
+                        If Object.ReferenceEquals(_ActivityCommand, tmp) Then
                             tmp = Nothing
                             Call _CommandList.TryDequeue(tmp)
                             tmp = Nothing
@@ -277,9 +384,11 @@ Namespace Connector
                     _ActivityCommand?.RemoveBinding()
                     _ActivityCommand = Nothing
                 End If
+            End If
+
+            If bAutoCheckCommandList Then
                 If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
-                    If _isRelease Then Return
-                    If _IsCloseing Then Return
+                    If Me.CheckIsInvalid Then Return
                     If Not _CommandList.IsEmpty Then CheckCommandList()
                 End If
             End If
@@ -288,25 +397,33 @@ Namespace Connector
         ''' <summary>
         ''' 检查命令状态
         ''' </summary>
-        Protected Friend Overridable Sub CheckCommandList()
+        Public Overridable Sub CheckCommandList() Implements INConnector.CheckCommandList
             If (_isRelease) Then Return
             If _ActivityCommand IsNot Nothing Then Return
+            UpdateActivityTime()
+            If _CommandList.Count = 0 Then Return
+            Do
+                Try
+                    If _CommandList.Count = 0 Then Return
+                    If _CommandList.TryPeek(_ActivityCommand) Then
+                        If _ActivityCommand.IsRelease() Then
+                            RemoveCommand(_ActivityCommand, False)
+                        Else
+                            If CommandSendIntervalTimeMS > 0 Then
+                                '将命令放到管道相同的线程中执行
+                                GetEventLoop()?.Schedule(_ActivityCommand, TimeSpan.FromMilliseconds(CommandSendIntervalTimeMS))
+                            Else
+                                '将命令放到管道相同的线程中执行
+                                GetEventLoop()?.Execute(_ActivityCommand)
+                            End If
 
-            Try
-                If _CommandList.TryPeek(_ActivityCommand) Then
-                    If _ActivityCommand.IsRelease() Then
-                        RemoveCommand(_ActivityCommand)
-                        CheckCommandList() '检查下一个指令
-                        Return
+                            Exit Do
+                        End If
                     End If
-                    GetEventLoop()?.Execute(_ActivityCommand)
-
-                    UpdateActivityTime()
-                End If
-            Catch ex As Exception
-                Trace.WriteLine($" {GetKey()} CheckCommandList {ex.ToString()}")
-            End Try
-
+                Catch ex As Exception
+                    Trace.WriteLine($" {GetKey()} CheckCommandList {ex.ToString()}")
+                End Try
+            Loop While True
         End Sub
 
 #Region "停止命令"
@@ -320,13 +437,13 @@ Namespace Connector
             Dim cmd As INCommandRuntime = Nothing
             If cdt Is Nothing Then
                 '停止所有命令
-                ClearCommand(True)
+                ClearCommand(New Exception("Stop"))
                 Return True
             Else
                 Dim cmdCount As Integer = 0
-                Dim sKey = cdt.ToString()
+                Dim sKey = cdt.Key
                 For Each cmd In _CommandList
-                    If cmd.CommandDetail.ToString() = sKey Then
+                    If cmd.CommandDetail.Key = sKey Then
                         cmdCount += 1
                         Exit For
                     End If
@@ -343,12 +460,11 @@ Namespace Connector
                                 tmpQue.Enqueue(cmd) '临时加入队列
                             Else
                                 cmd.RemoveBinding()
-                                If cmd.Equals(_ActivityCommand) Then
+                                If Object.ReferenceEquals(cmd, _ActivityCommand) Then
                                     _ActivityCommand = Nothing
                                 End If
                                 RaiseCommandErrorEvent(cmd, True)
                             End If
-
                         End If
                     Loop While retGetCommand
                     If tmpQue.Count > 0 Then
@@ -368,7 +484,7 @@ Namespace Connector
         ''' 清空所有在缓冲中的命令
         ''' </summary>
         ''' <param name="isStop"></param>
-        Private Sub ClearCommand(ByVal isStop As Boolean)
+        Protected Overridable Sub ClearCommand(ByVal ex As Exception)
             If (_isRelease) Then Return
             Dim cmd As INCommandRuntime = Nothing
             Dim retGetCommand As Boolean
@@ -379,9 +495,13 @@ Namespace Connector
                 retGetCommand = _CommandList.TryDequeue(cmd)
                 If retGetCommand Then
                     cmd.RemoveBinding()
-                    RaiseCommandErrorEvent(cmd, isStop)
+                    If ex.Message = "Stop" Then
+                        cmd.SetStatus(cmd.GetStatus_Stop())
+                    Else
+                        cmd.SetException(ex)
+                    End If
+                    RaiseEvent CommandErrorEvent(Me, cmd.GetEventArgs)
                 End If
-
             Loop While retGetCommand
         End Sub
 
@@ -423,13 +543,14 @@ Namespace Connector
         ''' </summary>
         Protected Sub SetInvalid()
             _isInvalid = True
+            Me._Status = ConnectorStatus.Invalid
         End Sub
 
         ''' <summary>
         ''' 检查通道是否为活动的状态（已连接的）
         ''' </summary>
         ''' <returns></returns>
-        Public Function IsActivity() As Boolean Implements INConnector.IsActivity, ITaskClient.IsActivity
+        Public Function IsActivity() As Boolean Implements INConnector.IsActivity
             If _isRelease Then Return False
             Return _IsActivity
         End Function
@@ -442,36 +563,64 @@ Namespace Connector
             _ActivityDate = Date.Now
         End Sub
 
+        Public ReadOnly Property LastReadDataTime As DateTime Implements INConnector.LastReadDataTime
+            Get
+                Return _LastReadDataTime
+            End Get
+
+        End Property
+
+        Public ReadOnly Property LastSendDataTime As DateTime Implements INConnector.LastSendDataTime
+            Get
+                Return _LastSendDataTime
+            End Get
+
+        End Property
 
 
         ''' <summary>
-        ''' 通道保活时长，单位秒，超过这个时间没有调用  UpdateActivityTime 函数就会自动断开连接
+        ''' 更新通道活动时间
         ''' </summary>
-        Public ChannelKeepaliveMaxTime As Integer = 60
+        Protected Sub UpdateReadDataTime()
+            '_ActivityDate = Date.Now
+            _LastReadDataTime = Date.Now
+        End Sub
+
+
+        ''' <summary>
+        ''' 更新通道活动时间
+        ''' </summary>
+        Protected Sub UpdateSendDataTime()
+            _ActivityDate = Date.Now
+            _LastSendDataTime = Date.Now
+        End Sub
 
         ''' <summary>
         ''' 检查通道是否已失效 1分钟无活动，无命令任务则自动失效
         ''' </summary>
-        Protected Overridable Sub CheckIsInvalid() Implements INConnector.CheckIsInvalid
-            If (_isRelease) Then Return
-            If _isInvalid Then Return '已失效
+        Protected Overridable Function CheckIsInvalid() As Boolean Implements INConnector.CheckIsInvalid
+            If (_isRelease) Then Return True
+            If _isInvalid Then Return True '已失效
             If _IsForcibly Then
                 _isInvalid = False
-                Return
+                Return False
             End If
 
             If Not _CommandList.IsEmpty Then
                 _isInvalid = False
-                Return
+                Return False
             End If
 
             Dim lElapse = (Date.Now - _ActivityDate).TotalSeconds()
             If (lElapse > ChannelKeepaliveMaxTime) Then
-                'Trace.WriteLine($"通道：{GetKey()}, 已空闲 {lElapse} 秒，准备关闭连接  {Date.Now:HH:mm:ss.ffff} ")
+
                 SetInvalid()
+                Return True
+            Else
+                Return False
             End If
 
-        End Sub
+        End Function
 
 
 
@@ -513,40 +662,12 @@ Namespace Connector
         ''' </summary>
         Public Sub Run() Implements IRunnable.Run
             If (_isRelease) Then Return
-            If _IsRuning Then Return
-            '防止线程并发
-            SyncLock Lockobject
-                If _IsRuning Then Return
-                _IsRuning = True
-            End SyncLock
-
-
-            If _IsCloseing Then '如果已经入通过关闭状态，则检查活动状态（连接状态）
-                'If _isInvalid Then Trace.WriteLine($"{GetKey()} Run 连接已失效（保持连接超时或连接失败次数已达最大），进入关闭流程")
-                'If _IsCloseing Then Trace.WriteLine($"{GetKey()} Run 进入关闭流程")
-                If IsActivity() Then
-                    'Trace.WriteLine($"{GetKey()} Run 连接已建立，先关闭连接")
-                    '已连接时，先关闭链接
-                    _IsForcibly = False
-                    CloseConnector()
-                Else
-                    'Trace.WriteLine($"{GetKey()} Run 连接未建立，直接销毁所有资源")
-                    Dispose() '非活动状态，直接失效
-                End If
-                Return
-            End If
-
             Try
                 If (_isRelease) Then Return
                 CheckStatus()
-                If (_isInvalid) Then
-                    Dispose()
-                End If
             Catch ex As Exception
                 Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.ToString()}")
             End Try
-
-            _IsRuning = False
         End Sub
 
         ''' <summary>
@@ -567,7 +688,7 @@ Namespace Connector
         Public Sub fireCommandCompleteEvent(e As CommandEventArgs) Implements INConnector.FireCommandCompleteEvent
 
             RaiseEvent CommandCompleteEvent(Me, e)
-            RemoveCommand(e.Command)
+            RemoveCommand(e.Command, True)
         End Sub
 
         ''' <summary>
@@ -597,7 +718,7 @@ Namespace Connector
         Public Sub fireCommandTimeout(e As CommandEventArgs) Implements INConnector.FireCommandTimeout
 
             RaiseEvent CommandTimeout(Me, e)
-            RemoveCommand(e.Command)
+            RemoveCommand(e.Command, True)
         End Sub
 #End Region
 
@@ -609,7 +730,7 @@ Namespace Connector
         Public Sub fireAuthenticationErrorEvent(e As CommandEventArgs) Implements INConnector.FireAuthenticationErrorEvent
 
             RaiseEvent AuthenticationErrorEvent(Me, e)
-            RemoveCommand(e.Command)
+            RemoveCommand(e.Command, True)
         End Sub
 #End Region
 
@@ -619,8 +740,8 @@ Namespace Connector
         ''' </summary>
         ''' <param name="e">事件参数，包含此事件所代表的命令信息</param>
         Public Sub FireCommandErrorEvent(e As CommandEventArgs) Implements INFireCommandEvent.FireCommandErrorEvent
-            RemoveCommand(e.Command)
             RaiseEvent CommandErrorEvent(Me, e)
+            RemoveCommand(e.Command, True)
         End Sub
 #End Region
 
@@ -639,17 +760,11 @@ Namespace Connector
 
 #Region "触发事件--客户端上线通知"
         ''' <summary>
-        ''' 触发事件--客户端上线通知
-        ''' </summary>
-        ''' <param name="e">包含事件所代表的客户端及服务器信息</param>
-        Public Sub FireClientOnline(e As ServerEventArgs) Implements INFireConnectorEvent.FireClientOnline
-            RaiseEvent ClientOnline(Me, e)
-        End Sub
-        ''' <summary>
         ''' 客户端上线通知
         ''' </summary>
         ''' <param name="conn">客户端所绑定的连接器</param>
-        Public Sub FireClientOnline(conn As INConnector)
+        Public Sub FireClientOnline(conn As INConnector) Implements INFireConnectorEvent.FireClientOnline
+            GetConnectorDetail()?.ClientOnlineCallBlack?(conn)
             RaiseEvent ClientOnline(conn, Nothing)
         End Sub
 #End Region
@@ -657,17 +772,10 @@ Namespace Connector
 #Region "触发事件--客户端离线通知"
         ''' <summary>
         ''' 触发事件--客户端离线通知
-        ''' </summary>
-        ''' <param name="e">包含事件所代表的客户端及服务器信息</param>
-        Public Sub FireClientOffline(e As ServerEventArgs) Implements INFireConnectorEvent.FireClientOffline
-            RaiseEvent ClientOffline(Me, e)
-        End Sub
-
-        ''' <summary>
-        ''' 触发事件--客户端离线通知
         ''' </summary> 
-        Public Sub FireClientOffline(conn As INConnector)
-            RaiseEvent ClientOffline(Me, Nothing)
+        Public Sub FireClientOffline(conn As INConnector) Implements INFireConnectorEvent.FireClientOffline
+            GetConnectorDetail()?.ClientOfflineCallBlack?(conn)
+            RaiseEvent ClientOffline(conn, Nothing)
         End Sub
 #End Region
 
@@ -676,6 +784,7 @@ Namespace Connector
         ''' 产生通道已连接的事件
         ''' </summary>
         Protected Sub FireConnectorConnectedEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorConnectedEvent
+            connector?.ConnectedCallBlack?(connector)
             RaiseEvent ConnectorConnectedEvent(Me, connector)
         End Sub
 #End Region
@@ -685,6 +794,8 @@ Namespace Connector
         ''' </summary>
         ''' <param name="connector">触发事件的连接通道信息</param>
         Public Sub FireConnectorClosedEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorClosedEvent
+            ClearCommand(New Exception("Connect Closed"))
+            connector?.ClosedCallBlack?(connector)
             RaiseEvent ConnectorClosedEvent(Me, connector)
         End Sub
 
@@ -693,7 +804,8 @@ Namespace Connector
         ''' </summary>
         ''' <param name="connector">触发事件的连接通道信息</param>
         Public Sub FireConnectorErrorEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorErrorEvent
-            ClearCommand(False)
+            ClearCommand(New Exception("Connect error", connector.GetError))
+            connector?.ErrorCallBlack?(connector)
             RaiseEvent ConnectorErrorEvent(Me, connector)
         End Sub
 #End Region
@@ -745,7 +857,12 @@ Namespace Connector
             Dim iMaskReaderIndex = msg.ReaderIndex
             For Each wr In _DecompileList
                 Dim reqHandle As INRequestHandle = wr.Value
-                reqHandle.DisposeRequest(Me, msg)
+                Try
+                    reqHandle.DisposeRequest(Me, msg)
+                Catch ex As Exception
+
+                End Try
+
                 msg.SetReaderIndex(iMaskReaderIndex)
             Next
         End Sub
@@ -774,6 +891,8 @@ Namespace Connector
         ''' <param name="msg">将读取到的数据打包到bytebuffer</param>
         Protected Sub ReadByteBuffer(msg As IByteBuffer)
             If _isRelease Then Return
+            UpdateReadDataTime()
+            Me._ReadTotalBytes += msg.ReadableBytes
             Dim tmpMsg = Unpooled.UnreleasableBuffer(msg)
             Dim iMaskReadIndex As Integer = tmpMsg.ReaderIndex
 
@@ -794,24 +913,78 @@ Namespace Connector
         End Sub
 #End Region
 
-
-#Region "关闭通道"
+#Region "写入数据"
         ''' <summary>
-        ''' 关闭通道
+        ''' 将生成的bytebuf写入到通道中
+        ''' 写入完毕后自动释放
         ''' </summary>
-        Public MustOverride Sub CloseConnector()
+        ''' <param name="buf"></param>
+        ''' <returns></returns>
+        Public Overridable Async Function WriteByteBuf(buf As IByteBuffer) As Task Implements INConnector.WriteByteBuf
+            If _isRelease Then Return
+            UpdateSendDataTime()
 
-        Public Sub Close() Implements INConnector.Close
-            _IsCloseing = True
-        End Sub
+            DisposeResponse(buf)
+            Me._SendTotalBytes += buf.ReadableBytes
+            Await WriteByteBuf0(buf)
+        End Function
 
-        Protected Overridable Sub CloseConnectCheck()
-            If (_IsCloseing Or IsInvalid) And _IsRuning Then
-                Dispose()
-                Return
+        ''' <summary>
+        ''' 将buf中的数据写入到连接通道中
+        ''' </summary>
+        ''' <param name="buf"></param>
+        ''' <returns></returns>
+        Protected MustOverride Function WriteByteBuf0(buf As IByteBuffer) As Task
+#End Region
+
+
+#Region "建立连接"
+        Public MustOverride Async Function ConnectAsync() As Task Implements INConnector.ConnectAsync
+
+        ''' <summary>
+        ''' 检查是否需要发送保活包
+        ''' </summary>
+        Protected Overridable Sub CheckKeepaliveTime()
+            Dim oBeginTime As DateTime
+            If Me._LastReadDataTime = Date.MinValue Then
+                '没收到过数据
+                oBeginTime = _ConnectDate
+            Else
+                oBeginTime = Me._LastReadDataTime
+            End If
+
+            Dim lTotal = (DateTime.Now - oBeginTime).TotalSeconds
+            If lTotal > _KeepAliveMaxTime Then
+                Dim bSend As Boolean
+
+                If _SendKeepaliveTime = Date.MinValue Then
+                    bSend = True
+                Else
+                    lTotal = (DateTime.Now - _SendKeepaliveTime).TotalSeconds
+                    If lTotal > _KeepAliveMaxTime Then bSend = True
+                End If
+
+                If bSend Then
+                    SendKeepalivePacket()
+                    _SendKeepaliveTime = Date.Now
+                End If
+
             End If
         End Sub
 
+        ''' <summary>
+        ''' 发送保活包
+        ''' </summary>
+        Protected Overridable Sub SendKeepalivePacket()
+            If _IsActivity Then
+                WriteByteBuf(Unpooled.WrappedBuffer(DefaultKeepalivePacket))
+            End If
+        End Sub
+
+#End Region
+
+#Region "关闭通道"
+        Public MustOverride Function CloseAsync() As Task Implements INConnector.CloseAsync
 #End Region
 
 #Region "IDisposable Support"
@@ -820,15 +993,12 @@ Namespace Connector
         ' IDisposable
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposedValue Then
-                SyncLock Me '防止并发
-                    If disposedValue Then Return
-                    disposedValue = True
-                End SyncLock
-
-                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} 调用 AbstractConnector.Dispose ，线程ID：{Thread.CurrentThread.ManagedThreadId}")
+                disposedValue = True
 
                 If disposing Then
                     ' TODO: 释放托管状态(托管对象)。
+
+                    _IsActivity = False
                     _isRelease = True
                     SetInvalid()
                     _IsForcibly = False
@@ -837,25 +1007,11 @@ Namespace Connector
                     Catch ex As Exception
 
                     End Try
+                    CloseAsync()
 
-                    _IsActivity = False
-
-                    '触发通道关闭事件
-                    RaiseEvent TaskCloseEvent(Me)
-
-                    Dim cmd As INCommandRuntime = Nothing
-                    Dim ret As Boolean
                     If _CommandList IsNot Nothing Then
-                        Do
-                            cmd = Nothing
-                            ret = _CommandList.TryDequeue(cmd)
-                            If ret Then
-                                cmd.Dispose()
-                            End If
-                        Loop While ret
-                        cmd = Nothing
+                        ClearCommand(New Exception("Connect Dispose"))
                     End If
-
                     _CommandList = Nothing
 
                     If _DecompileList IsNot Nothing Then
@@ -865,13 +1021,7 @@ Namespace Connector
                         _DecompileList.Clear()
                     End If
                     _DecompileList = Nothing
-
-                    _ActivityCommand = Nothing
-                    _Status = Nothing
-
-                    'Trace.WriteLine("调用 AbstractConnector.Dispose,释放通道完毕,资源标识：" & GetKey())
                 End If
-
                 ' TODO: 释放未托管资源(未托管对象)并在以下内容中替代 Finalize()。
                 ' TODO: 将大型字段设置为 null。
             End If
@@ -902,18 +1052,6 @@ Namespace Connector
 
 #End Region
 
-
-#Region "TaskClient 接口实现"
-        Private mKey As String
-        Public Function GetKey() As String Implements ITaskClient.GetKey
-            If String.IsNullOrEmpty(mKey) Then
-                mKey = GetConnectorDetail().GetKey()
-            End If
-            Return mKey
-        End Function
-
-
-#End Region
     End Class
 
 End Namespace

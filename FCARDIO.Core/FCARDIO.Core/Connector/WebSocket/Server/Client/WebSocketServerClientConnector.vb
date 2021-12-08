@@ -111,13 +111,14 @@ Namespace Connector.WebSocket.Server.Client
         ''' </summary>
         ''' <param name="oTsk"></param>
         Private Sub HandshakeOver(oTsk As Task)
+            Dim connectDtl = GetConnectorDetail()
             Dim pnl As IDoNetTCPServerChannel = TryCast(_ClientChannel.Parent, IDoNetTCPServerChannel）
             If oTsk.IsCanceled Or oTsk.IsFaulted Then
-                pnl.ServerConnector.FireConnectorErrorEvent(GetConnectorDetail())
+                pnl.ServerConnector.FireConnectorErrorEvent(connectDtl)
             Else
                 _HandshakeIsCompleted = oTsk.IsCompleted
+                connectDtl.ClientOfflineCallBlack = pnl.ServerConnector.GetConnectorDetail().ClientOfflineCallBlack
                 pnl.ServerConnector.FireClientOnline(Me)
-                'Trace.WriteLine("握手成功！")
             End If
         End Sub
 
@@ -136,6 +137,12 @@ Namespace Connector.WebSocket.Server.Client
                 ctx.WriteAsync(New PongWebSocketFrame(CType(frame.Content.Retain(), IByteBuffer)))
                 Return
             End If
+
+            If TypeOf frame Is PongWebSocketFrame Then
+                ctx.WriteAsync(New PingWebSocketFrame(CType(frame.Content.Retain(), IByteBuffer)))
+                Return
+            End If
+
 
             If TypeOf frame Is TextWebSocketFrame Then
                 ReadByteBuffer(frame.Content)

@@ -18,12 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\dotnetty\netstandard2.0\DotNetty.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Common">
-      <HintPath>..\..\dotnetty\netstandard2.0\DotNetty.Common.dll</HintPath>
-    </Reference>
+	  <PackageReference Include="DotNetty.Buffers" Version="0.7.0" />
+	  <PackageReference Include="DotNetty.Common" Version="0.7.0" />
   </ItemGroup>
 
 

@@ -39,13 +39,13 @@ Namespace Command
         ''' <summary>
         ''' 命令的当前工作状态
         ''' </summary>
-        Protected _Status As INCommandStatus
+        Private _Status As INCommandStatus
 
         ''' <summary>
         ''' 是否正在等待执行
         ''' </summary>
         ''' <returns></returns>
-        Property IsWaitExecute As Boolean Implements Command.INCommandRuntime.IsWaitExecute
+        Property IsExecuteing As Boolean Implements Command.INCommandRuntime.IsExecuteing
 
         ''' <summary>
         ''' 包含一个命令事件对象
@@ -94,6 +94,12 @@ Namespace Command
         ''' </summary>
         Protected _IsRelease As Boolean
 
+        ''' <summary>
+        ''' 异步命令的完成触发器
+        ''' </summary>
+        Protected CommandAsyncTaskTokenSource As TaskCompletionSource(Of INCommand)
+
+        Protected Key As String
 
         ''' <summary>
         ''' 初始化两个重要参数，并进行参数检查
@@ -110,6 +116,7 @@ Namespace Command
             End If
             Interlocked.Increment(CommandObjectTotal)
             CommandDetail = cd
+            Key = CommandDetail.Key
             _Parameter = par
             _Result = Nothing
             _Connector = Nothing
@@ -267,6 +274,22 @@ Namespace Command
         Public Sub SetStatus(cmdstatus As INCommandStatus) Implements INCommandRuntime.SetStatus
             If _IsRelease Then Return
             _Status = cmdstatus
+            If _Status.IsCompleted Then
+                If CommandAsyncTaskTokenSource IsNot Nothing Then
+                    Try
+                        If _Status.IsFaulted Then
+                            CommandAsyncTaskTokenSource.TrySetException(CommandException)
+                        ElseIf _Status.IsCanceled Then
+                            CommandAsyncTaskTokenSource.TrySetCanceled(CancellationToken.None)
+                        Else
+                            CommandAsyncTaskTokenSource.TrySetResult(Me)
+                        End If
+
+                    Catch ex As Exception
+
+                    End Try
+                End If
+            End If
         End Sub
 
         ''' <summary>
@@ -278,7 +301,7 @@ Namespace Command
         ''' 由连接通道推送来的接收缓冲区中的 Bytebuf
         ''' </summary>
         Public Sub PushReadByteBuf(buf As IByteBuffer) Implements INCommandRuntime.PushReadByteBuf
-            If TypeOf _Status IsNot AbstractCommandStatus_Runing Then Return
+            If Not _Status.IsRuning Then Return
 
             If _IsWaitResponse Then
                 If _Decompile IsNot Nothing Then
@@ -341,7 +364,7 @@ Namespace Command
                     'Trace.WriteLine($"{detail.ToString()} ,{Me.GetType().Name }  Step：{getProcessStep()}  超时失败")
                     '超时了，重发次数已达到则命令触发超时事件
                     CommandOver()
-                    _Status = GetStatus_Timeout()
+                    SetStatus(GetStatus_Timeout())
                     fireCommandTimeout()
                     Return True
                 End If
@@ -379,7 +402,7 @@ Namespace Command
             If _IsRelease = True Then
                 Return
             End If
-
+            'Trace.WriteLine($"命令执行完毕:{Key}")
             _IsRelease = True
             _Connector = Nothing
             _Packet?.Dispose()
@@ -395,8 +418,8 @@ Namespace Command
         ''' </summary>
         Protected Sub CommandCompleted()
             CommandOver()
-            _Status = GetStatus_Completed()
-            _Connector.FireCommandCompleteEvent(_EventArgs)
+            SetStatus(GetStatus_Completed())
+            _Connector?.FireCommandCompleteEvent(_EventArgs)
         End Sub
 
         ''' <summary>
@@ -404,8 +427,10 @@ Namespace Command
         ''' </summary>
         Protected Sub CommandError()
             CommandOver()
-            _Status = GetStatus_Faulted()
-            _Connector.FireCommandErrorEvent(_EventArgs)
+            If Not _Status.IsFaulted Then
+                SetStatus(GetStatus_Faulted())
+            End If
+            _Connector?.FireCommandErrorEvent(_EventArgs)
         End Sub
 
 
@@ -414,18 +439,15 @@ Namespace Command
         ''' </summary>
         Protected Overridable Sub CommandReady()
             _ReSendCount = 0
-            _Status = GetStatus_Runing()
-            If IsWaitExecute Then Return
+            SetStatus(GetStatus_Runing())
             SendPacket()
-            'SetRuningStatus()
         End Sub
 
         ''' <summary>
         ''' 设定状态为正在执行并立刻加入到线程任务队列中，为发送数据包做准备
         ''' </summary>
         Protected Sub SetRuningStatus()
-            _Status = GetStatus_Runing()
-            If IsWaitExecute Then Return
+            SetStatus(GetStatus_Runing())
             SendPacket()
         End Sub
 
@@ -434,7 +456,7 @@ Namespace Command
         ''' 命令继续等待
         ''' </summary>
         Protected Sub CommandWaitResponse()
-            _Status = GetStatus_WaitResponse()
+            SetStatus(GetStatus_WaitResponse())
             _SendDate = Date.Now
         End Sub
 
@@ -446,40 +468,51 @@ Namespace Command
         ''' </summary>
         Public Sub Run() Implements IRunnable.Run
             If _IsRelease Then Return
-            If IsWaitExecute Then
-                _Connector?.GetEventLoop()?.Execute(Me)
-                Return
-            End If
-
-            IsWaitExecute = True
-
-
-            _Connector?.UpdateActivityTime() '命令执行期间不应该超时
             Try
-                If _Status IsNot Nothing Then
-                    _Status.CheckStatus(Me)
-                End If
-                If _Status.IsNONE() Then
-
-                    CreatePacket()
-                    CommandDetail.BeginTime = DateTime.Now
-                    _Status = GetStatus_Runing() '状态变化
-                    IsWaitExecute = False
-                    Run()
+                If _Connector Is Nothing Then
+                    CommandError()
                     Return
                 End If
 
-                If Not _Status.IsCompleted Then
-                    If _IsRelease Then Return
-                    _Connector?.GetEventLoop()?.Execute(Me)
+                If _Connector.CheckIsInvalid Then
+                    CommandError()
+                    RemoveBinding()
+                    Return
                 End If
-
             Catch ex As Exception
-                CommandException = ex
+                If _IsRelease Then Return
+            End Try
+
+
+
+
+            Try
+                If _IsRelease Then Return
+                _Connector.UpdateActivityTime() '命令执行期间不应该超时
+
+                If _Status IsNot Nothing Then
+                    _Status.CheckStatus(Me)
+                End If
+                If _IsRelease Then Return
+                If _Status.IsNONE() Then
+                    'Trace.WriteLine($"命令开始执行：{Key}")
+                    CreatePacket() '在这里创建  _Packet
+                    CommandDetail.BeginTime = DateTime.Now
+                    SetStatus(GetStatus_Runing()) '状态变化
+                    _Status.CheckStatus(Me)
+                    If _IsRelease Then Return
+                End If
+            Catch ex As Exception
+                If _IsRelease Then Return
+                SetException(ex)
                 CommandError()
             End Try
-            IsWaitExecute = False
+            If _IsRelease Then Return
 
+            If Not _Status.IsCompleted Then
+                If _IsRelease Then Return
+                _Connector?.GetEventLoop()?.Schedule(Me, TimeSpan.FromMilliseconds(50))
+            End If
         End Sub
 
 
@@ -489,34 +522,30 @@ Namespace Command
         Protected Friend Sub SendPacket()
             If _IsRelease Then Return
             If _Connector Is Nothing Then Return
-            If TypeOf _Status IsNot AbstractCommandStatus_Runing Then Return
+            If Not _Status.IsRuning Then Return
 
             If _Packet Is Nothing Then
-                _Status = CommandStatus.Faulted
+                SetException(New Exception("Packet is null"))
                 fireFireCommandErrorEvent()
                 Return
             End If
 
-
-            IsWaitExecute = True
             Dim buf = _Packet.GetPacketData(_Connector.GetByteBufAllocator())
-            'Trace.WriteLine($"{System.Threading.Thread.CurrentThread.ManagedThreadId} {_Connector.GetKey()} 发送数据:{ByteBufferUtil.HexDump(buf)}")
+            'Trace.WriteLine($"发送命令数据：{Key}")
             Dim tWrite = _Connector.WriteByteBuf(buf)
-            If tWrite Is Nothing Then
-                IsWaitExecute = False
-                Return
-            End If
+            If tWrite Is Nothing Then Return
+
             _ReSendCount += 1
             '将状态变更为等待响应
             CommandWaitResponse()
 
 
             tWrite.ContinueWith(Sub()
-
+                                    'Trace.WriteLine($"命令发送完毕：{Key}")
                                     If tWrite.IsCanceled Or tWrite.IsFaulted Then
                                         '等待下一次运行
                                         If Not CheckTimeout() Then
-                                            _Status = GetStatus_Runing()
+                                            SetStatus(GetStatus_Runing())
                                         End If
                                     Else
                                         '发送完毕，切发送成功
@@ -529,7 +558,7 @@ Namespace Command
                                     fireCommandProcessEvent()
                                 End Sub)
             buf = Nothing
-            IsWaitExecute = False
+            IsExecuteing = False
         End Sub
 
         ''' <summary>
@@ -615,7 +644,7 @@ Namespace Command
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposedValue Then
                 If disposing Then
-
+                    Interlocked.Decrement(CommandObjectTotal)
                     ' TODO: 释放托管状态(托管对象)。
                     _Parameter?.Dispose()
                     _Parameter = Nothing
@@ -623,9 +652,9 @@ Namespace Command
                     _Result?.Dispose()
                     _Result = Nothing
 
-                    _Status = Nothing
-
                     RemoveBinding()
+
+                    CommandAsyncTaskTokenSource = Nothing
                 End If
 
                 ' TODO: 释放未托管资源(未托管对象)并在以下内容中替代 Finalize()。
@@ -648,14 +677,18 @@ Namespace Command
             ' TODO: 如果在以上内容中替代了 Finalize()，则取消注释以下行。
             ' GC.SuppressFinalize(Me)
         End Sub
-
-        Protected Overrides Sub Finalize()
-            MyBase.Finalize()
-            Interlocked.Decrement(CommandObjectTotal)
-        End Sub
-
 #End Region
 
+
+
+        Public Sub SetTaskCompletionSource(source As TaskCompletionSource(Of INCommand)) Implements INCommandRuntime.SetTaskCompletionSource
+            CommandAsyncTaskTokenSource = source
+        End Sub
+
+        Public Sub SetException(ex As Exception) Implements INCommand.SetException
+            CommandException = ex
+            SetStatus(GetStatus_Faulted)
+        End Sub
     End Class
 
 End Namespace

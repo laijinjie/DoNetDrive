@@ -42,6 +42,12 @@ Namespace Command
         ''' </summary>
         ''' <returns></returns>
         Property UserData As Object
+
+        ''' <summary>
+        ''' 命令的唯一序列号 GUID
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property Key As String
     End Interface
 End Namespace
 

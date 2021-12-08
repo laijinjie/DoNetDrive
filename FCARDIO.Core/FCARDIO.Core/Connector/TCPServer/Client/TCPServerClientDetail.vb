@@ -5,21 +5,7 @@ Namespace Connector.TCPServer.Client
     ''' 表示一个TCP服务器节点下的客户端通道详情
     ''' </summary>
     Public Class TCPServerClientDetail
-        Inherits AbstractConnectorDetail
-        ''' <summary>
-        ''' 表示一个代表在TCP服务器节点下的唯一键值，通过此键值查询通道
-        ''' </summary>
-        Public ReadOnly Key As String
-
-        ''' <summary>
-        ''' 远程客户端身份
-        ''' </summary>
-        Public ReadOnly Remote As IPDetail
-
-        ''' <summary>
-        ''' 本地端点
-        ''' </summary>
-        Public ReadOnly Local As IPDetail
+        Inherits TCPClient.TCPClientDetail
 
         ''' <summary>
         ''' 客户端唯一号
@@ -34,15 +20,15 @@ Namespace Connector.TCPServer.Client
             Me.New(skey, Nothing, Nothing, 0)
         End Sub
 
+
         ''' <summary>
         ''' 指定一个唯一Key值，用于表示一个服务器下的节点客户端
         ''' </summary>
         ''' <param name="skey">指示此节点的唯一Key值</param>
         ''' <param name="_remote">远程客户端身份</param>
-        Public Sub New(skey As String, _remote As IPEndPoint, _local As IPEndPoint, ByVal iClientID As Long)
-            Key = skey
-            Remote = New IPDetail(_remote)
-            Local = New IPDetail(_local)
+        Public Sub New(skey As String, _remote As IPDetail, _local As IPDetail, ByVal iClientID As Long)
+            MyBase.New(_remote.Addr, _remote.Port, _local.Addr, _local.Port)
+            ConnectAlias = skey
             ClientID = iClientID
         End Sub
 
@@ -71,10 +57,10 @@ Namespace Connector.TCPServer.Client
         Public Overrides Function Equals(other As INConnectorDetail) As Boolean
             Dim svr As TCPServerClientDetail = TryCast(other, TCPServerClientDetail)
             If svr Is Nothing Then Return False
-            If String.IsNullOrEmpty(Key) Then
-                Return String.IsNullOrEmpty(svr.Key)
+            If String.IsNullOrEmpty(ConnectAlias) Then
+                Return String.IsNullOrEmpty(svr.ConnectAlias)
             Else
-                Return Key.Equals(svr.Key)
+                Return ConnectAlias.Equals(svr.ConnectAlias)
             End If
         End Function
 
@@ -83,7 +69,7 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         ''' <returns></returns>
         Public Overrides Function GetKey() As String
-            Return Key
+            Return ConnectAlias
         End Function
 
         ''' <summary>
@@ -91,7 +77,7 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         ''' <returns></returns>
         Public Overrides Function ToString() As String
-            Return $" {GetTypeName()} Key： {Key}"
+            Return $" {GetTypeName()} Key： {ConnectAlias}"
         End Function
     End Class
 End Namespace

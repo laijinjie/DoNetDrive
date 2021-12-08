@@ -120,6 +120,45 @@ Namespace Connector.UDP
 
         End Function
 
+
+
+        ''' <summary>
+        ''' 创建一个新的连接通道
+        ''' </summary>
+        ''' <param name="detail"></param>
+        ''' <returns></returns>
+        Public Async Function GetNewConnectorAsync(detail As INConnectorDetail) As Task(Of INConnector) Implements INConnectorAllocator.GetNewConnectorAsync
+            Dim clientdtl As UDPClientDetail = TryCast(detail, UDPClientDetail)
+            Dim serverdtl As UDPServerDetail
+
+            If clientdtl Is Nothing Then
+                'UDP服务器模式
+                serverdtl = TryCast(detail, UDPServerDetail)
+                Return GetNewUDPServer(serverdtl)
+            Else
+                serverdtl = New UDPServerDetail(clientdtl.LocalAddr, clientdtl.LocalPort)
+                Dim UDPServer As UDPServerConnector
+                Dim sKey = serverdtl.GetKey()
+                If mServerList.ContainsKey(sKey) Then
+                    UDPServer = mServerList(sKey)
+                Else
+                    '需要先创建UDP服务器
+                    Throw New ArgumentException($"Not find udp server [{clientdtl.LocalAddr}:{clientdtl.LocalPort}]")
+                End If
+
+
+                Dim oIP As IPAddress = GetIPAddress(clientdtl.Addr)
+                Dim oEnd As EndPoint
+                oEnd = New IPEndPoint(oIP, clientdtl.Port)
+                sKey = (New IPDetail(oEnd)).ToString()
+
+                Return UDPServer.AddClientConnector(sKey, oEnd)
+            End If
+
+        End Function
+
+
+
         ''' <summary>
         ''' 创建一个UDP服务器通道
         ''' </summary>

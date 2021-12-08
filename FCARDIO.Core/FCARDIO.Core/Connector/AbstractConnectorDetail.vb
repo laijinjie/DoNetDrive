@@ -5,33 +5,21 @@
     Public MustInherit Class AbstractConnectorDetail
         Implements INConnectorDetail
 
-        ''' <summary>
-        ''' 连接器连接到对端时最大等待时间，单位毫秒
-        ''' </summary>
-        ''' <returns></returns>
+        Public Property ConnectedCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ConnectedCallBlack
+        Public Property ClosedCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ClosedCallBlack
+        Public Property ErrorCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ErrorCallBlack
+
+        Public Property ClientOnlineCallBlack As Action(Of INConnector) Implements INConnectorDetail.ClientOnlineCallBlack
+        Public Property ClientOfflineCallBlack As Action(Of INConnector) Implements INConnectorDetail.ClientOfflineCallBlack
+
+        Public Property KeepaliveTime As Integer = 30 Implements INConnectorDetail.KeepaliveTime
+
         Public Property Timeout As Integer Implements INConnectorDetail.Timeout
 
-        ''' <summary>
-        ''' 连接器连接到对端失败后，最大重试次数
-        ''' </summary>
-        ''' <returns></returns>
         Public Property RestartCount As Integer Implements INConnectorDetail.RestartCount
 
-
-
-        ''' <summary>
-        ''' 获取连接通道所在的程序集
-        ''' 例如：DoNetDrive.Core
-        ''' </summary>
-        ''' <returns></returns>
         Public MustOverride Function GetAssemblyName() As String Implements INConnectorDetail.GetAssemblyName
 
-
-        ''' <summary>
-        ''' 获取连接通道的类名
-        ''' 例如：Connector.TCPClient.TCPClientConnector
-        ''' </summary>
-        ''' <returns></returns>
         Public MustOverride Function GetTypeName() As String Implements INConnectorDetail.GetTypeName
 
         ''' <summary>

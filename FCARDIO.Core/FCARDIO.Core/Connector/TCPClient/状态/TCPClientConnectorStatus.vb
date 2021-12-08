@@ -1,21 +1,18 @@
 ﻿Namespace Connector.TCPClient
     Public MustInherit Class TCPClientConnectorStatus
         ''' <summary>
-        ''' 空闲状态
+        ''' 已处于关闭状态
         ''' </summary>
-        Public Shared Free As INConnectorStatus = New TCPClientConnectorStatus_Free
+        Public Shared Closed As INConnectorStatus = New TCPClientConnectorStatus_Closed
         ''' <summary>
         ''' 正在连接远程主机的状态
         ''' </summary>
         Public Shared Connecting As INConnectorStatus = New TCPClientConnectorStatus_Connecting
         ''' <summary>
-        ''' 远程连接成功的状态
+        ''' 指示通道已连接
+        ''' 通常用在客户端管道上
         ''' </summary>
-        Public Shared Connected As INConnectorStatus = New TCPClientConnectorStatus_Connected
-        ''' <summary>
-        ''' 远程连接失败的状态
-        ''' </summary>
-        Public Shared Fail As INConnectorStatus = New TCPClientConnectorStatus_Fail
+        Public Shared Connected As TCPClientConnectorStatus_Connected = New TCPClientConnectorStatus_Connected()
 
     End Class
 End Namespace

@@ -3,7 +3,6 @@ Imports DotNetty.Buffers
 Imports DotNetty.Handlers.Timeout
 Imports DotNetty.Transport.Channels
 Imports DoNetDrive.Core.Command
-Imports DoNetDrive.Core.Connector.Client
 Imports DotNetty.Handlers.Tls
 Imports System.Security.Cryptography.X509Certificates
 Imports System.Net.Security
@@ -16,19 +15,17 @@ Namespace Connector.TCPClient
     ''' 用于和TCP Server进行通讯的TCP Client
     ''' </summary>
     Public Class TCPClientConnector
-        Inherits AbstractNettyClientConnector(Of IByteBuffer)
+        Inherits AbstractConnector
 
         ''' <summary>
-        ''' 本连接通道绑定的通道分配器
+        ''' 默认的读取缓冲区
         ''' </summary>
-        Protected ClientAllocator As TCPClientAllocator
-
+        Public Shared DefaultReadDataBufferSize As Integer = 2048
 
         ''' <summary>
-        ''' 连接开始时间
+        ''' 客户端Socket
         ''' </summary>
-        Protected _ConnectDate As Date
-
+        Protected _Client As Socket
 
 
         ''' <summary>
@@ -41,21 +38,42 @@ Namespace Connector.TCPClient
         ''' </summary>
         Protected _ReconnectMax As Integer
 
+        ''' <summary>
+        ''' 重新连接次数
+        ''' </summary>
+        Protected _ReconnectCount As Integer
+
+        Protected Property _RemoteAddress As IPDetail
+        Protected Property _LocalAddress As IPDetail
+
+
+
 
         ''' <summary>
         ''' 初始化TCP客户端对象
         ''' </summary>
-        ''' <param name="acr">通道分配器</param>
         ''' <param name="detail">标识此通道的信息类</param>
-        Public Sub New(acr As TCPClientAllocator, detail As TCPClientDetail)
-            ClientAllocator = acr
+        Public Sub New(detail As TCPClientDetail)
+
             SetConnectOption(detail)
+            _ReconnectCount = 0
 
-            ThisConnectorDetail = New TCPClientDetail_Readonly(detail)
-            RemoteDetail = New IPDetail(detail.Addr, detail.Port)
-            LocalDetail = New IPDetail(detail.LocalAddr, detail.LocalPort)
-
+            MyBase._ConnectorDetail = detail
+            _RemoteAddress = New IPDetail(detail.Addr, detail.Port)
+            _LocalAddress = New IPDetail(detail.LocalAddr, detail.LocalPort)
         End Sub
+
+        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
+            Return TCPClientConnectorStatus.Closed
+        End Function
+
+        Public Overrides Function RemoteAddress() As IPDetail
+            Return _RemoteAddress
+        End Function
+
+        Public Overrides Function LocalAddress() As IPDetail
+            Return _LocalAddress
+        End Function
 
         ''' <summary>
         ''' 设置连接参数，超时上限和重连上限
@@ -76,6 +94,8 @@ Namespace Connector.TCPClient
             ElseIf _ReconnectMax < 0 Then
                 _ReconnectMax = 0
             End If
+
+            _KeepAliveMaxTime = detail.KeepaliveTime
         End Sub
 
         ''' <summary>
@@ -94,46 +114,112 @@ Namespace Connector.TCPClient
             Return ConnectorType.TCPClient
         End Function
 
-        ''' <summary>
-        ''' 返回此通道的初始化状态
-        ''' </summary>
-        ''' <returns></returns>
-        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
-            Return TCPClientConnectorStatus.Free
-        End Function
 
         ''' <summary>
-        ''' 创建一个连接对像详情对象，包含用于描述当前连接通道的信息
+        ''' 使用非池化的缓冲区
         ''' </summary>
         ''' <returns></returns>
-        Protected Overrides Function GetConnectorDetail0() As INConnectorDetail
-            Return Nothing 'New TCPClientDetail_Readonly(RemoteDetail.Addr, RemoteDetail.Port, LocalDetail.Addr, LocalDetail.Port)
+        Public Overrides Function GetByteBufAllocator() As IByteBufferAllocator
+            Return UnpooledByteBufferAllocator.Default
         End Function
+
+        Public Overrides Function GetEventLoop() As IEventLoop
+            Return TaskEventLoop.Default
+        End Function
+
+#Region "接收数据"
+        Protected Overridable Async Function ReceiveAsync() As Task
+            Dim bBuf(DefaultReadDataBufferSize) As Byte
+            'Trace.WriteLine("开始 ReceiveAsync")
+            Dim abuf = New ArraySegment(Of Byte)(bBuf)
+            Dim NettyBuf = Unpooled.WrappedBuffer(bBuf)
+            NettyBuf.Clear()
+            Try
+                Dim lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None)
+                While lReadCount > 0
+                    If _isRelease Then Exit While
+                    NettyBuf.SetWriterIndex(lReadCount)
+                    Me.ReadByteBuffer(NettyBuf)
+                    NettyBuf.Clear()
+                    lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None)
+                End While
+            Catch ex As Exception
+
+                If TypeOf ex Is SocketException Then
+                    Dim scex As SocketException = ex
+                    Select Case scex.ErrorCode
+                        Case 995 '由于线程退出或应用程序请求，已中止 I/O 操作。  本地关闭连接
+
+                            'Case 10054 '远程主机强迫关闭了一个现有的连接。        对方关闭连接
+                            '    ConnectFail(scex)
+                            'Case 10053 '你的主机中的软件中止了一个已建立的连接。  连接丢失
+                            '    ConnectFail(scex)
+                        Case Else '未知错误
+                            ConnectFail(scex)
+                    End Select
+                Else
+                    'AddLog($"接收时发生错误： {ex.GetType.Name} -- { ex.Message}")
+                    ConnectFail(ex)
+                End If
+
+            End Try
+            NettyBuf.Release()
+
+            'Trace.WriteLine("退出 ReceiveAsync")
+        End Function
+#End Region
+
+#Region "发送数据"
+        Protected Overrides Async Function WriteByteBuf0(buf As IByteBuffer) As Task
+            If CheckIsInvalid() Then
+                Await Task.FromException(New Exception("connect is invalid"))
+            End If
+
+            If _Client Is Nothing Then
+                Await Task.FromException(New Exception($"connect is {_Status.Status}"))
+            End If
+
+            If _Client.Connected Then
+                Await _Client.SendAsync(New ArraySegment(Of Byte)(buf.Array, buf.ArrayOffset, buf.ReadableBytes), SocketFlags.None)
+            Else
+                Await Task.FromException(New Exception("connect is closed"))
+            End If
+
+            buf.Release()
+        End Function
+#End Region
+
+
 
 #Region "连接服务器"
-
-        ''' <summary>
-        ''' 开始连接到远端服务器
-        ''' </summary>
-        Protected Friend Sub ConnectServer()
+        Public Overrides Async Function ConnectAsync() As Task
             If _isRelease Then Return
+            If Me.CheckIsInvalid() Then Return
+            If Me.IsActivity Then Return
+            If Me._Status.Status = "Connecting" Then Return
+            _Status = TCPClientConnectorStatus.Connecting
+            Dim detail As TCPClientDetail = _ConnectorDetail
+            UpdateActivityTime()
+            _ReconnectCount += 1
+            Me._IsActivity = False
+            '远端终结点
+            Dim oPoint As IPEndPoint
+            Dim oIP As IPAddress = Nothing
+            If IPAddress.TryParse(detail.Addr, oIP) Then
+                oPoint = New IPEndPoint(oIP, detail.Port)
+            Else
+                Dim oDNSIP As IPHostEntry = Await Dns.GetHostEntryAsync(detail.Addr)
+                If oDNSIP.AddressList.Length > 0 Then
+                    '获取服务器节点
+                    oIP = oDNSIP.AddressList(0)
+                End If
 
-            If ClientAllocator Is Nothing Then Return
-
-
-            If _ClientChannel IsNot Nothing Then
-                _ClientChannel.CloseAsync().ContinueWith(
-                    Sub()
-                        _ClientChannel = Nothing
-                        ConnectServer()
-                    End Sub)
+                oPoint = New IPEndPoint(oIP, detail.Port)
             End If
 
             If _ActivityCommand Is Nothing Then
                 '一个新的指令
-
                 If _CommandList.TryPeek(_ActivityCommand) Then
-                    _ConnectFailCount = 0
                     _ActivityCommand.SetStatus(_ActivityCommand.GetStatus_Wating())
                     SetConnectOption(_ActivityCommand.CommandDetail.Connector)
 
@@ -142,132 +228,186 @@ Namespace Connector.TCPClient
                     SetConnectOptionByDefault()
                 End If
                 _ActivityCommand = Nothing
-            Else
-                SetConnectOption(_ActivityCommand.CommandDetail.Connector)
             End If
+
+
+            _Client = New Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            If String.IsNullOrEmpty(detail.LocalAddr) > 0 Or detail.LocalPort > 0 Then
+                Dim oLocalIP As IPEndPoint
+                If Not String.IsNullOrEmpty(detail.LocalAddr) Then
+                    oLocalIP = New IPEndPoint(IPAddress.Parse(detail.LocalAddr), detail.LocalPort)
+                Else
+                    oLocalIP = New IPEndPoint(IPAddress.Any, detail.LocalPort)
+                End If
+                '需要先绑定本地IP和端口
+                _Client.Bind(oLocalIP)
+            End If
+
+
+            _ConnectDate = DateTime.Now
+
+            Await _Client.ConnectAsync(oPoint)
+            _ConnectDate = DateTime.Now
+            FireConnectorConnectedEvent(_ConnectorDetail)
+            '连接成功
+            _Status = TCPClientConnectorStatus.Connected
+            Me._IsActivity = True
+            _ReconnectCount = 0 '连接成功，则复位此标志
+            Me._LocalAddress = New IPDetail(_Client.LocalEndPoint)
+            '开始等待响应
+            ReceiveAsync()
+            '开始执行命令
+            CheckCommandList()
+
+            'Trace.WriteLine("已连接到设备")
+        End Function
+
+        ''' <summary>
+        ''' 检查连接是否已超时
+        ''' </summary>
+        Public Overridable Sub CheckConnectorTimeout()
+            If Not Me._Status.Status = "Connecting" Then Return
+
+            Dim lTime = (DateTime.Now - _ConnectDate).TotalMilliseconds
             Try
-                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} 准备发起TCP连接，超时时间：{_ConnectTimeoutMSEL}")
-                '连接的异步操作类
-                Dim oConnectFuture As Task(Of IChannel)
-                oConnectFuture = ClientAllocator.Connect(GetConnectorDetail(), _ConnectTimeoutMSEL)
+                If lTime > _ConnectTimeoutMSEL Then
+                    ConnectFail(New TimeoutException($"Connect {RemoteAddress.ToString()} Timeout"))
+                Else
+                    UpdateActivityTime()
+                End If
 
-                oConnectFuture.ContinueWith(New Action(Of Task(Of IChannel))(AddressOf connectCallback))
-
-                _Status = TCPClientConnectorStatus.Connecting
             Catch ex As Exception
-                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} 准备发起TCP连接时出现错误：{ex}")
-                _Status = TCPClientConnectorStatus.Free
+                If _Client IsNot Nothing Then
+                    _Client.Dispose()
+                End If
+                _Client = Nothing
             End Try
-
         End Sub
 
         ''' <summary>
-        ''' 连接完毕时的回调函数，指示连接是否已完成
+        ''' 异步处理成功的后续操作
         ''' </summary>
-        ''' <param name="tak"></param>
-        Protected Sub connectCallback(tak As Task(Of IChannel))
+        Protected Friend Sub ConnectingNext(connTask As Task)
+            If Me.CheckIsInvalid() Then Return
+            If Not Me._Status.Status = "Connecting" Then Return
+            If _Client Is Nothing Then Return
+            If connTask.IsFaulted Or connTask.IsCanceled Then
+                '有错误，或已取消
+                ConnectFail(connTask.Exception)
+            End If
+        End Sub
 
-            If tak.IsCanceled Or tak.IsFaulted Then
-                'For Each ex In tak.Exception.InnerExceptions
-                '    Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} TCP连接请求错误,{ex.Message}")
-                'Next
+        ''' <summary>
+        ''' 连接失败
+        ''' </summary>
+        Protected Overridable Sub ConnectFail(ByVal ex As Exception)
+            If TypeOf ex Is ObjectDisposedException Then
+                '说明是被强制取消的
+                Return
+            End If
 
-                If _isRelease Then Return
-                Dim dtl = GetConnectorDetail()
-                dtl.SetError(tak.Exception)
-                ConnectFail()
+            If _Status.Status = "Invalid" Then
+                Return
+            End If
+
+            If _Client IsNot Nothing Then
+                _Client.Close()
+                _Client.Dispose()
+            End If
+
+            _Client = Nothing
+            Me._IsActivity = False
+
+
+            If _ReconnectCount > _ReconnectMax Then
+
+
+
+                If Me._IsForcibly Then
+                    _ReconnectCount = 0
+                    _Status = TCPClientConnectorStatus.Closed
+                Else
+                    _ConnectorDetail.SetError(New Exception("已达到最大重试次数", ex))
+                    FireConnectorErrorEvent(_ConnectorDetail)
+                    Me.SetInvalid() '被关闭了就表示无效了
+                End If
             Else
-                'Trace.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {GetKey()} ，线程ID：{Thread.CurrentThread.ManagedThreadId} TCP连接成功")
-                _ClientChannel = tak.Result
-                If _isRelease Then
-                    _ClientChannel.CloseAsync()
-                    _ClientChannel = Nothing
-                    Return
-                End If
-
-                AddChannelHandler()
-            End If
-
-        End Sub
-
-        ''' <summary>
-        ''' 添加通道处理器
-        ''' </summary>
-        Protected Overridable Sub AddChannelHandler()
-            _Handler = New TCPClientNettyChannelHandler(Of IByteBuffer)(Me)
-            _ClientChannel.Pipeline.AddLast(_Handler)
-            ConnectSuccess()
-        End Sub
-
-
-
-
-        ''' <summary>
-        ''' 当连接通道连接已失效时调用
-        ''' </summary>
-        Protected Overrides Sub ConnectFail0()
-            Dim dtl = GetConnectorDetail()
-            If dtl.IsFaulted Then
-                Dim err = dtl.GetError
-                If TypeOf err Is SocketException Then
-                    Dim SocketExceptionErr = TryCast(err, SocketException)
-                    If SocketExceptionErr.ErrorCode = System.Net.Sockets.SocketError.Shutdown Then
-                        If Not _IsForcibly Then
-                            FireConnectorErrorEvent(GetConnectorDetail())
-                            SetInvalid()
-                            Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源
-                            Return
-                        End If
-                    End If
-                End If
-            End If
-            If (_ConnectFailCount >= _ReconnectMax) Then
-                FireConnectorErrorEvent(GetConnectorDetail())
-                _ConnectFailCount = 0
-                If Not _IsForcibly Then
-                    SetInvalid()
-                    Dispose() '超过最大连接次数还是连接不上，直接释放此通道所有资源
-                End If
+                '再次重试
+                _Status = TCPClientConnectorStatus.Closed
             End If
         End Sub
 
-
         ''' <summary>
-        ''' 获取一个状态表示连接通道连接失败
+        ''' 连接状态检查，当连接成功时，检查连接状态
         ''' </summary>
-        ''' <returns></returns>
-        Protected Overrides Function GetStatus_Fail() As INConnectorStatus
-            Return TCPClientConnectorStatus.Fail
-        End Function
+        Protected Friend Overridable Sub CheckConnectedStatus()
+            If Not CheckIsInvalid() Then
+                If _CommandList.Count = 0 Then
+                    CheckKeepaliveTime()
+                Else
+                    CheckCommandList()
+                End If
 
+            Else
+                If IsForciblyConnect() Then
+                    '保持连接 检查保活时间，发送保活包 
+                    CheckKeepAliveTime()
+                Else
+                    CloseAsync()
+                End If
 
-        ''' <summary>
-        ''' 连接通道建立连接成功后的后续处理
-        ''' </summary>
-        Protected Overrides Sub ConnectSuccess0()
-            LocalDetail = New IPDetail(_ClientChannel.LocalAddress)
+            End If
         End Sub
 
-
-        ''' <summary>
-        ''' 获取一个状态表示连接通道连接已建立并工作正常的状态
-        ''' </summary>
-        ''' <returns></returns>
-        Protected Overrides Function GetStatus_Connected() As INConnectorStatus
-            Return TCPClientConnectorStatus.Connected
-        End Function
 #End Region
 
+#Region "关闭连接"
+        Public Overrides Async Function CloseAsync() As Task
+            If CheckIsInvalid() Then Return
+            If Not _IsActivity Then Return
 
+
+            Me._Status = ConnectorStatus.Invalid
+            If _Client Is Nothing Then Return
+            Try
+                'Trace.WriteLine("正在关闭连接")
+                If _Client.Connected Then
+                    Await Task.Run(Sub() _Client.Disconnect(True))
+                End If
+
+                Me._IsForcibly = False
+                Me._IsActivity = False
+
+                If _Client IsNot Nothing Then
+                    'Trace.WriteLine("关闭连接")
+                    _Client.Close()
+                    _Client.Dispose()
+                End If
+
+            Catch ex As Exception
+                _ConnectorDetail.SetError(ex)
+            End Try
+            _Client = Nothing
+            UpdateActivityTime()
+
+            Await Task.Run(Sub()
+                               FireConnectorClosedEvent(Me._ConnectorDetail)
+                               Me.SetInvalid() '被关闭了就表示无效了
+                           End Sub)
+            Await Task.CompletedTask
+        End Function
+#End Region
 
 
 
         ''' <summary>
         ''' 释放资源
         ''' </summary>
-        Protected Overrides Sub Release1()
+        Protected Overrides Sub Release0()
+            _Client = Nothing
+            _RemoteAddress = Nothing
+            _LocalAddress = Nothing
 
-            ClientAllocator = Nothing
         End Sub
 
 
