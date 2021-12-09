@@ -17,6 +17,7 @@ Namespace Connector.TCPServer.Client
             _Client = client
             _Status = TCPClientConnectorStatus.Connected
             Me._IsForcibly = True
+            _IsActivity = True
             ReceiveAsync()
         End Sub
 
@@ -54,8 +55,16 @@ Namespace Connector.TCPServer.Client
             Me._IsActivity = False
 
             _ConnectorDetail.SetError(ex)
+            FireClientOffline(Me)
             FireConnectorErrorEvent(_ConnectorDetail)
             Me.SetInvalid() '被关闭了就表示无效了
+        End Sub
+#End Region
+
+#Region "关闭连接"
+        Public Overrides Sub FireConnectorClosedEvent(connector As INConnectorDetail)
+            MyBase.FireConnectorClosedEvent(connector)
+            FireClientOffline(Me)
         End Sub
 #End Region
 

@@ -115,25 +115,28 @@ Namespace Connector.TCPClient
             ConnectAlias = String.Empty
             Dim oIP As IPAddress = Nothing
             RemoteHost = sAddr
-            If IPAddress.TryParse(sAddr, oIP) Then
-                If oIP.AddressFamily <> Sockets.AddressFamily.InterNetwork Then
-                    Throw New ArgumentException($"{sAddr} is not IPv4")
-                Else
-                    Addr = sAddr
-                End If
-            Else
-                Try
-                    Dim oDNSIP As IPHostEntry = Dns.GetHostEntry(sAddr)
-                    If oDNSIP.AddressList.Length > 0 Then
-                        '获取服务器节点
-                        Addr = oDNSIP.AddressList(0).ToString()
+            If Not String.IsNullOrEmpty(sAddr) Then
+                If IPAddress.TryParse(sAddr, oIP) Then
+                    If oIP.AddressFamily <> Sockets.AddressFamily.InterNetwork Then
+                        Throw New ArgumentException($"{sAddr} is not IPv4")
+                    Else
+                        Addr = sAddr
                     End If
-                Catch ex As Exception
-                    Throw New ArgumentException($"{sAddr} host not find!")
-                End Try
+                Else
+                    Try
+                        Dim oDNSIP As IPHostEntry = Dns.GetHostEntry(sAddr)
+                        If oDNSIP.AddressList.Length > 0 Then
+                            '获取服务器节点
+                            Addr = oDNSIP.AddressList(0).ToString()
+                        End If
+                    Catch ex As Exception
+                        Throw New ArgumentException($"{sAddr} host not find!")
+                    End Try
 
+                End If
             End If
-            If String.IsNullOrEmpty(Addr) Then
+
+            If Not String.IsNullOrEmpty(RemoteHost) And String.IsNullOrEmpty(Addr) Then
                 Addr = RemoteHost
             End If
 

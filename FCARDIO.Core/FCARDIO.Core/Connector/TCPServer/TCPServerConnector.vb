@@ -29,7 +29,6 @@ Namespace Connector.TCPServer
             _CommandList = Nothing
             _DecompileList = Nothing
             _ActivityCommand = Nothing
-            _IsActivity = True
             _IsForcibly = True
 
             MyBase._ConnectorDetail = detail

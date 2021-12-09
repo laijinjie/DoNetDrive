@@ -172,12 +172,12 @@ Partial Class frmTCPServer
         '
         'cmbLocalIP
         '
-        Me.cmbLocalIP.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbLocalIP.FormattingEnabled = True
         Me.cmbLocalIP.Location = New System.Drawing.Point(288, 10)
         Me.cmbLocalIP.Name = "cmbLocalIP"
         Me.cmbLocalIP.Size = New System.Drawing.Size(140, 20)
         Me.cmbLocalIP.TabIndex = 30
+        Me.cmbLocalIP.Text = "192.168.1.86"
         '
         'chkSSL
         '
@@ -192,6 +192,8 @@ Partial Class frmTCPServer
         'chkShowLog
         '
         Me.chkShowLog.AutoSize = True
+        Me.chkShowLog.Checked = True
+        Me.chkShowLog.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkShowLog.Location = New System.Drawing.Point(12, 166)
         Me.chkShowLog.Name = "chkShowLog"
         Me.chkShowLog.Size = New System.Drawing.Size(72, 16)

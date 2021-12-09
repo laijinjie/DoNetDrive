@@ -10,6 +10,11 @@
         ''' </summary>
         Public Shared Connected As SerialPortStatus_Connected = New SerialPortStatus_Connected
 
+        ''' <summary>
+        ''' 正在打开串口
+        ''' </summary>
+        Public Shared Connecting As INConnectorStatus = New SerialPortStatus_Connecting
+
     End Class
 End Namespace
 

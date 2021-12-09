@@ -24,9 +24,9 @@ Namespace Factory
                 Case ConnectorType.TCPServer
                     ConnAor = TCPServer.TCPServerAllocator.GetAllocator()
                     Return ConnAor.GetNewConnector(cd)
-                Case ConnectorType.UDPClient, ConnectorType.UDPServer
-                    ConnAor = UDP.UDPAllocator.GetAllocator()
-                    Return ConnAor.GetNewConnector(cd)
+                'Case ConnectorType.UDPClient, ConnectorType.UDPServer
+                '    ConnAor = UDP.UDPAllocator.GetAllocator()
+                '    Return ConnAor.GetNewConnector(cd)
                 Case ConnectorType.SerialPort
                     Return New Connector.SerialPort.SerialPortConnector(cd)
                     'Case ConnectorType.WebSocketServer
@@ -57,9 +57,9 @@ Namespace Factory
                 Case ConnectorType.TCPServer
                     ConnAor = TCPServer.TCPServerAllocator.GetAllocator()
                     Return Await ConnAor.GetNewConnectorAsync(cd)
-                Case ConnectorType.UDPClient, ConnectorType.UDPServer
-                    ConnAor = UDP.UDPAllocator.GetAllocator()
-                    Return Await ConnAor.GetNewConnectorAsync(cd)
+                'Case ConnectorType.UDPClient, ConnectorType.UDPServer
+                '    ConnAor = UDP.UDPAllocator.GetAllocator()
+                '    Return Await ConnAor.GetNewConnectorAsync(cd)
                 Case ConnectorType.SerialPort
                     Return Task.FromResult(Of INConnector)(New Connector.SerialPort.SerialPortConnector(cd))
                     'Case ConnectorType.WebSocketServer

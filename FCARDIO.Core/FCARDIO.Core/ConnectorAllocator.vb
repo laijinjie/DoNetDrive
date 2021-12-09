@@ -183,6 +183,7 @@ Public NotInheritable Class ConnectorAllocator
                                 If (oClient.CheckIsInvalid) Then
                                     Connectors.TryRemove(k, oClient)
                                     oClient.Dispose()
+                                    RemoveEventListener(oClient)
                                 Else
                                     oClient.Run()
                                 End If
@@ -233,8 +234,6 @@ Public NotInheritable Class ConnectorAllocator
                             End If
 
                             Return oTmpConn
-
-
                         Else
                             '通道添加成功
                             '添加通道的事件绑定
@@ -484,7 +483,8 @@ Public NotInheritable Class ConnectorAllocator
         Dim Conn As INConnector = GetOrCreateConnector(cdtl)
 
         If Conn Is Nothing Then
-            Throw New ArgumentException("Connector is  Null")
+            'Throw New ArgumentException("Connector is  Null")
+            Return False
         End If
 
         Conn.AddCommand(cmd)

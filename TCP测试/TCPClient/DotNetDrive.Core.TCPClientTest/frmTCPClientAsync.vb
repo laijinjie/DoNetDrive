@@ -4,6 +4,8 @@ Imports DoNetDrive.Core
 Imports DoNetDrive.Core.Command
 Imports DoNetDrive.Core.Connector
 Imports DotNetty.Buffers
+Imports System.Text
+Imports DoNetDrive.Core.Connector.TCPClient
 
 Public Class frmTCPClientAsync
     Private mIsUnload As Boolean
@@ -92,6 +94,9 @@ Public Class frmTCPClientAsync
 
     Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msg As String) Handles obServer.DisposeRequestEvent
         If mIsUnload Then Return
+        If msg.IndexOf(vbNullChar) > 0 Then
+            msg = msg.Replace(vbNullChar, String.Empty)
+        End If
         AddLog($"{GetConnectorDetail(connector)} 接收  长度：{msgLen}  {msg}")
     End Sub
 
@@ -128,13 +133,28 @@ Public Class frmTCPClientAsync
             Await CloseAsync()
         End If
         Try
+            oTCPDTL.ErrorCallBlack = AddressOf ConnectErrorCallBlack
+            oTCPDTL.ClosedCallBlack = AddressOf ConnectClosedCallBlack
             mConnect = Await Allocator.OpenConnectorAsync(oTCPDTL)
+
+            Dim tcpconn As TCPClientConnector = mConnect
+            tcpconn.ChannelKeepaliveMaxTime = 5
             mConnect.AddRequestHandle(obServer)
             AddLog($"已连接成功 {mConnect.GetKey} {GetConnectorDetail(mConnect)} ")
         Catch ex As Exception
             AddLog($"连接发生错误！  {GetConnectorDetail(oTCPDTL)} {ex.Message} ")
         End Try
 
+    End Sub
+
+    Private Sub ConnectClosedCallBlack(obj As INConnectorDetail)
+        AddLog($"ConnectClosedCallBlack 连接通道已关闭 {obj.GetKey} {GetConnectorDetail(obj)} ")
+        mConnect = Nothing
+    End Sub
+
+    Private Sub ConnectErrorCallBlack(obj As INConnectorDetail)
+        AddLog($"ConnectErrorCallBlack 连接通道发生错误 {obj.GetKey} {GetConnectorDetail(obj)} {obj.GetError} ")
+        mConnect = Nothing
     End Sub
 
     Private Async Sub butCloseTCP_Click(sender As Object, e As EventArgs) Handles butCloseTCP.Click
@@ -265,6 +285,12 @@ Public Class frmTCPClientAsync
         mShowLog = chkShowLog.Checked
     End Sub
 
+    Private Sub btnPrintConnects_Click(sender As Object, e As EventArgs) Handles btnPrintConnects.Click
+        Dim sBuf As StringBuilder = New StringBuilder(2024)
+        For Each k In Allocator.GetAllConnectorKeys()
+            sBuf.Append(k).AppendLine()
+        Next
+        txtLog.Text = sBuf.ToString()
 
-
+    End Sub
 End Class

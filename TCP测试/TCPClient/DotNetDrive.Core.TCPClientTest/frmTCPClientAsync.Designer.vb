@@ -37,6 +37,7 @@ Partial Class frmTCPClientAsync
         Me.Label5 = New System.Windows.Forms.Label()
         Me.butConnect = New System.Windows.Forms.Button()
         Me.butTCPClientSend = New System.Windows.Forms.Button()
+        Me.btnPrintConnects = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'txtRemoteIP
@@ -174,11 +175,21 @@ Partial Class frmTCPClientAsync
         Me.butTCPClientSend.Text = "发送"
         Me.butTCPClientSend.UseVisualStyleBackColor = True
         '
+        'btnPrintConnects
+        '
+        Me.btnPrintConnects.Location = New System.Drawing.Point(608, 44)
+        Me.btnPrintConnects.Name = "btnPrintConnects"
+        Me.btnPrintConnects.Size = New System.Drawing.Size(75, 23)
+        Me.btnPrintConnects.TabIndex = 75
+        Me.btnPrintConnects.Text = "打印连接通道列表"
+        Me.btnPrintConnects.UseVisualStyleBackColor = True
+        '
         'frmTCPClientAsync
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(984, 520)
+        Me.Controls.Add(Me.btnPrintConnects)
         Me.Controls.Add(Me.Button6)
         Me.Controls.Add(Me.Button5)
         Me.Controls.Add(Me.chkShowLog)
@@ -216,4 +227,5 @@ Partial Class frmTCPClientAsync
     Friend WithEvents Label5 As Label
     Friend WithEvents butConnect As Button
     Friend WithEvents butTCPClientSend As Button
+    Friend WithEvents btnPrintConnects As Button
 End Class

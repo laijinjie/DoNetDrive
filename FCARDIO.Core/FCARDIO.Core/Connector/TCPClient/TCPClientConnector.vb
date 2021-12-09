@@ -115,18 +115,6 @@ Namespace Connector.TCPClient
         End Function
 
 
-        ''' <summary>
-        ''' 使用非池化的缓冲区
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetByteBufAllocator() As IByteBufferAllocator
-            Return UnpooledByteBufferAllocator.Default
-        End Function
-
-        Public Overrides Function GetEventLoop() As IEventLoop
-            Return TaskEventLoop.Default
-        End Function
-
 #Region "接收数据"
         Protected Overridable Async Function ReceiveAsync() As Task
             Dim bBuf(DefaultReadDataBufferSize) As Byte
@@ -144,27 +132,38 @@ Namespace Connector.TCPClient
                     lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None)
                 End While
             Catch ex As Exception
-
+                NettyBuf.Release()
                 If TypeOf ex Is SocketException Then
                     Dim scex As SocketException = ex
                     Select Case scex.ErrorCode
                         Case 995 '由于线程退出或应用程序请求，已中止 I/O 操作。  本地关闭连接
-
-                            'Case 10054 '远程主机强迫关闭了一个现有的连接。        对方关闭连接
-                            '    ConnectFail(scex)
-                            'Case 10053 '你的主机中的软件中止了一个已建立的连接。  连接丢失
-                            '    ConnectFail(scex)
-                        Case Else '未知错误
-                            ConnectFail(scex)
+                            Return '这种是本地主动断开连接
+                        Case 10054
+                            '远程主动关闭连接，说明可能是远程拒绝连接
+                            _ConnectorDetail.SetError(ex)
+                            FireConnectorErrorEvent(_ConnectorDetail)
+                            Me.SetInvalid() '被关闭了就表示无效了
                     End Select
-                Else
-                    'AddLog($"接收时发生错误： {ex.GetType.Name} -- { ex.Message}")
-                    ConnectFail(ex)
+
+                End If
+                ConnectFail(ex)
+                Return
+            End Try
+
+            NettyBuf.Release()
+            If _Client IsNot Nothing Then
+                If _Client.Connected Then
+                    '这种情况说明是对方主动断开连接的
+                    _Client.Close()
+                    _Client.Dispose()
+                    _IsActivity = False
+                    ClearCommand(New SocketException(10054))
+                    FireConnectorClosedEvent(Me._ConnectorDetail)
+
+                    SetInvalid()
                 End If
 
-            End Try
-            NettyBuf.Release()
-
+            End If
             'Trace.WriteLine("退出 ReceiveAsync")
         End Function
 #End Region
@@ -173,16 +172,19 @@ Namespace Connector.TCPClient
         Protected Overrides Async Function WriteByteBuf0(buf As IByteBuffer) As Task
             If CheckIsInvalid() Then
                 Await Task.FromException(New Exception("connect is invalid"))
+                
             End If
 
             If _Client Is Nothing Then
                 Await Task.FromException(New Exception($"connect is {_Status.Status}"))
+                Return
             End If
 
             If _Client.Connected Then
                 Await _Client.SendAsync(New ArraySegment(Of Byte)(buf.Array, buf.ArrayOffset, buf.ReadableBytes), SocketFlags.None)
             Else
                 Await Task.FromException(New Exception("connect is closed"))
+                Return
             End If
 
             buf.Release()
@@ -193,7 +195,6 @@ Namespace Connector.TCPClient
 
 #Region "连接服务器"
         Public Overrides Async Function ConnectAsync() As Task
-            If _isRelease Then Return
             If Me.CheckIsInvalid() Then Return
             If Me.IsActivity Then Return
             If Me._Status.Status = "Connecting" Then Return
@@ -343,39 +344,27 @@ Namespace Connector.TCPClient
         Protected Friend Overridable Sub CheckConnectedStatus()
             If Not CheckIsInvalid() Then
                 If _CommandList.Count = 0 Then
-                    CheckKeepaliveTime()
+                    If _IsForcibly Then
+                        CheckKeepaliveTime()
+                    End If
                 Else
                     CheckCommandList()
                 End If
-
-            Else
-                If IsForciblyConnect() Then
-                    '保持连接 检查保活时间，发送保活包 
-                    CheckKeepAliveTime()
-                Else
-                    CloseAsync()
-                End If
-
             End If
         End Sub
-
 #End Region
 
 #Region "关闭连接"
         Public Overrides Async Function CloseAsync() As Task
-            If CheckIsInvalid() Then Return
+            If Me._isRelease Then Return
             If Not _IsActivity Then Return
-
 
             Me._Status = ConnectorStatus.Invalid
             If _Client Is Nothing Then Return
             Try
                 'Trace.WriteLine("正在关闭连接")
-                If _Client.Connected Then
-                    Await Task.Run(Sub() _Client.Disconnect(True))
-                End If
 
-                Me._IsForcibly = False
+
                 Me._IsActivity = False
 
                 If _Client IsNot Nothing Then
@@ -394,7 +383,7 @@ Namespace Connector.TCPClient
                                FireConnectorClosedEvent(Me._ConnectorDetail)
                                Me.SetInvalid() '被关闭了就表示无效了
                            End Sub)
-            Await Task.CompletedTask
+            Me._IsForcibly = False
         End Function
 #End Region
 
@@ -404,10 +393,9 @@ Namespace Connector.TCPClient
         ''' 释放资源
         ''' </summary>
         Protected Overrides Sub Release0()
-            _Client = Nothing
+            '_Client = Nothing
             _RemoteAddress = Nothing
             _LocalAddress = Nothing
-
         End Sub
 
 

@@ -285,15 +285,17 @@ Namespace Connector
         ''' 获取连接通道支持的bytebuf分配器
         ''' </summary>
         ''' <returns></returns>
-        Public MustOverride Function GetByteBufAllocator() As IByteBufferAllocator Implements INConnector.GetByteBufAllocator
-
-
+        Public Overridable Function GetByteBufAllocator() As IByteBufferAllocator Implements INConnector.GetByteBufAllocator
+            Return UnpooledByteBufferAllocator.Default
+        End Function
 
         ''' <summary>
         ''' 获取此通道所依附的事件循环通道
         ''' </summary>
         ''' <returns></returns>
-        Public MustOverride Function GetEventLoop() As IEventLoop Implements INConnector.GetEventLoop
+        Public Overridable Function GetEventLoop() As IEventLoop Implements INConnector.GetEventLoop
+            Return TaskEventLoop.Default
+        End Function
 
         ''' <summary>
         ''' 获取本地绑定地址
@@ -793,7 +795,7 @@ Namespace Connector
         ''' 连接通道连接关闭时发生
         ''' </summary>
         ''' <param name="connector">触发事件的连接通道信息</param>
-        Public Sub FireConnectorClosedEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorClosedEvent
+        Public Overridable Sub FireConnectorClosedEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorClosedEvent
             ClearCommand(New Exception("Connect Closed"))
             connector?.ClosedCallBlack?(connector)
             RaiseEvent ConnectorClosedEvent(Me, connector)
@@ -998,16 +1000,17 @@ Namespace Connector
                 If disposing Then
                     ' TODO: 释放托管状态(托管对象)。
 
+                    CloseAsync()
                     _IsActivity = False
-                    _isRelease = True
-                    SetInvalid()
-                    _IsForcibly = False
                     Try
                         Release0()
                     Catch ex As Exception
 
                     End Try
-                    CloseAsync()
+                    _isRelease = True
+                    SetInvalid()
+                    _IsForcibly = False
+
 
                     If _CommandList IsNot Nothing Then
                         ClearCommand(New Exception("Connect Dispose"))
@@ -1021,6 +1024,9 @@ Namespace Connector
                         _DecompileList.Clear()
                     End If
                     _DecompileList = Nothing
+
+
+
                 End If
                 ' TODO: 释放未托管资源(未托管对象)并在以下内容中替代 Finalize()。
                 ' TODO: 将大型字段设置为 null。

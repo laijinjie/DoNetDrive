@@ -14,7 +14,7 @@
         Public Overridable Sub CheckStatus(connector As INConnector) Implements INConnectorStatus.CheckStatus
             If Not connector.CheckIsInvalid() Then
                 Dim serial As SerialPortConnector = connector
-                connector.ConnectAsync().ContinueWith(AddressOf serial.ConnectingNext)
+                connector.ConnectAsync()
             End If
         End Sub
     End Class

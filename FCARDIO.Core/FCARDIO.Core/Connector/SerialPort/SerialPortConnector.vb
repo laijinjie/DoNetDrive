@@ -20,6 +20,7 @@ Namespace Connector.SerialPort
         ''' </summary>
         Private mSerialPort As IO.Ports.SerialPort
 
+        Protected Property _LocalAddress As IPDetail
 
         ''' <summary>
         ''' 根据指定的串口参数，创建连接通道
@@ -27,6 +28,7 @@ Namespace Connector.SerialPort
         ''' <param name="dtl"></param>
         Public Sub New(ByVal dtl As SerialPortDetail)
             MyBase._ConnectorDetail = dtl
+            _LocalAddress = New IPDetail("COM", dtl.Port)
         End Sub
 
         Protected Overrides Function GetInitializationStatus() As INConnectorStatus
@@ -38,7 +40,7 @@ Namespace Connector.SerialPort
         End Function
 
         Public Overrides Function LocalAddress() As IPDetail
-            Return Nothing
+            Return _LocalAddress
         End Function
 
         ''' <summary>
@@ -49,141 +51,12 @@ Namespace Connector.SerialPort
             Return ConnectorType.SerialPort
         End Function
 
-
-
-        ''' <summary>
-        ''' 获取连接通道支持的bytebuf分配器
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetByteBufAllocator() As IByteBufferAllocator
-            Return DotNettyAllocator.GetBufferAllocator()
-        End Function
-
-
-        ''' <summary>
-        ''' 获取此通道所依附的事件循环通道
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetEventLoop() As IEventLoop
-            Return _EventLoop
-        End Function
-
-
-#Region "打开串口"
-        ''' <summary>
-        ''' 打开串口
-        ''' </summary>
-        Public Sub Open()
-            If _isRelease Then Return
-
-            If mSerialPort Is Nothing Then
-                mSerialPort = New IO.Ports.SerialPort
-            End If
-
-            If mSerialPort.IsOpen Then
-                mSerialPort.Close()
-            End If
-
-            If Not mSerialPort.PortName = ("COM" & _Detail.Port.ToString) Then
-                mSerialPort.PortName = ("COM" & _Detail.Port.ToString)
-            End If
-
-            '设置波特率
-            If Not _CommandList.IsEmpty() Then
-                Dim cmd As INCommand = Nothing
-                If _CommandList.TryPeek(cmd) Then
-                    Dim tmpDtl As SerialPortDetail = cmd.CommandDetail.Connector
-                    mSerialPort.BaudRate = tmpDtl.Baudrate
-                Else
-                    mSerialPort.BaudRate = _Detail.Baudrate
-                End If
-            Else
-                If _Detail.Baudrate = 0 Then
-                    mSerialPort.BaudRate = 19200
-                Else
-                    mSerialPort.BaudRate = _Detail.Baudrate
-                End If
-
-            End If
-
-            mSerialPort.WriteTimeout = 500
-            mSerialPort.ReadTimeout = 500
-            '保存波特率
-            _Detail.Baudrate = mSerialPort.BaudRate
-
-            Try
-                '打开串口
-                mSerialPort.Open()
-                _Status = SerialPortStatus_Opened.Opened
-                _IsActivity = True
-                'Trace.WriteLine($"串口已打开：COM{_Detail.Port}")
-                FireConnectorConnectedEvent(GetConnectorDetail())
-                _EventLoop.Execute(Me) '加入事件循环
-            Catch ex As Exception
-                Trace.WriteLine($"打开串口：COM{_Detail.Port} 时发生错误，{ex.Message}")
-                '串口无效
-                FireConnectorErrorEvent(GetConnectorDetail())
-                CloseConnector()
-                _Status = ConnectorStatus_Invalid.Invalid
-                _IsActivity = False
-                SetInvalid()
-            End Try
-        End Sub
-#End Region
-
-#Region "关闭通道"
-        ''' <summary>
-        ''' 关闭串口
-        ''' </summary>
-        Public Overrides Async Function CloseAsync() As Task
-            If _isRelease Then Return
-
-            If mSerialPort Is Nothing Then
-                Return
-            End If
-
-            If mSerialPort.IsOpen Then
-                'Trace.WriteLine($"串口已关闭--CloseConnector：COM{_Detail.Port}")
-                mSerialPort.Close()
-                '关闭串口
-                FireConnectorClosedEvent(GetConnectorDetail())
-            End If
-            _IsActivity = False
-            _Status = GetInitializationStatus()
-
-            Await Task.CompletedTask()
-        End Function
-
-#End Region
-
-        ''' <summary>
-        ''' 检查通道是否已开启
-        ''' </summary>
-        ''' <returns></returns>
-        Private Function CheckConnector() As Boolean
-            If mSerialPort Is Nothing Then
-                'Trace.WriteLine($"串口已关闭--CheckConnector 1：{_Detail.Port}")
-                _Status = GetInitializationStatus()
-                Return False
-            End If
-
-            If Not mSerialPort.IsOpen Then
-                'Trace.WriteLine($"串口已关闭--CheckConnector 2：{_Detail.Port}")
-                _Status = GetInitializationStatus()
-                Return False
-            End If
-            Return True
-        End Function
+#Region "接收数据"
 
         ''' <summary>
         ''' 读通道中的数据
         ''' </summary>
         Public Function ReadConnector() As Boolean
-            If Not CheckConnector() Then
-
-                Return False
-            End If
-
             '检测接收缓冲区
             Dim iReadLen As Integer = mSerialPort.BytesToRead
 
@@ -196,59 +69,183 @@ Namespace Connector.SerialPort
 
             mSerialPort.Read(buf.Array, buf.ArrayOffset, iReadLen)
             buf.SetWriterIndex(iReadLen)
-            'Trace.WriteLine($"{Date.Now:HH:mm:ss.ffff} 接收长度：{iReadLen} 数据：{ByteBufferUtil.HexDump(buf)}")
+
             '进行后续处理
             ReadByteBuffer(buf)
             buf.Release()
             buf = Nothing
             Return True
         End Function
+#End Region
+
+#Region "发送数据"
+
 
         ''' <summary>
         ''' 发送数据
         ''' </summary>
         ''' <param name="buf"></param>
         ''' <returns></returns>
-        Public Overrides Function WriteByteBuf(buf As IByteBuffer) As Task
-            If _isRelease Then Return Nothing
+        Protected Overrides Async Function WriteByteBuf0(buf As IByteBuffer) As Task
+            If _isRelease Then Return
             If Not CheckConnector() Then
-                Return Nothing
+                Return
             End If
 
             mSerialPort.DiscardOutBuffer()
             UpdateActivityTime()
 
-
-            Dim tsk As TaskCompletionSource(Of Boolean) = New TaskCompletionSource(Of Boolean)
-
             Try
-                'Trace.WriteLine($"串口：{_Detail.Port} {Date.Now:HH:mm:ss.ffff} 准备写数据")
                 mSerialPort.Write(buf.Array, buf.ArrayOffset, buf.ReadableBytes)
-                'Trace.WriteLine($"串口：{_Detail.Port} {Date.Now:HH:mm:ss.ffff} 发送长度：{buf.ReadableBytes} 数据：{ByteBufferUtil.HexDump(buf)}")
-                tsk.TrySetResult(True)
                 mConnectorWriteError = 0
             Catch ex As Exception
                 mConnectorWriteError += 1
 
-                'Trace.WriteLine($"串口：{_Detail.Port} {Date.Now:HH:mm:ss.ffff} 写串口出现错误：{ex.Message}")
-                CloseConnector()
-                tsk.TrySetException(ex)
-
                 If mConnectorWriteError > 3 Then
-                    Trace.WriteLine($"写：COM{_Detail.Port} 时发生错误，{ex.Message}")
+                    _IsActivity = False
+                    _ConnectorDetail.SetError(ex)
                     '串口无效
                     FireConnectorErrorEvent(GetConnectorDetail())
-                    CloseConnector()
-                    _Status = ConnectorStatus_Invalid.Invalid
-                    _IsActivity = False
-                    SetInvalid()
+
+                    CloseAsync()
                 End If
             End Try
 
-            DisposeResponse(buf)
-
-            Return tsk.Task
+            Await Task.CompletedTask
         End Function
+#End Region
+
+#Region "打开串口"
+        ''' <summary>
+        ''' 打开串口
+        ''' </summary>
+        Public Overrides Async Function ConnectAsync() As Task
+            If Me.CheckIsInvalid() Then Return
+            If Me.IsActivity Then Return
+            _Status = SerialPortStatus.Connecting
+            _IsActivity = False
+            If mSerialPort Is Nothing Then
+                mSerialPort = New IO.Ports.SerialPort
+            End If
+
+            If mSerialPort.IsOpen Then
+                mSerialPort.Close()
+            End If
+            Dim dtl As SerialPortDetail = _ConnectorDetail
+            Dim sCOM = $"COM{dtl.Port}"
+            If Not mSerialPort.PortName = sCOM Then
+                mSerialPort.PortName = sCOM
+            End If
+
+            '设置波特率
+            Dim lBaudRate As Integer = 19200
+            If _ActivityCommand Is Nothing Then
+                '一个新的指令
+                If _CommandList.TryPeek(_ActivityCommand) Then
+                    _ActivityCommand.SetStatus(_ActivityCommand.GetStatus_Wating())
+                    dtl = _ActivityCommand.CommandDetail.Connector
+
+                    fireCommandProcessEvent(_ActivityCommand.GetEventArgs())
+                End If
+                _ActivityCommand = Nothing
+            End If
+            lBaudRate = dtl.Baudrate
+            If lBaudRate = 0 Then lBaudRate = 19200
+            mSerialPort.BaudRate = lBaudRate
+
+            mSerialPort.WriteTimeout = 500
+            mSerialPort.ReadTimeout = 500
+            '保存波特率
+            dtl = _ConnectorDetail
+            dtl.Baudrate = mSerialPort.BaudRate
+
+            Try
+                '打开串口
+                mSerialPort.Open()
+                _Status = SerialPortStatus.Connected
+                _IsActivity = True
+
+                FireConnectorConnectedEvent(GetConnectorDetail())
+                CheckCommandList()
+            Catch ex As Exception
+                '串口无效
+                _ConnectorDetail.SetError(ex)
+                FireConnectorErrorEvent(GetConnectorDetail())
+                mSerialPort = Nothing
+                _Status = ConnectorStatus.Invalid
+                _IsActivity = False
+                SetInvalid()
+            End Try
+            Await Task.CompletedTask
+        End Function
+
+        ''' <summary>
+        ''' 检查通道是否已开启
+        ''' </summary>
+        ''' <returns></returns>
+        Private Function CheckConnector() As Boolean
+            If Not Me.IsActivity Then Return False
+
+            If mSerialPort Is Nothing Then
+                _Status = SerialPortStatus.Closed
+                Return False
+            End If
+
+            If Not mSerialPort.IsOpen Then
+                CloseAsync()
+                Return False
+            End If
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' 连接状态检查，当连接成功时，检查连接状态
+        ''' </summary>
+        Protected Friend Overridable Sub CheckConnectedStatus()
+            If Not CheckIsInvalid() Then
+                If CheckConnector() Then
+                    ReadConnector()
+
+                    If _CommandList.Count > 0 Then
+                        CheckCommandList()
+                    End If
+                End If
+            End If
+        End Sub
+#End Region
+
+#Region "关闭通道"
+        ''' <summary>
+        ''' 关闭串口
+        ''' </summary>
+        Public Overrides Async Function CloseAsync() As Task
+            If CheckIsInvalid() Then Return
+            If Not _IsActivity Then Return
+
+            If mSerialPort Is Nothing Then
+                Return
+            End If
+
+            If mSerialPort.IsOpen Then
+                'Trace.WriteLine($"串口已关闭--CloseConnector：COM{_Detail.Port}")
+                mSerialPort.Close()
+                '关闭串口
+            End If
+            mSerialPort = Nothing
+
+            _IsActivity = False
+
+
+            Await Task.Run(Sub()
+                               FireConnectorClosedEvent(Me._ConnectorDetail)
+                               Me.SetInvalid() '被关闭了就表示无效了
+                           End Sub)
+        End Function
+
+#End Region
+
+
+
 
 
 
@@ -256,9 +253,7 @@ Namespace Connector.SerialPort
         ''' 释放资源
         ''' </summary>
         Protected Overrides Sub Release0()
-            _Status = ConnectorStatus_Invalid.Invalid
-
-            CloseConnector()
+            Return
 
         End Sub
 

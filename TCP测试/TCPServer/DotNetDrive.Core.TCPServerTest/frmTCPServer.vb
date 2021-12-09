@@ -1,12 +1,13 @@
 ﻿Imports DoNetDrive.Core.Connector
 Imports DoNetDrive.Core.Command
 Imports DotNetty.Buffers
-Imports DoNetDrive.Core.Extension
+Imports DoNetDrive.Common.Extensions
 Imports DoNetDrive.Core
 Imports System.Net
 Imports System.IO
 Imports System.Security.Cryptography.X509Certificates
 Imports System.Collections.Concurrent
+Imports System.Text
 
 
 Public Class frmTCPServer
@@ -21,57 +22,6 @@ Public Class frmTCPServer
     Private mShowLog As Boolean
     Private mReadBytes As Long
 
-
-
-    ''' <summary>
-    ''' 连接通道观察者，可以观察连接通道上的数据收发 十六进制格式输出
-    ''' </summary>
-    Public Class TCPIOObserverHandler
-        Implements INRequestHandle
-
-        Private Const MsgDebugLen = 40
-        ''' <summary>
-        ''' 接收到数据
-        ''' </summary>
-        ''' <param name="connector"></param>
-        ''' <param name="msgLen"></param>
-        Event DisposeRequestEvent(connector As INConnector, msgLen As Integer, msg As String)
-        ''' <summary>
-        ''' 准备发送数据
-        ''' </summary>
-        ''' <param name="connector"></param>
-        ''' <param name="msgLen"></param>
-        Event DisposeResponseEvent(connector As INConnector, msgLen As Integer, msg As String)
-
-        Public Overridable Sub DisposeRequest(connector As INConnector, msg As IByteBuffer) Implements INRequestHandle.DisposeRequest
-            Dim sHex As String
-            Dim iLen = msg.ReadableBytes
-
-            If iLen > MsgDebugLen Then
-                iLen = MsgDebugLen
-            End If
-            sHex = ByteBufferUtil.HexDump(msg, 0, iLen)
-
-
-            RaiseEvent DisposeRequestEvent(connector, msg.ReadableBytes, sHex)
-
-        End Sub
-
-        Public Overridable Sub DisposeResponse(connector As INConnector, msg As IByteBuffer) Implements INRequestHandle.DisposeResponse
-            Dim sHex As String
-            Dim iLen = msg.ReadableBytes
-            If iLen > MsgDebugLen Then
-                iLen = MsgDebugLen
-            End If
-            sHex = ByteBufferUtil.HexDump(msg, 0, iLen)
-
-            RaiseEvent DisposeResponseEvent(connector, msg.ReadableBytes, sHex)
-        End Sub
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-            Return
-        End Sub
-    End Class
 
 
     Private Sub butTCPServer_Click(sender As Object, e As EventArgs) Handles butOpenTCPServer.Click
@@ -129,9 +79,9 @@ Public Class frmTCPServer
                 cmbLocalIP.Items.Add(ip.ToString())
             End If
         Next
-        If (cmbLocalIP.Items.Count > 0) Then
-            cmbLocalIP.SelectedIndex = cmbLocalIP.Items.Count - 1
-        End If
+        'If (cmbLocalIP.Items.Count > 0) Then
+        '    cmbLocalIP.SelectedIndex = cmbLocalIP.Items.Count - 1
+        'End If
     End Sub
 
 
@@ -142,7 +92,7 @@ Public Class frmTCPServer
             RemoveTCPClientItem(inc.GetConnectorDetail())
         End If
 
-        AddLog($"连接断开  {GetConnectorDetail(inc)}")
+        AddLog($"客户端离线  {GetConnectorDetail(inc)}")
     End Sub
 
     Private Sub Allocator_ClientOnline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOnline
@@ -153,7 +103,7 @@ Public Class frmTCPServer
             AddTCPClientItem(inc.GetConnectorDetail())
         End If
 
-        AddLog($"连接建立  {GetConnectorDetail(inc)}")
+        AddLog($"客户端接入  {GetConnectorDetail(inc)}")
     End Sub
 
 
@@ -191,7 +141,7 @@ Public Class frmTCPServer
             Case ConnectorType.TCPServerClient
                 Dim dtl As TCPServer.Client.TCPServerClientDetail = oConn.GetConnectorDetail()
 
-                Return $"R:{dtl.Remote.ToString()} T:{Now.ToTimeffff()}"
+                Return $"R:{dtl.Addr}:{dtl.Port} T:{Now.ToTimeffff()}"
             Case ConnectorType.TCPServer
                 Dim local = oConn.LocalAddress
                 Return $"Server  本地绑定IP：{local.Addr}:{local.Port} :{Now.ToTimeffff()}"
@@ -201,14 +151,14 @@ Public Class frmTCPServer
 
     Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeRequestEvent
         mReadBytes += msgLen
-        AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  0x{msgHex}")
+        AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  {msgHex}")
     End Sub
 
     Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeResponseEvent
         'If mUseEcho Then
         '    Return
         'End If
-        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  0x{msgHex}")
+        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  {msgHex}")
     End Sub
 
 
@@ -247,10 +197,10 @@ Public Class frmTCPServer
         Public ClientID As Long
 
         Public Sub New(ByVal dtl As TCPServer.Client.TCPServerClientDetail)
-            Remote = New IPDetail(dtl.Remote.Addr, dtl.Remote.Port)
-            Local = New IPDetail(dtl.Local.Addr, dtl.Local.Port)
+            Remote = New IPDetail(dtl.Addr, dtl.Port)
+            Local = New IPDetail(dtl.LocalAddr, dtl.LocalPort)
             ClientID = dtl.ClientID
-            Key = dtl.Key
+            Key = dtl.GetKey
         End Sub
 
         Public Overrides Function ToString() As String
@@ -303,7 +253,7 @@ Public Class frmTCPServer
         Dim connDtl = New TCPServer.Client.TCPServerClientDetail(sKey)
 
         Dim txt As New Command.Text.TextCommand(New Text.TextCommandDetail(connDtl),
-                                                New Command.Text.TextCommandParameter(txtTCPClientText.Text, System.Text.Encoding.Default))
+             New Command.Text.TextCommandParameter(txtTCPClientText.Text, Encoding.UTF8))
         Allocator.AddCommand(txt)
     End Sub
 

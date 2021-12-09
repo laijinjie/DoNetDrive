@@ -17,7 +17,8 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         ''' <param name="skey"></param>
         Public Sub New(skey As String)
-            Me.New(skey, Nothing, Nothing, 0)
+            MyBase.New(String.Empty, 0)
+            ConnectAlias = skey
         End Sub
 
 
