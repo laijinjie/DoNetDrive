@@ -46,6 +46,9 @@ Partial Class frmTCPServer
         Me.Label2 = New System.Windows.Forms.Label()
         Me.btnGC = New System.Windows.Forms.Button()
         Me.butDebugList = New System.Windows.Forms.Button()
+        Me.chkHex = New System.Windows.Forms.CheckBox()
+        Me.chkAutoEcho = New System.Windows.Forms.CheckBox()
+        Me.btnCloseAll = New System.Windows.Forms.Button()
         Me.GroupBox3.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -99,11 +102,12 @@ Partial Class frmTCPServer
         Me.txtLog.Multiline = True
         Me.txtLog.Name = "txtLog"
         Me.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.txtLog.Size = New System.Drawing.Size(815, 282)
+        Me.txtLog.Size = New System.Drawing.Size(1025, 475)
         Me.txtLog.TabIndex = 28
         '
         'GroupBox3
         '
+        Me.GroupBox3.Controls.Add(Me.btnCloseAll)
         Me.GroupBox3.Controls.Add(Me.butReloadClientList)
         Me.GroupBox3.Controls.Add(Me.butTCPClientSend_200K)
         Me.GroupBox3.Controls.Add(Me.butCloseTCPClient)
@@ -258,11 +262,42 @@ Partial Class frmTCPServer
         Me.butDebugList.Text = "打印列表"
         Me.butDebugList.UseVisualStyleBackColor = True
         '
+        'chkHex
+        '
+        Me.chkHex.AutoSize = True
+        Me.chkHex.Location = New System.Drawing.Point(734, 158)
+        Me.chkHex.Name = "chkHex"
+        Me.chkHex.Size = New System.Drawing.Size(96, 16)
+        Me.chkHex.TabIndex = 62
+        Me.chkHex.Text = "十六进制显示"
+        Me.chkHex.UseVisualStyleBackColor = True
+        '
+        'chkAutoEcho
+        '
+        Me.chkAutoEcho.AutoSize = True
+        Me.chkAutoEcho.Location = New System.Drawing.Point(734, 136)
+        Me.chkAutoEcho.Name = "chkAutoEcho"
+        Me.chkAutoEcho.Size = New System.Drawing.Size(72, 16)
+        Me.chkAutoEcho.TabIndex = 63
+        Me.chkAutoEcho.Text = "自动回应"
+        Me.chkAutoEcho.UseVisualStyleBackColor = True
+        '
+        'btnCloseAll
+        '
+        Me.btnCloseAll.Location = New System.Drawing.Point(91, 73)
+        Me.btnCloseAll.Name = "btnCloseAll"
+        Me.btnCloseAll.Size = New System.Drawing.Size(75, 23)
+        Me.btnCloseAll.TabIndex = 13
+        Me.btnCloseAll.Text = "关闭所有"
+        Me.btnCloseAll.UseVisualStyleBackColor = True
+        '
         'frmTCPServer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(839, 482)
+        Me.ClientSize = New System.Drawing.Size(1049, 675)
+        Me.Controls.Add(Me.chkAutoEcho)
+        Me.Controls.Add(Me.chkHex)
         Me.Controls.Add(Me.butDebugList)
         Me.Controls.Add(Me.btnGC)
         Me.Controls.Add(Me.txtReadBytes)
@@ -311,4 +346,7 @@ Partial Class frmTCPServer
     Friend WithEvents Label2 As Label
     Friend WithEvents btnGC As Button
     Friend WithEvents butDebugList As Button
+    Friend WithEvents chkHex As CheckBox
+    Friend WithEvents chkAutoEcho As CheckBox
+    Friend WithEvents btnCloseAll As Button
 End Class

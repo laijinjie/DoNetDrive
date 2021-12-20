@@ -183,6 +183,24 @@ Namespace Connector
         ''' <returns></returns>
         Function ConnectAsync() As Task
 
+        ''' <summary>
+        ''' 发送字节总数
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property SendTotalBytes As Long
+
+        ''' <summary>
+        ''' 接收字节总数
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property ReadTotalBytes As Long
+
+        ''' <summary>
+        ''' 累计接收到的命令数量
+        ''' </summary>
+        ''' <returns></returns>
+        ReadOnly Property CommandTotal As Long
+
     End Interface
 End Namespace
 

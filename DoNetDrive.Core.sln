@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29215.179
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DoNetDrive.Core_NetStandard20", "FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj", "{A149C4D3-2209-408F-A0DE-D9EB8E0FA492}"
 EndProject
@@ -22,6 +22,8 @@ EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DotNetDrive.Core.TCPServerTest", "TCP测试\TCPServer\DotNetDrive.Core.TCPServerTest\DotNetDrive.Core.TCPServerTest.vbproj", "{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DotNetDrive.Core.TCPClientTest", "TCP测试\TCPClient\DotNetDrive.Core.TCPClientTest\DotNetDrive.Core.TCPClientTest.vbproj", "{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TCPServer.net6", "TCPServer.net6\TCPServer.net6.vbproj", "{361D746B-AA82-4F83-BDA9-4BC737FCD37E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -125,6 +127,18 @@ Global
 		{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}.Release|x64.Build.0 = Release|Any CPU
 		{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923}.Release|x86.Build.0 = Release|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Debug|x64.Build.0 = Debug|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Debug|x86.Build.0 = Debug|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Release|x64.ActiveCfg = Release|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Release|x64.Build.0 = Release|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Release|x86.ActiveCfg = Release|Any CPU
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,6 +150,7 @@ Global
 		{7FF06283-9564-4FBB-8499-112159E72A99} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
 		{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
 		{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
+		{361D746B-AA82-4F83-BDA9-4BC737FCD37E} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FBDE6113-46E3-41E0-8096-8E241BFD9F84}

@@ -106,6 +106,11 @@ Namespace Connector
         ''' </summary>
         Protected _ReadTotalBytes As Long
 
+        ''' <summary>
+        ''' 累计处理的命令数量
+        ''' </summary>
+        Protected _CommandTotal As Long
+
 
         ''' <summary>
         ''' 检查通道是否为活动的状态（已连接的）
@@ -319,6 +324,7 @@ Namespace Connector
         ''' <returns></returns>
         Public Function GetCommandCount() As Integer Implements INConnector.GetCommandCount
             If (_isRelease) Then Return 0
+            If _CommandList Is Nothing Then Return 0
             Return _CommandList.Count()
         End Function
 
@@ -341,6 +347,7 @@ Namespace Connector
 
                 Return
             End If
+            _CommandTotal += 1
             _CommandList.Enqueue(cd)
         End Sub
 
@@ -360,7 +367,7 @@ Namespace Connector
                 Return cd
             End If
             cd.SetTaskCompletionSource(CommandTaskCompletionSource)
-
+            _CommandTotal += 1
             _CommandList.Enqueue(cd)
 
             Return Await CommandTaskCompletionSource.Task
@@ -372,28 +379,33 @@ Namespace Connector
         ''' <param name="eventCommand"></param>
         Protected Overridable Sub RemoveCommand(ByVal eventCommand As INCommandRuntime, ByVal bAutoCheckCommandList As Boolean)
             If (_isRelease) Then Return
-            If eventCommand IsNot Nothing Then
-                If Object.ReferenceEquals(_ActivityCommand, eventCommand) Then
-                    Dim tmp As INCommandRuntime = Nothing
-                    If _CommandList.TryPeek(tmp) Then
-                        If Object.ReferenceEquals(_ActivityCommand, tmp) Then
-                            tmp = Nothing
-                            Call _CommandList.TryDequeue(tmp)
+            Try
+                If eventCommand IsNot Nothing Then
+                    If Object.ReferenceEquals(_ActivityCommand, eventCommand) Then
+                        Dim tmp As INCommandRuntime = Nothing
+                        If _CommandList.TryPeek(tmp) Then
+                            If Object.ReferenceEquals(_ActivityCommand, tmp) Then
+                                tmp = Nothing
+                                Call _CommandList.TryDequeue(tmp)
+                                tmp = Nothing
+                            End If
                             tmp = Nothing
                         End If
-                        tmp = Nothing
+                        _ActivityCommand?.RemoveBinding()
+                        _ActivityCommand = Nothing
                     End If
-                    _ActivityCommand?.RemoveBinding()
-                    _ActivityCommand = Nothing
                 End If
-            End If
 
-            If bAutoCheckCommandList Then
-                If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
-                    If Me.CheckIsInvalid Then Return
-                    If Not _CommandList.IsEmpty Then CheckCommandList()
+                If bAutoCheckCommandList Then
+                    If _ActivityCommand Is Nothing And _CommandList IsNot Nothing Then
+                        If Me.CheckIsInvalid Then Return
+                        If Not _CommandList.IsEmpty Then CheckCommandList()
+                    End If
                 End If
-            End If
+            Catch ex As Exception
+                If (_isRelease) Then Return
+            End Try
+
         End Sub
 
         ''' <summary>
@@ -579,6 +591,28 @@ Namespace Connector
 
         End Property
 
+
+        Public ReadOnly Property SendTotalBytes As Long Implements INConnector.SendTotalBytes
+            Get
+                Return _SendTotalBytes
+            End Get
+
+        End Property
+
+
+        Public ReadOnly Property ReadTotalBytes As Long Implements INConnector.ReadTotalBytes
+            Get
+                Return _ReadTotalBytes
+            End Get
+
+        End Property
+
+        Public ReadOnly Property CommandTotal As Long Implements INConnector.CommandTotal
+            Get
+                Return _CommandTotal
+            End Get
+
+        End Property
 
         ''' <summary>
         ''' 更新通道活动时间
@@ -907,6 +941,9 @@ Namespace Connector
             End If
 
             tmpMsg.SetReaderIndex(iMaskReadIndex)
+            If _DecompileList.Count = 0 Then
+                //Trace.WriteLine($"收到数据：{GetKey()} Len:{ msg.ReadableBytes} 但是未找到处理器")
+            End If
 
             DisposeRequest(tmpMsg)
             tmpMsg = Nothing

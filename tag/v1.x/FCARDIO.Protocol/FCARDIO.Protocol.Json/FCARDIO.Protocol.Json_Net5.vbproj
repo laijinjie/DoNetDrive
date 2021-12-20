@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FCARDIO.Protocol.Json</RootNamespace>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\DoNetDrive.Common\DoNetDrive.Common\DoNetDrive.Common_Net5.csproj" />
+    <ProjectReference Include="..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_Net5.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DotNetty.Buffers">
+      <HintPath>..\..\dotnetty\net5\DotNetty.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetty.Common">
+      <HintPath>..\..\dotnetty\net5\DotNetty.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

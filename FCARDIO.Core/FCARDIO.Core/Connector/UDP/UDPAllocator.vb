@@ -42,39 +42,12 @@ Namespace Connector.UDP
         ''' </summary>
         Protected mServerList As Dictionary(Of String, UDPServerConnector)
 
-        ''' <summary>
-        ''' 用于创建UDP通道的快速启动器
-        ''' </summary>
-        Protected mUDPBootstrap As Bootstrap
 
         ''' <summary>
         ''' 创建一个UDP分配器
         ''' </summary>
         Private Sub New()
-            mServerList = New Dictionary(Of String, UDPServerConnector)
-            mUDPBootstrap = New Bootstrap
-            Dim eventgroup = DotNettyAllocator.GetClientEventLoopGroup()
-            With mUDPBootstrap
-                .Group(eventgroup)
-                .Channel(Of SocketDatagramChannel)()
-                .Option(ChannelOption.SoBroadcast, True)
-                .Option(ChannelOption.TcpNodelay, True)
-                .Option(ChannelOption.SoReuseaddr, True)
-                .Option(ChannelOption.Allocator, DotNettyAllocator.GetBufferAllocator())
-                .Handler(New ActionChannelInitializer(Of IChannel)(Sub(x) x.Pipeline.AddLast(New IdleStateHandler(50, 50, 0))))
-            End With
-        End Sub
 
-        ''' <summary>
-        ''' 关闭这个连接通道分配器
-        ''' </summary>
-        Public Sub shutdownGracefully() Implements INConnectorAllocator.shutdownGracefully
-            Try
-                mUDPBootstrap = Nothing
-            Catch ex As Exception
-
-            End Try
-            mAllocator = Nothing
         End Sub
 
         ''' <summary>
@@ -82,7 +55,7 @@ Namespace Connector.UDP
         ''' </summary>
         ''' <returns></returns>
         Public Function GetConnectorTypeName() As String Implements INConnectorAllocator.GetConnectorTypeName
-            Return "DoNetDrive.Core.Connector.UDP.UDPClientConnector"
+            Return "UDP.UDPClientConnector"
         End Function
 
         ''' <summary>
@@ -104,20 +77,16 @@ Namespace Connector.UDP
                 Dim sKey = serverdtl.GetKey()
                 If mServerList.ContainsKey(sKey) Then
                     UDPServer = mServerList(sKey)
+                    Dim oIP As IPAddress = GetIPAddress(clientdtl.Addr)
+                    Dim oEnd As EndPoint
+                    oEnd = New IPEndPoint(oIP, clientdtl.Port)
+                    sKey = (New IPDetail(oEnd)).ToString()
+                    Return UDPServer.AddClientConnector(sKey, oEnd)
                 Else
                     '需要先创建UDP服务器
-                    Throw New ArgumentException($"Not find udp server [{clientdtl.LocalAddr}:{clientdtl.LocalPort}]")
+                    Return GetNewUDPServer(serverdtl, clientdtl)
                 End If
-
-
-                Dim oIP As IPAddress = GetIPAddress(clientdtl.Addr)
-                Dim oEnd As EndPoint
-                oEnd = New IPEndPoint(oIP, clientdtl.Port)
-                sKey = (New IPDetail(oEnd)).ToString()
-
-                Return UDPServer.AddClientConnector(sKey, oEnd)
             End If
-
         End Function
 
 
@@ -133,95 +102,61 @@ Namespace Connector.UDP
 
             If clientdtl Is Nothing Then
                 'UDP服务器模式
-                serverdtl = TryCast(detail, UDPServerDetail)
-                Return GetNewUDPServer(serverdtl)
+                Dim conn = GetNewUDPServer(serverdtl)
+                Await conn.ConnectAsync
+                mServerList.Add(serverdtl.GetKey, conn)
+                Return conn
             Else
                 serverdtl = New UDPServerDetail(clientdtl.LocalAddr, clientdtl.LocalPort)
-                Dim UDPServer As UDPServerConnector
                 Dim sKey = serverdtl.GetKey()
                 If mServerList.ContainsKey(sKey) Then
-                    UDPServer = mServerList(sKey)
+                    Dim conn = mServerList(sKey)
+                    Return conn.AddClientConnector(clientdtl)
                 Else
                     '需要先创建UDP服务器
-                    Throw New ArgumentException($"Not find udp server [{clientdtl.LocalAddr}:{clientdtl.LocalPort}]")
+                    Dim conn = GetNewUDPServer(serverdtl)
+                    Await conn.ConnectAsync
+                    mServerList.Add(serverdtl.GetKey, conn)
+                    Dim clientConn = conn.AddClientConnector(clientdtl)
+                    Return clientConn
                 End If
-
-
-                Dim oIP As IPAddress = GetIPAddress(clientdtl.Addr)
-                Dim oEnd As EndPoint
-                oEnd = New IPEndPoint(oIP, clientdtl.Port)
-                sKey = (New IPDetail(oEnd)).ToString()
-
-                Return UDPServer.AddClientConnector(sKey, oEnd)
             End If
-
         End Function
-
-
 
         ''' <summary>
         ''' 创建一个UDP服务器通道
         ''' </summary>
-        ''' <param name="dtl"></param>
+        ''' <param name="serverdtl"></param>
         ''' <returns></returns>
-        Private Function GetNewUDPServer(dtl As UDPServerDetail) As UDPServerConnector
-            If dtl Is Nothing Then Return Nothing
-            Dim sKey = dtl.GetKey()
+        Private Function GetNewUDPServer(serverdtl As UDPServerDetail, clientdtl As UDPClientDetail) As UDPServerConnector
+            If serverdtl Is Nothing Then Return Nothing
 
-            If mServerList.ContainsKey(sKey) Then
-                Return mServerList(sKey)
-            End If
-
-            SyncLock Me
-
-                If mServerList.ContainsKey(sKey) Then
-                    Return mServerList(sKey)
-                End If
-
-                Dim oIP As IPAddress
-                oIP = GetIPAddress(dtl.LocalAddr)
-                Dim oEndPoint As EndPoint = New IPEndPoint(oIP, dtl.LocalPort)
-                '开始绑定本地端口
-                Dim tsk = mUDPBootstrap.BindAsync(oEndPoint)
-                Dim conn = New UDPServerConnector(tsk, dtl)
-                mServerList.Add(sKey, conn)
-                AddHandler conn.ConnectorDisposeEvent, AddressOf ConnectorDisposeEventHandler
-                Return conn
-            End SyncLock
-
+            Dim conn = New UDPServerConnector(serverdtl, clientdtl)
+            conn.BindOverCallblack = AddressOf BindOverCallblack
+            conn.BindClosedCallblack = AddressOf BindClosedCallblack
+            Return conn
         End Function
-
-        Private Sub ConnectorDisposeEventHandler(ByVal dtl As INConnectorDetail)
-            Dim sKey As String = dtl.GetKey()
+        Private Sub BindOverCallblack(ByVal conn As INConnector)
+            Dim sKey As String = conn.GetKey()
             If Not mServerList.ContainsKey(sKey) Then
-                Return
+                mServerList.Add(sKey, conn)
             End If
-            SyncLock Me
-                If Not mServerList.ContainsKey(sKey) Then
-                    Return
-                End If
-                RemoveHandler mServerList(sKey).ConnectorDisposeEvent, AddressOf ConnectorDisposeEventHandler
-                mServerList.Remove(sKey)
-
-            End SyncLock
         End Sub
 
 
-        ''' <summary>
-        ''' 将一个地址转换为IPAddress
-        ''' </summary>
-        ''' <returns></returns>
-        Private Function GetIPAddress(ByVal addr As String) As IPAddress
-            Dim oIP As IPAddress = IPAddress.Any
-            If String.IsNullOrEmpty(addr) Then
-                Return oIP
-            Else
-                If Not IPAddress.TryParse(addr, oIP) Then
-                    Throw New ArgumentException("LocalAddr Is Error")
-                End If
+        Private Sub BindClosedCallblack(ByVal conn As INConnector)
+            Dim sKey As String = conn.GetKey()
+            Dim udp As UDPServerDetail = conn
+
+            If mServerList.ContainsKey(sKey) Then
+                mServerList.Remove(sKey)
             End If
-            Return oIP
-        End Function
+        End Sub
+
+
+        Public Sub shutdownGracefully() Implements INConnectorAllocator.shutdownGracefully
+            Return
+        End Sub
     End Class
 End Namespace
 

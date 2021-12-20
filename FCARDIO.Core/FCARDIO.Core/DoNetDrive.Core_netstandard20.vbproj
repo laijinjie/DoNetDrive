@@ -21,15 +21,12 @@
 
 	<ItemGroup>
 		<Compile Remove="Connector\ClientConnector\**" />
-		<Compile Remove="Connector\UDP\**" />
 		<Compile Remove="Connector\WebSocket\**" />
 		<Compile Remove="My Project\**" />
 		<EmbeddedResource Remove="Connector\ClientConnector\**" />
-		<EmbeddedResource Remove="Connector\UDP\**" />
 		<EmbeddedResource Remove="Connector\WebSocket\**" />
 		<EmbeddedResource Remove="My Project\**" />
 		<None Remove="Connector\ClientConnector\**" />
-		<None Remove="Connector\UDP\**" />
 		<None Remove="Connector\WebSocket\**" />
 		<None Remove="My Project\**" />
 	</ItemGroup>

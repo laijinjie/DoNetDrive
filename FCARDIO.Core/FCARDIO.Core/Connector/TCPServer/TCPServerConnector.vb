@@ -183,19 +183,30 @@ Namespace Connector.TCPServer
         ''' <returns></returns>
         Protected Overridable Async Function AcceptAsync() As Task
             Dim oClient As Socket = Nothing
-            Try
-                Do
+            Dim iStep As Integer
+
+            Do
+                Try
+
                     If _isRelease Then Return
-
+                    iStep = 0
                     oClient = Await _Server.AcceptAsync(oClient)
-
+                    iStep = 1
                     Await AddClient(oClient)
-
+                    iStep = 2
                     oClient = Nothing
-                Loop While True
-            Catch ex As Exception
-                '服务器已关闭
-            End Try
+
+                Catch ex As Exception
+                    '服务器已关闭.
+                    Trace.WriteLine($"服务器监听连接时发生错误：{ex}")
+                    If oClient IsNot Nothing Then
+                        oClient.Close()
+                        oClient.Dispose()
+
+                    End If
+                     oClient = Nothing
+                End Try
+            Loop While True
         End Function
 
         ''' <summary>
@@ -203,17 +214,19 @@ Namespace Connector.TCPServer
         ''' </summary>
         ''' <returns></returns>
         Protected Overridable Async Function AddClient(oClient As Socket) As Task
-            Dim iClientID As Long
 
-            Dim sKey = TCPServerAllocator.GetClientKey(_LocalAddress, oClient.RemoteEndPoint, iClientID)
-            Dim oDtl = New TCPServer.Client.TCPServerClientDetail(sKey,
+
+
+            Await Task.Run(Sub()
+                               Dim iClientID As Long
+                               Dim sKey = TCPServerAllocator.GetClientKey(_LocalAddress, oClient.RemoteEndPoint, iClientID)
+                               Dim oDtl = New TCPServer.Client.TCPServerClientDetail(sKey,
                                                                   New IPDetail(oClient.RemoteEndPoint),
                                                                   _LocalAddress,
                                                                   iClientID)
-            oDtl.ClientOfflineCallBlack = Me._ConnectorDetail.ClientOfflineCallBlack
-            Dim oConnClient = New TCPServer.Client.TCPServerClientConnector(oDtl, oClient)
-            Await Task.Run(Sub()
-                               FireClientOnline(oConnClient)
+                               oDtl.ClientOfflineCallBlack = Me._ConnectorDetail.ClientOfflineCallBlack
+                               Dim oConnClient = New TCPServer.Client.TCPServerClientConnector(oDtl, oClient, Me)
+
                            End Sub)
         End Function
 #End Region

@@ -12,16 +12,18 @@ Namespace Connector.TCPServer.Client
         ''' <summary>
         ''' 创建一个客户端
         ''' </summary>
-        Public Sub New(oDtl As TCPServerClientDetail, client As Socket)
+        Public Sub New(oDtl As TCPServerClientDetail,
+                       client As Socket,
+                       server As INConnector)
             MyBase.New(oDtl)
             _Client = client
             _Status = TCPClientConnectorStatus.Connected
             Me._IsForcibly = True
             _IsActivity = True
-            ReceiveAsync()
+            Task.Run(Sub()
+                         server.FireClientOnline(Me)
+                     End Sub).ContinueWith(Sub() ReceiveAsync())
         End Sub
-
-
 
         ''' <summary>
         ''' 返回此通道的类路径

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net40</TargetFramework>
+    <RootNamespace>DoNetDrive.Common</RootNamespace>
+    <AssemblyName>DoNetDrive.Common</AssemblyName>
+    <Version>1.10.0</Version>
+    <Platforms>AnyCPU;x64</Platforms>
+    <AssemblyVersion>1.10.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>..\..\Output\Debug\Net45\DoNetDrive.Common.xml</DocumentationFile>
+    <OutputPath>..\..\Output\Debug</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\Output\Release</OutputPath>
+    <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Common.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+</Project>

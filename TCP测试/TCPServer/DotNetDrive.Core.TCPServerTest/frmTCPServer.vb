@@ -14,15 +14,11 @@ Public Class frmTCPServer
 
 
     Private WithEvents Allocator As ConnectorAllocator
-    ''' <summary>
-    ''' 连接通道观察者，检查数据收发
-    ''' </summary>
-    Private WithEvents obServer As TCPIOObserverHandler
 
     Private mShowLog As Boolean
     Private mReadBytes As Long
-
-
+    Private mHexLog As Boolean
+    Private mAutoEcho As Boolean
 
     Private Sub butTCPServer_Click(sender As Object, e As EventArgs) Handles butOpenTCPServer.Click
         Dim sAddr As String = cmbLocalIP.Text
@@ -41,7 +37,8 @@ Public Class frmTCPServer
         Else
             serverDtl = New TCPServer.TCPServerDetail(sAddr, sPort)
         End If
-
+        serverDtl.ClientOnlineCallBlack = AddressOf ClientOnlineCallblack
+        serverDtl.ClientOfflineCallBlack = AddressOf ClientOfflineCallblack
         Allocator.OpenConnector(serverDtl)
 
     End Sub
@@ -60,11 +57,13 @@ Public Class frmTCPServer
         Allocator = ConnectorAllocator.GetAllocator()
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 10
 
-        obServer = New TCPIOObserverHandler()
+
         InITCPServerClient()
         IniLoadLocalIP()
+        mHexLog = chkHex.Checked
 
         mShowLog = chkShowLog.Checked
+        mAutoEcho = chkAutoEcho.Checked
     End Sub
 
     Private Sub IniLoadLocalIP()
@@ -85,25 +84,27 @@ Public Class frmTCPServer
     End Sub
 
 
-    Private Sub Allocator_ClientOffline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOffline
-        Dim inc = TryCast(sender, INConnector)
+    Private Sub ClientOfflineCallblack(client As INConnector)
 
-        If inc.GetConnectorType = ConnectorType.TCPServerClient Then
-            RemoveTCPClientItem(inc.GetConnectorDetail())
+        If client.GetConnectorType = ConnectorType.TCPServerClient Then
+            RemoveTCPClientItem(client.GetConnectorDetail())
         End If
 
-        AddLog($"客户端离线  {GetConnectorDetail(inc)}")
+        AddLog($"客户端离线  {GetConnectorDetail(client)}")
     End Sub
 
-    Private Sub Allocator_ClientOnline(sender As Object, e As ServerEventArgs) Handles Allocator.ClientOnline
-        Dim inc = TryCast(sender, INConnector)
-        inc.AddRequestHandle(obServer)
+    Private Sub ClientOnlineCallblack(client As INConnector)
 
-        If inc.GetConnectorType = ConnectorType.TCPServerClient Then
-            AddTCPClientItem(inc.GetConnectorDetail())
+        client.AddRequestHandle(New TCPIOObserverHandler() With {
+                             .ReadDataCallblack = AddressOf obServer_DisposeRequestEvent,
+                             .SendDataCallbalck = AddressOf obServer_DisposeResponseEvent
+                             })
+
+        If client.GetConnectorType = ConnectorType.TCPServerClient Then
+            AddTCPClientItem(client.GetConnectorDetail())
         End If
 
-        AddLog($"客户端接入  {GetConnectorDetail(inc)}")
+        AddLog($"客户端接入  {GetConnectorDetail(client)}")
     End Sub
 
 
@@ -121,7 +122,6 @@ Public Class frmTCPServer
     End Sub
 
     Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorConnectedEvent
-        Allocator.GetConnector(connector).AddRequestHandle(obServer)
         AddLog($"连接成功  {GetConnectorDetail(connector)} ")
     End Sub
 
@@ -149,16 +149,58 @@ Public Class frmTCPServer
         Return conn.ToString()
     End Function
 
-    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeRequestEvent
+    ''' <summary>
+    ''' 处理接收
+    ''' </summary>
+    ''' <param name="connector"></param>
+    ''' <param name="msgLen"></param>
+    ''' <param name="msg"></param>
+    Private Sub obServer_DisposeRequestEvent(connector As INConnector, msgLen As Integer, msg As IByteBuffer)
         mReadBytes += msgLen
-        AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  {msgHex}")
-    End Sub
+        If mAutoEcho Then
 
-    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msgHex As String) Handles obServer.DisposeResponseEvent
-        'If mUseEcho Then
-        '    Return
-        'End If
-        AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  {msgHex}")
+            Dim buf = Unpooled.CopiedBuffer(msg)
+            Dim txt As New Command.Byte.ByteCommand(New Command.Byte.ByteCommandDetail(connector.GetConnectorDetail),
+                 New Command.Byte.ByteCommandParameter(buf))
+            connector.AddCommand(txt)
+        Else
+            If mShowLog Then
+                Dim sHex As String
+                Dim iLen = msg.ReadableBytes
+
+                If mHexLog Then
+                    sHex = ByteBufferUtil.HexDump(msg)
+                Else
+                    sHex = Encoding.UTF8.GetString(msg.Array, msg.ArrayOffset, msgLen)
+                End If
+                AddLog($"{GetConnectorDetail(connector)} 接收 长度：{msgLen}  {sHex}")
+            End If
+
+        End If
+
+
+    End Sub
+    ''' <summary>
+    ''' 处理发送
+    ''' </summary>
+    ''' <param name="connector"></param>
+    ''' <param name="msgLen"></param>
+    ''' <param name="msg"></param>
+    Private Sub obServer_DisposeResponseEvent(connector As INConnector, msgLen As Integer, msg As IByteBuffer)
+
+
+        If mShowLog Then
+            Dim sHex As String
+            Dim iLen = msg.ReadableBytes
+
+            If mHexLog Then
+                sHex = ByteBufferUtil.HexDump(msg)
+            Else
+                sHex = Encoding.UTF8.GetString(msg.Array, msg.ArrayOffset, msgLen)
+            End If
+            AddLog($"{GetConnectorDetail(connector)} 发送 长度：{msgLen}  {sHex}")
+        End If
+
     End Sub
 
 
@@ -211,7 +253,7 @@ Public Class frmTCPServer
     Private Sub RemoveTCPClientItem(dtl As INConnectorDetail)
         Dim oItem As TCPServerClientDetail_Item = Nothing
         Dim sKey As String = dtl.GetKey()
-        Trace.WriteLine($"删除通道 {sKey} ")
+        'Trace.WriteLine($"删除通道 {sKey} ")
         If Not TCPServerClients.TryRemove(sKey, oItem) Then
             Return
         End If
@@ -221,7 +263,7 @@ Public Class frmTCPServer
         Dim sKey As String = dtl.GetKey()
         Dim oClient As TCPServer.Client.TCPServerClientDetail = dtl
         Dim oItem = New TCPServerClientDetail_Item(oClient)
-        Trace.WriteLine($"添加通道 {sKey} ")
+        'Trace.WriteLine($"添加通道 {sKey} ")
         TCPServerClients.TryAdd(sKey, oItem)
     End Sub
 
@@ -250,11 +292,30 @@ Public Class frmTCPServer
         If oItem Is Nothing Then Return
         Dim sKey As String = oItem.Key
 
+
+        Dim s As String = txtTCPClientText.Text
+        If String.IsNullOrEmpty(s) Then
+            Return
+        End If
+
         Dim connDtl = New TCPServer.Client.TCPServerClientDetail(sKey)
 
-        Dim txt As New Command.Text.TextCommand(New Text.TextCommandDetail(connDtl),
-             New Command.Text.TextCommandParameter(txtTCPClientText.Text, Encoding.UTF8))
-        Allocator.AddCommand(txt)
+        If mHexLog Then
+            If Not s.IsHex Then
+                MsgBox("请输入十六进制字符", 16, "错误")
+                Return
+            End If
+            Dim buf = Unpooled.WrappedBuffer(s.HexToByte)
+            Dim txt As New Command.Byte.ByteCommand(New Command.Byte.ByteCommandDetail(connDtl),
+                 New Command.Byte.ByteCommandParameter(buf))
+            Allocator.AddCommand(txt)
+        Else
+
+            Dim txt As New Command.Text.TextCommand(New Text.TextCommandDetail(connDtl),
+                 New Command.Text.TextCommandParameter(s, Encoding.UTF8))
+            Allocator.AddCommand(txt)
+        End If
+
     End Sub
 
     Private Sub butCloseTCPClient_Click(sender As Object, e As EventArgs) Handles butCloseTCPClient.Click
@@ -263,6 +324,7 @@ Public Class frmTCPServer
         Dim sKey As String = oItem.Key
 
         Dim connDtl = New TCPServer.Client.TCPServerClientDetail(sKey)
+
         Allocator.CloseConnector(connDtl)
     End Sub
 
@@ -334,9 +396,34 @@ Public Class frmTCPServer
         Dim oKeys = Allocator.GetAllConnectorKeys()
         Dim sBuf = New System.Text.StringBuilder()
         For Each s In oKeys
-            sBuf.AppendLine(s)
+            Dim oConn = Allocator.GetConnector(s)
+            sBuf.AppendLine($"{s}  -- R:{oConn.ReadTotalBytes} W:{oConn.SendTotalBytes} C:{oConn.GetCommandCount} T:{oConn.CommandTotal}")
         Next
 
         txtLog.Text = sBuf.ToString()
+    End Sub
+
+    Private Sub chkHex_CheckedChanged(sender As Object, e As EventArgs) Handles chkHex.CheckedChanged
+        mHexLog = chkHex.Checked
+    End Sub
+
+    Private Sub chkAutoEcho_CheckedChanged(sender As Object, e As EventArgs) Handles chkAutoEcho.CheckedChanged
+        mAutoEcho = chkAutoEcho.Checked
+    End Sub
+
+    Private Sub btnCloseAll_Click(sender As Object, e As EventArgs) Handles btnCloseAll.Click
+
+
+        If TCPServerClients.Count = 0 Then Return
+
+        Dim sKeys = TCPServerClients.Keys.ToArray()
+
+
+        For Each sKey As String In sKeys
+            Dim connDtl = New TCPServer.Client.TCPServerClientDetail(sKey)
+            Allocator.CloseConnector(connDtl)
+        Next
+
+
     End Sub
 End Class

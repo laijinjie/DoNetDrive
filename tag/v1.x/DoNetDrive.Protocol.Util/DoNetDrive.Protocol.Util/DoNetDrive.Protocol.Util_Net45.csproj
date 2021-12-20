@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net45</TargetFramework>
+    <Version>1.16.0</Version>
+    <RootNamespace>DoNetDrive.Protocol.Util</RootNamespace>
+    <AssemblyName>DoNetDrive.Protocol.Util</AssemblyName>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\Output\Debug</OutputPath>
+    <DocumentationFile>..\..\Output\Debug\Net45\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\Output\Release</OutputPath>
+    <DocumentationFile>..\..\Output\Release\Net45\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="DotNetty.Buffers">
+      <HintPath>..\..\Output\Release\net45\DotNetty.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetty.Common">
+      <HintPath>..\..\Output\Release\net45\DotNetty.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+
+
+</Project>
