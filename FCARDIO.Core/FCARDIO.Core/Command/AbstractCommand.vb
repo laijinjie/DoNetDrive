@@ -530,15 +530,13 @@ Namespace Command
                 Return
             End If
 
-            Dim buf = _Packet.GetPacketData(_Connector.GetByteBufAllocator())
-            'Trace.WriteLine($"发送命令数据：{Key}")
-            Dim tWrite = _Connector.WriteByteBuf(buf)
-            If tWrite Is Nothing Then Return
+
+            Dim tWrite = SendPacketCore()
+
 
             _ReSendCount += 1
             '将状态变更为等待响应
             CommandWaitResponse()
-
 
             tWrite.ContinueWith(Sub()
                                     'Trace.WriteLine($"命令发送完毕：{Key}")
@@ -557,9 +555,19 @@ Namespace Command
                                     End If
                                     fireCommandProcessEvent()
                                 End Sub)
-            buf = Nothing
+
             IsExecuteing = False
         End Sub
+
+        ''' <summary>
+        ''' 发送命令的核心代码
+        ''' </summary>
+        ''' <returns></returns>
+        Protected Overridable Async Function SendPacketCore() As Task
+            Dim buf = _Packet.GetPacketData(_Connector.GetByteBufAllocator())
+
+            Await _Connector.WriteByteBuf(buf)
+        End Function
 
         ''' <summary>
         ''' 复制一个当前命令的浅表副本

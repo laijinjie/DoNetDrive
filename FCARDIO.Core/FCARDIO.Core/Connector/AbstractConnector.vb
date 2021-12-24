@@ -942,12 +942,12 @@ Namespace Connector
 
             tmpMsg.SetReaderIndex(iMaskReadIndex)
             If _DecompileList.Count = 0 Then
-                //Trace.WriteLine($"收到数据：{GetKey()} Len:{ msg.ReadableBytes} 但是未找到处理器")
+                'Trace.WriteLine($"收到数据：{GetKey()} Len:{ msg.ReadableBytes} 但是未找到处理器")
             End If
 
             DisposeRequest(tmpMsg)
             tmpMsg = Nothing
-            '检查是否需要发送下一条命令
+            '检查是否需要发送下一条命令 --  #
 
         End Sub
 #End Region
