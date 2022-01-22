@@ -5,13 +5,13 @@ Imports DotNetty.Transport.Bootstrapping
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
 Imports DoNetDrive.Core.Connector.TCPServer.Client
-Imports DotNetty.Handlers.Logging
 Imports System.Runtime.InteropServices
 Imports System.Net.Sockets
+Imports DoNetDrive.Core.Factory
 
 Namespace Connector.TCPServer
-    Public Class TCPServerAllocator
-        Implements INConnectorAllocator
+    Public Class TCPServerFactory
+        Implements INConnectorFactory
 
         Public Shared SoBacklog As Integer = 200
 #Region "单例模式"
@@ -24,20 +24,20 @@ Namespace Connector.TCPServer
         ''' <summary>
         ''' 用于生成TCP Server的分配器
         ''' </summary>
-        Private Shared mTCPServerAllocator As TCPServerAllocator
+        Private Shared mTCPServerFactory As TCPServerFactory
         ''' <summary>
         ''' 获取用于生成TCPServer的分配器
         ''' </summary>
         ''' <returns></returns>
-        Public Shared Function GetAllocator() As TCPServerAllocator
-            If mTCPServerAllocator Is Nothing Then
+        Public Shared Function GetInstance() As TCPServerFactory
+            If mTCPServerFactory Is Nothing Then
                 SyncLock lockobj
-                    If mTCPServerAllocator Is Nothing Then
-                        mTCPServerAllocator = New TCPServerAllocator()
+                    If mTCPServerFactory Is Nothing Then
+                        mTCPServerFactory = New TCPServerFactory()
                     End If
                 End SyncLock
             End If
-            Return mTCPServerAllocator
+            Return mTCPServerFactory
         End Function
 #End Region
 
@@ -67,35 +67,20 @@ Namespace Connector.TCPServer
 
 
         ''' <summary>
-        ''' 获取分配器可分配的连接器类全名
-        ''' </summary>
-        ''' <returns></returns>
-        Public Function GetConnectorTypeName() As String Implements INConnectorAllocator.GetConnectorTypeName
-            Return "TCPServer.TCPServerConnector"
-        End Function
-
-        ''' <summary>
         ''' 创建一个新的连接通道
         ''' </summary>
         ''' <param name="detail"></param>
         ''' <returns></returns>
-        Public Function GetNewConnector(detail As INConnectorDetail) As INConnector Implements INConnectorAllocator.GetNewConnector
-            Return New TCPServerConnector(detail)
+        Public Function CreateConnector(detail As INConnectorDetail, ConnecterManage As IConnecterManage) As INConnector Implements INConnectorFactory.CreateConnector
+            Return New TCPServerConnector(detail, ConnecterManage)
         End Function
 
 
-        Public Async Function GetNewConnectorAsync(detail As INConnectorDetail) As Task(Of INConnector) Implements INConnectorAllocator.GetNewConnectorAsync
-            Dim server = New TCPServerConnector(detail)
-            Await server.ConnectAsync
+        Public Async Function CreateConnectorAsync(detail As INConnectorDetail, ConnecterManage As IConnecterManage) As Task(Of INConnector) Implements INConnectorFactory.CreateConnectorAsync
+            Dim server = New TCPServerConnector(detail, ConnecterManage)
+            Await server.ConnectAsync().ConfigureAwait(False)
             Return server
         End Function
-
-        ''' <summary>
-        ''' 关闭这个连接通道分配器
-        ''' </summary>
-        Public Sub shutdownGracefully() Implements INConnectorAllocator.shutdownGracefully
-            Return
-        End Sub
 
     End Class
 End Namespace

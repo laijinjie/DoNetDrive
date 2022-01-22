@@ -1,14 +1,6 @@
 ﻿Imports System.Net
-Imports DotNetty.Buffers
-Imports DotNetty.Handlers.Timeout
-Imports DotNetty.Transport.Channels
-Imports DoNetDrive.Core.Command
-Imports DotNetty.Handlers.Tls
-Imports System.Security.Cryptography.X509Certificates
-Imports System.Net.Security
-Imports System.IO
-Imports System.Threading
 Imports System.Net.Sockets
+Imports DotNetty.Buffers
 
 Namespace Connector.TCPClient
     ''' <summary>
@@ -83,27 +75,25 @@ Namespace Connector.TCPClient
             _ConnectTimeoutMSEL = detail.Timeout
             _ReconnectMax = detail.RestartCount
 
-            If _ConnectTimeoutMSEL > TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MAX Then
-                _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MAX
-            ElseIf _ConnectTimeoutMSEL < TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MIN Then
-                _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_MILLIS_MIN
+            If _ConnectTimeoutMSEL > TCPClientFactory.CONNECT_TIMEOUT_MILLIS_MAX Then
+                _ConnectTimeoutMSEL = TCPClientFactory.CONNECT_TIMEOUT_MILLIS_MAX
+            ElseIf _ConnectTimeoutMSEL < TCPClientFactory.CONNECT_TIMEOUT_MILLIS_MIN Then
+                _ConnectTimeoutMSEL = TCPClientFactory.CONNECT_TIMEOUT_MILLIS_MIN
             End If
 
-            If _ReconnectMax > TCPClientAllocator.CONNECT_RECONNECT_MAX Then
-                _ReconnectMax = TCPClientAllocator.CONNECT_RECONNECT_MAX
+            If _ReconnectMax > TCPClientFactory.CONNECT_RECONNECT_MAX Then
+                _ReconnectMax = TCPClientFactory.CONNECT_RECONNECT_MAX
             ElseIf _ReconnectMax < 0 Then
                 _ReconnectMax = 0
             End If
-
-            _KeepAliveMaxTime = detail.KeepaliveTime
         End Sub
 
         ''' <summary>
         ''' 设定默认的超时等待和重连参数
         ''' </summary>
         Private Sub SetConnectOptionByDefault()
-            _ConnectTimeoutMSEL = TCPClientAllocator.CONNECT_TIMEOUT_Default
-            _ReconnectMax = TCPClientAllocator.CONNECT_RECONNECT_Default
+            _ConnectTimeoutMSEL = TCPClientFactory.CONNECT_TIMEOUT_Default
+            _ReconnectMax = TCPClientFactory.CONNECT_RECONNECT_Default
         End Sub
 
         ''' <summary>
@@ -123,13 +113,13 @@ Namespace Connector.TCPClient
             Dim NettyBuf = Unpooled.WrappedBuffer(bBuf)
             NettyBuf.Clear()
             Try
-                Dim lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None)
+                Dim lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None).ConfigureAwait(False)
                 While lReadCount > 0
                     If _isRelease Then Exit While
                     NettyBuf.SetWriterIndex(lReadCount)
                     Me.ReadByteBuffer(NettyBuf)
                     NettyBuf.Clear()
-                    lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None)
+                    lReadCount = Await _Client.ReceiveAsync(abuf, SocketFlags.None).ConfigureAwait(False)
                 End While
             Catch ex As Exception
                 NettyBuf.Release()
@@ -181,7 +171,7 @@ Namespace Connector.TCPClient
             End If
 
             If _Client.Connected Then
-                Await _Client.SendAsync(New ArraySegment(Of Byte)(buf.Array, buf.ArrayOffset, buf.ReadableBytes), SocketFlags.None)
+                Await _Client.SendAsync(New ArraySegment(Of Byte)(buf.Array, buf.ArrayOffset, buf.ReadableBytes), SocketFlags.None).ConfigureAwait(False)
             Else
                 Await Task.FromException(New Exception("connect is closed"))
                 Return
@@ -209,7 +199,7 @@ Namespace Connector.TCPClient
             If IPAddress.TryParse(detail.Addr, oIP) Then
                 oPoint = New IPEndPoint(oIP, detail.Port)
             Else
-                Dim oDNSIP As IPHostEntry = Await Dns.GetHostEntryAsync(detail.Addr)
+                Dim oDNSIP As IPHostEntry = Await Dns.GetHostEntryAsync(detail.Addr).ConfigureAwait(False)
                 If oDNSIP.AddressList.Length > 0 Then
                     '获取服务器节点
                     oIP = oDNSIP.AddressList(0)
@@ -247,7 +237,7 @@ Namespace Connector.TCPClient
 
             _ConnectDate = DateTime.Now
 
-            Await _Client.ConnectAsync(oPoint)
+            Await _Client.ConnectAsync(oPoint).ConfigureAwait(False)
             _ConnectDate = DateTime.Now
             FireConnectorConnectedEvent(_ConnectorDetail)
             '连接成功
@@ -256,7 +246,7 @@ Namespace Connector.TCPClient
             _ReconnectCount = 0 '连接成功，则复位此标志
             Me._LocalAddress = New IPDetail(_Client.LocalEndPoint)
             '开始等待响应
-            ReceiveAsync()
+            ReceiveAsync().ConfigureAwait(False)
             '开始执行命令
             CheckCommandList()
 
@@ -382,7 +372,7 @@ Namespace Connector.TCPClient
             Await Task.Run(Sub()
                                FireConnectorClosedEvent(Me._ConnectorDetail)
                                Me.SetInvalid() '被关闭了就表示无效了
-                           End Sub)
+                           End Sub).ConfigureAwait(False)
             Me._IsForcibly = False
         End Function
 #End Region

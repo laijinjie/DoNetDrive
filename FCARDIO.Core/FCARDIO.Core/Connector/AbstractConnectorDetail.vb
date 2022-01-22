@@ -12,8 +12,6 @@
         Public Property ClientOnlineCallBlack As Action(Of INConnector) Implements INConnectorDetail.ClientOnlineCallBlack
         Public Property ClientOfflineCallBlack As Action(Of INConnector) Implements INConnectorDetail.ClientOfflineCallBlack
 
-        Public Property KeepaliveTime As Integer = 30 Implements INConnectorDetail.KeepaliveTime
-
         Public Property Timeout As Integer Implements INConnectorDetail.Timeout
 
         Public Property RestartCount As Integer Implements INConnectorDetail.RestartCount

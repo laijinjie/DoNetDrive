@@ -1,7 +1,10 @@
 ﻿Imports System.Net
+Imports System.Net.Sockets
 Imports DotNetty.Buffers
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
+Imports System.Collections.Concurrent
+Imports DoNetDrive.Core.Command
 
 Namespace Connector.UDP
     ''' <summary>
@@ -9,90 +12,58 @@ Namespace Connector.UDP
     ''' </summary>
     Public Class UDPServerConnector
         Inherits AbstractConnector
-
-        ''' <summary>
-        ''' 服务器监听通道
-        ''' </summary>
-        Protected _Channel As IChannel
+        Implements IUDPServerConnector
 
 
         ''' <summary>
-        ''' 表示当前监听器的信息
+        ''' 默认的读取缓冲区
         ''' </summary>
-        Protected _Detail As UDPServerDetail
+        Public Shared DefaultReadDataBufferSize As Integer = 2048
 
         ''' <summary>
-        ''' UDP服务器的通道处理器
+        ''' 本地端点信息
         ''' </summary>
-        Protected mHandler As UDPServerChannelHandler
-
+        Protected Property _LocalAddress As IPDetail
         ''' <summary>
-        ''' 通道的子节点
+        ''' 服务器套接字
         ''' </summary>
-        Protected ChildChannel As Dictionary(Of String, UDPServerClientConnector)
-
-        ''' <summary>
-        ''' 广播的通道
-        ''' </summary>
-        Protected BroadcastChannel As Dictionary(Of Integer, UDPServerClientConnector)
+        Protected _UDPServer As Socket
 
 
-        ''' <summary>
-        ''' 通道销毁事件
-        ''' </summary>
-        ''' <param name="dtl"></param>
-        Event ConnectorDisposeEvent(ByVal dtl As INConnectorDetail)
+        Protected ConnecterManage As IConnecterManage
+        Public Event ServerCloseEvent(sender As IUDPServerConnector) Implements IUDPServerConnector.ServerCloseEvent
 
         ''' <summary>
         ''' 初始化通道
         ''' </summary>
-        ''' <param name="tsk"></param>
-        ''' <param name="serverdtl"></param>
-        Public Sub New(tsk As Task(Of IChannel), serverdtl As UDPServerDetail)
-            tsk.ContinueWith(AddressOf BindOver)
-
+        ''' <param name="detail"></param>
+        Public Sub New(detail As UDPServerDetail, cntManage As IConnecterManage)
             _CommandList = Nothing
             _DecompileList = Nothing
             _ActivityCommand = Nothing
-
-            _Detail = serverdtl.Clone
-            _IsActivity = True
             _IsForcibly = True
+            ConnecterManage = cntManage
 
-            BroadcastChannel = New Dictionary(Of Integer, UDPServerClientConnector)
-            ChildChannel = New Dictionary(Of String, UDPServerClientConnector)
+            MyBase._ConnectorDetail = detail
+            _LocalAddress = New IPDetail(detail.LocalAddr, detail.LocalPort)
+
         End Sub
 
-
         ''' <summary>
-        ''' 绑定完毕
+        ''' 获取初始化通道状态
         ''' </summary>
-        Private Sub BindOver(t As Task(Of IChannel))
-            Threading.Thread.Sleep(20)
-            If t.IsCanceled Or t.IsFaulted Then
-                _IsActivity = False
-                FireConnectorErrorEvent(GetConnectorDetail())
-                CloseConnector()
-                _Detail = Nothing
-            Else
-                _IsActivity = True
-                _Channel = t.Result
-                mHandler = New UDPServerChannelHandler(Me)
-
-                _Channel.Pipeline.AddLast(mHandler)
-                FireConnectorConnectedEvent(GetConnectorDetail())
-            End If
-        End Sub
-
-
-        ''' <summary>
-        ''' 返回本地绑定信息
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function LocalAddress() As IPDetail
-            If _Channel Is Nothing Then Return nothing
-            Return New IPDetail(_Channel.LocalAddress)
+        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
+            Return ConnectorStatus.Closed
         End Function
+
+        Public Overrides Function RemoteAddress() As IPDetail
+            Return Nothing
+        End Function
+
+        Public Overrides Function LocalAddress() As IPDetail
+            Return _LocalAddress
+        End Function
+
 
         ''' <summary>
         ''' 获取此通道的连接器类型
@@ -102,215 +73,282 @@ Namespace Connector.UDP
             Return ConnectorType.UDPServer
         End Function
 
+#Region "绑定"
+        Public Overrides Async Function ConnectAsync() As Task
+            If _isRelease Then Return
+            If Me.CheckIsInvalid() Then Return
+            If Me.IsActivity Then Return
+            If Me._Status.Status = "Bind" Then Return
+
+            Dim detail As UDPServerDetail = _ConnectorDetail
+            UpdateActivityTime()
+
+            Me._IsActivity = False
 
 
-        Public Overrides Async Function CloseAsync() As Task
-            If _Channel IsNot Nothing Then
-                If _Channel.Active Then
-                    Await _Channel.CloseAsync() '关闭通道
-                    FireConnectorClosedEvent(GetConnectorDetail())
-                End If
+
+            _UDPServer = New Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
+            _UDPServer.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, True)
+            Dim oLocalIP As IPEndPoint
+            If Not String.IsNullOrEmpty(detail.LocalAddr) Then
+                oLocalIP = New IPEndPoint(IPAddress.Parse(detail.LocalAddr), detail.LocalPort)
+            Else
+                oLocalIP = New IPEndPoint(IPAddress.Any, detail.LocalPort)
             End If
-            CloseClientConnector()
-            ChildChannel = Nothing
-            BroadcastChannel = Nothing
+            '需要先绑定本地IP和端口
+            _UDPServer.Bind(oLocalIP)
 
-            mHandler?.Release()
-            mHandler = Nothing
-            _IsActivity = False
-            _IsForcibly = False
 
-            _Channel = Nothing
-            _Status = ConnectorStatus_Invalid.Invalid
-            SetInvalid()
-            RaiseEvent ConnectorDisposeEvent(_Detail)
-            Dispose()
+            _ConnectDate = DateTime.Now
+            FireConnectorConnectedEvent(_ConnectorDetail)
+            '连接成功
+            _Status = ConnectorStatus.Bind
+            Me._IsActivity = True
+
+
+            '开始等待响应
+            ReceiveAsync().ConfigureAwait(False)
+
+            Await Task.CompletedTask()
         End Function
 
 
         ''' <summary>
-        ''' 关闭所有子节点通道
+        ''' 异步处理成功的后续操作
         ''' </summary>
-        Protected Sub CloseClientConnector()
-            If ChildChannel Is Nothing Then Return
-            BroadcastChannel?.Clear()
-
-            Dim lst = ChildChannel?.ToArray()
-            ChildChannel?.Clear()
-            If lst Is Nothing Then Return
-            For Each kv In lst
-                Dim c = kv.Value
-                c.Dispose()
-            Next
+        Protected Friend Sub ConnectingNext(connTask As Task)
+            If Me.CheckIsInvalid() Then Return
+            If Not Me._Status.Status = "Connecting" Then Return
+            If _UDPServer Is Nothing Then Return
+            If connTask.IsFaulted Or connTask.IsCanceled Then
+                '有错误，或已取消
+                ConnectFail(connTask.Exception)
+            End If
         End Sub
+
+        ''' <summary>
+        ''' 连接失败
+        ''' </summary>
+        Protected Overridable Sub ConnectFail(ByVal ex As Exception)
+            If TypeOf ex Is ObjectDisposedException Then
+                '说明是被强制取消的
+                Return
+            End If
+
+            If _Status.Status = "Invalid" Then
+                Return
+            End If
+
+            If _UDPServer IsNot Nothing Then
+                _UDPServer.Close()
+                _UDPServer.Dispose()
+            End If
+
+            _UDPServer = Nothing
+            Me._IsActivity = False
+
+            _ConnectorDetail.SetError(ex)
+            FireConnectorErrorEvent(_ConnectorDetail)
+            Me.SetInvalid() '被关闭了就表示无效了
+        End Sub
+
+
+#End Region
+
+#Region "接收数据"
+        ''' <summary>
+        ''' 开始接收数据
+        ''' </summary>
+        ''' <returns></returns>
+        Protected Overridable Async Function ReceiveAsync() As Task
+            Dim bBuf(DefaultReadDataBufferSize) As Byte
+            'Trace.WriteLine("开始 ReceiveAsync")
+            Dim abuf = New ArraySegment(Of Byte)(bBuf)
+            Dim remote = New IPEndPoint(IPAddress.Any, 0)
+            Dim NettyBuf = Unpooled.WrappedBuffer(bBuf)
+
+            NettyBuf.Clear()
+
+            Try
+                Dim ReceiveFromResult As SocketReceiveFromResult =
+                Await _UDPServer.ReceiveFromAsync(abuf, SocketFlags.None, remote).ConfigureAwait(False)
+
+                While ReceiveFromResult.ReceivedBytes > 0
+                    If _isRelease Then Exit While
+                    NettyBuf.SetWriterIndex(ReceiveFromResult.ReceivedBytes)
+                    Dim oPacketRemote As IPEndPoint = ReceiveFromResult.RemoteEndPoint
+                    ReadByteBufferNext(NettyBuf, oPacketRemote)
+                    NettyBuf.Clear()
+                    Try
+                        ReceiveFromResult = Await _UDPServer.ReceiveFromAsync(abuf, SocketFlags.None, remote).ConfigureAwait(False)
+                    Catch ex As Exception
+                        Debug.Print(ex.ToString())
+                    End Try
+
+                End While
+
+                NettyBuf.Release()
+            Catch ex As Exception
+                _IsActivity = False
+                ClearCommand(New SocketException(10054))
+                FireConnectorClosedEvent(Me._ConnectorDetail)
+
+                SetInvalid()
+            End Try
+        End Function
+
+
+
+        Private mUDPClientDetail As UDPClientDetail
+
+        ''' <summary>
+        ''' 读取到数据后的处理
+        ''' </summary>
+        ''' <param name="msg">将读取到的数据打包到bytebuffer</param>
+        Protected Sub ReadByteBufferNext(msg As IByteBuffer, oPacketRemote As IPEndPoint)
+            If _isRelease Then Return
+            UpdateReadDataTime()
+            Me._ReadTotalBytes += msg.ReadableBytes
+
+
+
+
+            Dim sRemoteIP As String = oPacketRemote.Address.ToString
+            Dim iRemotePort As Integer = oPacketRemote.Port
+
+            If (mUDPClientDetail Is Nothing) Then
+                mUDPClientDetail = New UDPClientDetail(sRemoteIP, iRemotePort, _LocalAddress.Addr, _LocalAddress.Port)
+            Else
+                mUDPClientDetail.Addr = sRemoteIP
+                mUDPClientDetail.Port = iRemotePort
+            End If
+
+            Dim sKey = mUDPClientDetail.GetKey()
+            Dim Client As UDPServerClientConnector = ConnecterManage.GetConnector(sKey)
+
+            If Client Is Nothing Then
+                '不存在
+                Client = AddClientConnector()
+            End If
+
+            If Client IsNot Nothing Then
+                Client.ReadByteBufferNext(msg)
+            End If
+
+
+            '检查是否存在广播通道
+            mUDPClientDetail.Addr = "255.255.255.255"
+            mUDPClientDetail.Port = iRemotePort
+            Client = ConnecterManage.GetConnector(mUDPClientDetail.GetKey())
+            If Client IsNot Nothing Then
+                Client.ReadByteBufferNext(msg)
+            End If
+        End Sub
+#End Region
+
+#Region "发送数据"
+        Protected Friend Async Function WriteByteBufByUDP(buf As IByteBuffer, oPacketRemote As IPEndPoint) As Task Implements IUDPServerConnector.WriteByteBufByUDP
+            Dim arrybuf = New ArraySegment(Of Byte)(buf.Array, buf.ArrayOffset, buf.ReadableBytes)
+            Await _UDPServer.SendToAsync(arrybuf, SocketFlags.None, oPacketRemote).ConfigureAwait(False)
+        End Function
+
+
+        Protected Overrides Function WriteByteBuf0(buf As IByteBuffer) As Task
+            Throw New Exception("server conncet nonsupport WriteByteBuf")
+        End Function
+        Public Overrides Async Function WriteByteBuf(buf As IByteBuffer) As Task
+            Await Task.FromException(New Exception("server conncet nonsupport WriteByteBuf"))
+        End Function
+#End Region
+
+
+#Region "关闭连接"
+        Public Overrides Async Function CloseAsync() As Task
+            If CheckIsInvalid() Then Return
+            If Not _IsActivity Then Return
+
+
+            Me._Status = ConnectorStatus.Invalid
+            If _UDPServer Is Nothing Then Return
+            Try
+
+                Me._IsForcibly = False
+                Me._IsActivity = False
+
+                If _UDPServer IsNot Nothing Then
+                    'Trace.WriteLine("关闭连接")
+                    _UDPServer.Close()
+                    _UDPServer.Dispose()
+                End If
+
+            Catch ex As Exception
+                _ConnectorDetail.SetError(ex)
+            End Try
+
+            RaiseEvent ServerCloseEvent(Me)
+
+            _UDPServer = Nothing
+            UpdateActivityTime()
+
+            Await Task.Run(Sub()
+                               FireConnectorClosedEvent(Me._ConnectorDetail)
+                               Me.SetInvalid() '被关闭了就表示无效了
+                           End Sub).ConfigureAwait(False)
+        End Function
+#End Region
+
+#Region "去掉命令响应"
+        Public Overrides Sub AddCommand(cd As INCommandRuntime)
+            Throw New Exception("server conncet nonsupport AddCommand")
+        End Sub
+
+        Public Overrides Async Function RunCommandAsync(cd As INCommandRuntime) As Task(Of INCommand)
+            Return Await Task.FromException(Of INCommand)(New Exception("server conncet nonsupport RunCommandAsync"))
+        End Function
+#End Region
+
+
+#Region "创建客户端通道"
+        Public Function AddClientConnector(oRemotePoint As IPEndPoint) As UDPServerClientConnector
+            If mUDPClientDetail Is Nothing Then
+                mUDPClientDetail = New UDPClientDetail(oRemotePoint.Address.ToString(), oRemotePoint.Port, _LocalAddress.Addr, _LocalAddress.Port)
+            Else
+                mUDPClientDetail.Addr = oRemotePoint.Address.ToString()
+                mUDPClientDetail.Port = oRemotePoint.Port
+            End If
+
+            Return AddClientConnector()
+        End Function
+
 
         ''' <summary>
         ''' 给通道添加一个UDP子节点
         ''' </summary>
-        Public Function AddClientConnector(ByVal sKey As String, Remote As EndPoint) As UDPServerClientConnector
-            Dim client As UDPServerClientConnector = Nothing
-            SyncLock Me
-                '检查连接通道是否已存在，不存在则重新建立连接
-                If Not ChildChannel.ContainsKey(sKey) Then
-                    'Trace.WriteLine("UDP连接通道已建立：" & sKey)
-                    client = New UDPServerClientConnector(Remote, _Channel, _Detail)
-                    ChildChannel.Add(sKey, client)
-                    FireClientOnline(client)
-                    AddHandler client.ConnectorDisposeEvent, AddressOf ConnectorDisposeEventCallBlack
+        Public Function AddClientConnector() As UDPServerClientConnector
+            Dim client As UDPServerClientConnector = ConnecterManage.GetConnector(mUDPClientDetail.GetKey())
 
+            '检查连接通道是否已存在，不存在则重新建立连接
+            If client Is Nothing Then
 
-                    If Remote.AddressFamily = Net.Sockets.AddressFamily.InterNetwork Then
-                        Dim oIP As IPEndPoint = Remote
-                        If oIP.Address.ToString() = "255.255.255.255" Then
-                            BroadcastChannel.Add(oIP.Port, client)
-                        End If
+                Dim oDetail As UDPClientDetail = mUDPClientDetail.Clone()
+                client = New UDPServerClientConnector(oDetail, Me, ConnecterManage)
 
-                    End If
-
-
-                    Return client
-                End If
-
-
-            End SyncLock
-            Return Nothing
+                Return client
+            Else
+                Return client
+            End If
         End Function
 
-        ''' <summary>
-        ''' 回调解除通道绑定
-        ''' </summary>
-        ''' <param name="client"></param>
-        Private Sub ConnectorDisposeEventCallBlack(client As UDPServerClientConnector)
-            SyncLock Me
-                Dim sKey = client.RemoteDetail.ToString()
-                RemoveHandler client.ConnectorDisposeEvent, AddressOf ConnectorDisposeEventCallBlack
-                '检查连接通道是否已存在，不存在则重新建立连接
-                If ChildChannel.ContainsKey(sKey) Then
-                    ChildChannel.Remove(sKey)
-
-                    If client.RemoteDetail.Addr = "255.255.255.255" Then
-                        If BroadcastChannel.ContainsKey(client.RemoteDetail.Port) Then
-                            BroadcastChannel.Remove(client.RemoteDetail.Port)
-                        End If
-
-                    End If
-                    client.Dispose()
-                End If
-            End SyncLock
-
-        End Sub
-
-        ''' <summary>
-        ''' 获取初始化通道状态
-        ''' </summary>
-        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
-            Return ConnectorStatus_Bind.Bind
-        End Function
-
+#End Region
         ''' <summary>
         ''' 释放资源
         ''' </summary>
         Protected Overrides Sub Release0()
-            CloseConnector()
-
+            _UDPServer = Nothing
+            _LocalAddress = Nothing
+            ConnecterManage = Nothing
         End Sub
 
-        ''' <summary>
-        ''' 获取关于本通道的详情
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetConnectorDetail() As INConnectorDetail
-            Return _Detail
-        End Function
-
-        ''' <summary>
-        ''' 获取连接通道支持的bytebuf分配器
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetByteBufAllocator() As IByteBufferAllocator
-            Return _Channel?.Allocator
-        End Function
-
-        ''' <summary>
-        ''' 将生成的bytebuf写入到通道中
-        ''' 写入完毕后自动释放
-        ''' </summary>
-        ''' <param name="buf"></param>
-        ''' <returns></returns>
-        Public Overrides Function WriteByteBuf(buf As IByteBuffer) As Task
-            Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' 获取此通道所依附的事件循环通道
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetEventLoop() As IEventLoop
-            Return _Channel?.EventLoop
-        End Function
-
-
-
-        ''' <summary>
-        ''' 接收到数据事件
-        ''' </summary>
-        ''' <param name="ctx"></param>
-        ''' <param name="msg"></param>
-        Protected Friend Sub ChannelRead0(ctx As IChannelHandlerContext, msg As DatagramPacket)
-            If _isRelease Then Return
-
-            Dim chl = ctx.Channel
-            Dim remote = New IPDetail(msg.Sender)
-            Dim sKey = remote.ToString()
-            Dim client As UDPServerClientConnector
-
-            Dim buf = msg.Content
-            'Dim dmp = New DatagramPacket(buf, msg.Sender)
-            'ctx.WriteAndFlushAsync(dmp)
-
-            Try
-                '检查是否为广播
-                If BroadcastChannel.Count > 0 Then
-                    If BroadcastChannel.ContainsKey(remote.Port) Then
-                        client = BroadcastChannel(remote.Port)
-                        clientchannelRead(buf, client, ctx)
-                    End If
-                End If
-            Catch ex As Exception
-
-            End Try
-
-
-            Try
-                '检查连接通道是否已存在，不存在则重新建立连接
-                If ChildChannel.ContainsKey(sKey) Then
-                    client = ChildChannel(sKey)
-                Else
-                    AddClientConnector(sKey, msg.Sender)
-                    client = ChildChannel(sKey)
-                End If
-                clientchannelRead(buf, client, ctx)
-            Catch ex As Exception
-
-            End Try
-
-        End Sub
-
-        Protected Sub clientchannelRead(tmpBuf As IByteBuffer, clt As UDPServerClientConnector, tmpctx As IChannelHandlerContext)
-            'tmpBuf.Retain()
-            'clt.GetEventLoop().Execute(Sub()
-            clt.channelRead0(tmpctx, tmpBuf)
-            '                           End Sub)
-        End Sub
-
-        ''' <summary>
-        ''' 自定义用户事件，在这里用于接收超时事件
-        ''' </summary>
-        ''' <param name="ctx"></param>
-        ''' <param name="evt"></param>
-        Protected Friend Sub UserEventTriggered(ctx As IChannelHandlerContext, evt As Object)
-            Return
-        End Sub
 
     End Class
 End Namespace

@@ -1,23 +1,27 @@
 ﻿Imports System.Net
+Imports DoNetDrive.Core.Factory
 Imports DotNetty.Buffers
 Imports DotNetty.Transport.Bootstrapping
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
 Namespace Connector.TCPClient
-    Public Class TCPClientAllocator
-        Implements INConnectorAllocator
+    Public Class TCPClientFactory
+        Implements INConnectorFactory
 
+#Region "单例"
         ''' <summary>
         ''' 用于生成TCPClient的分配器
         ''' </summary>
-        Private Shared mTCPClientAllocator As TCPClientAllocator = New TCPClientAllocator()
+        Private Shared mTCPClientFactory As TCPClientFactory = New TCPClientFactory()
         ''' <summary>
         ''' 获取用于生成TCPClient的分配器
         ''' </summary>
         ''' <returns></returns>
-        Public Shared Function GetAllocator() As TCPClientAllocator
-            Return mTCPClientAllocator
+        Public Shared Function GetInstance() As TCPClientFactory
+            Return mTCPClientFactory
         End Function
+#End Region
+
 
         ''' <summary>
         ''' 默认连接超时，单位毫秒
@@ -44,26 +48,11 @@ Namespace Connector.TCPClient
 
 
         ''' <summary>
-        ''' 关闭这个连接通道分配器
-        ''' </summary>
-        Public Overridable Sub shutdownGracefully() Implements INConnectorAllocator.shutdownGracefully
-            Return
-        End Sub
-
-        ''' <summary>
-        ''' 获取分配器可分配的连接器类全名
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overridable Function GetConnectorTypeName() As String Implements INConnectorAllocator.GetConnectorTypeName
-            Return "TCPClient.TCPClientConnector"
-        End Function
-
-        ''' <summary>
         ''' 创建一个新的连接通道
         ''' </summary>
         ''' <param name="detail"></param>
         ''' <returns></returns>
-        Public Overridable Function GetNewConnector(detail As INConnectorDetail) As INConnector Implements INConnectorAllocator.GetNewConnector
+        Public Function CreateConnector(detail As INConnectorDetail, Allocator As IConnecterManage) As INConnector Implements INConnectorFactory.CreateConnector
             Return New TCPClientConnector(detail)
         End Function
 
@@ -72,9 +61,9 @@ Namespace Connector.TCPClient
         ''' </summary>
         ''' <param name="detail"></param>
         ''' <returns></returns>
-        Public Overridable Async Function GetNewConnectorAsync(detail As INConnectorDetail) As Task(Of INConnector) Implements INConnectorAllocator.GetNewConnectorAsync
+        Public Async Function CreateConnectorAsync(detail As INConnectorDetail, Allocator As IConnecterManage) As Task(Of INConnector) Implements INConnectorFactory.CreateConnectorAsync
             Dim conncect = New TCPClientConnector(detail)
-            Await conncect.ConnectAsync()
+            Await conncect.ConnectAsync().ConfigureAwait(False)
             Return conncect
         End Function
     End Class

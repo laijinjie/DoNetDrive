@@ -1,64 +1,63 @@
 ﻿Imports System.Net
+Imports System.Net.Sockets
+Imports DoNetDrive.Core.Connector.TCPClient
 Imports DotNetty.Buffers
 Imports DotNetty.Transport.Channels
 Imports DotNetty.Transport.Channels.Sockets
-Imports DoNetDrive.Core.Connector.Client
 
 Namespace Connector.UDP
     ''' <summary>
     ''' 附属于UDPServer Connector 下的UDP子节点，每个子节点对应了一个远程主机
     ''' </summary>
     Public Class UDPServerClientConnector
-        Inherits AbstractNettyClientConnector(Of IByteBuffer)
+        Inherits AbstractConnector
 
         ''' <summary>
         ''' 记录远程主机的IP
         ''' </summary>
         Public ReadOnly RemoteIP As EndPoint
+        Protected Property _RemoteAddress As IPDetail
+        Protected Property _LocalAddress As IPDetail
 
-        ''' <summary>
-        ''' 此通道所在的EventLoop
-        ''' </summary>
-        Protected _EventLoop As IEventLoop
 
-        ''' <summary>
-        ''' 通道销毁事件
-        ''' </summary>
-        Event ConnectorDisposeEvent(ByVal client As UDPServerClientConnector)
+        Private UDPServer As IUDPServerConnector
 
         ''' <summary>
         ''' 通过远程主机和本地绑定的Netty通道初始化此类
         ''' </summary>
-        ''' <param name="Remote"></param>
+        ''' <param name="detail"></param>
         ''' <param name="server"></param>
-        Public Sub New(Remote As EndPoint, server As IChannel, serverDTL As UDPServerDetail)
-            RemoteDetail = New IPDetail(Remote)
-            LocalDetail = New IPDetail(server.LocalAddress)
-            ThisConnectorDetail = New UDPClientDetail_ReadOnly(
-                New TCPClient.TCPClientDetail(RemoteDetail.Addr, RemoteDetail.Port,
-                                              serverDTL.LocalAddr, serverDTL.LocalPort))
-            RemoteIP = Remote
+        Public Sub New(detail As UDPClientDetail, server As IUDPServerConnector, connecterManage As IConnecterManage)
+            MyBase._ConnectorDetail = detail
+            _RemoteAddress = New IPDetail(detail.Addr, detail.Port)
+            _LocalAddress = New IPDetail(detail.LocalAddr, detail.LocalPort)
+            RemoteIP = New IPEndPoint(IPAddress.Parse(detail.Addr), detail.Port)
 
-            _ClientChannel = server
-
-            _EventLoop = _ClientChannel.EventLoop
-
-            ConnectSuccess()
-        End Sub
-
-        ''' <summary>
-        ''' 远程连接成功
-        ''' </summary>
-        Protected Overrides Sub ConnectSuccess()
+            UDPServer = server
+            AddHandler UDPServer.ServerCloseEvent, AddressOf UDPServer_ServerCloseEvent
             _IsActivity = True
-            _Status = GetStatus_Connected()
 
-            _ConnectFailCount = 0
-            ConnectSuccess0()
-
-            '将本身加入到通道所在的线程循环中
-            _EventLoop.Execute(Me)
+            connecterManage.AddConnector(detail.GetKey, Me)
+            FireClientOnline(Me)
+            _ConnectDate = DateTime.Now
         End Sub
+
+        Private Sub UDPServer_ServerCloseEvent(sender As IUDPServerConnector)
+            If _isRelease Then Return
+            CloseAsync()
+        End Sub
+
+        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
+            Return UDPClientConnectorStatus_Connected.Connected
+        End Function
+
+        Public Overrides Function RemoteAddress() As IPDetail
+            Return _RemoteAddress
+        End Function
+
+        Public Overrides Function LocalAddress() As IPDetail
+            Return _LocalAddress
+        End Function
 
         ''' <summary>
         ''' 返回此通道的类路径
@@ -69,43 +68,16 @@ Namespace Connector.UDP
         End Function
 
 
-        ''' <summary>
-        ''' 返回此通道的初始化状态
-        ''' </summary>
-        ''' <returns></returns>
-        Protected Overrides Function GetInitializationStatus() As INConnectorStatus
-            Return GetStatus_Fail()
-        End Function
 
-        ''' <summary>
-        ''' 获取此通道所依附的事件循环通道
-        ''' </summary>
-        ''' <returns></returns>
-        Public Overrides Function GetEventLoop() As IEventLoop
-            Return _EventLoop
-        End Function
 
 #Region "接收数据"
 
         ''' <summary>
         ''' 接收到数据
         ''' </summary>
-        ''' <param name="ctx"></param>
         ''' <param name="msg"></param>
-        Friend Overrides Sub channelRead0(ctx As IChannelHandlerContext, msg As IByteBuffer)
-            If _isRelease Then
-                '_ClientChannel?.EventLoop?.Execute(Sub()
-                '                                       msg.Release()
-                '                                   End Sub)
-                Return
-            End If
-
-            'Trace.WriteLine($"通道：{RemoteIP} 接收：，data：0x{ByteBufferUtil.HexDump(msg)}")
-            MyBase.channelRead0(ctx, msg)
-
-            '_ClientChannel?.EventLoop?.Execute(Sub()
-            '                                       msg.Release()
-            '                                   End Sub)
+        Protected Friend Sub ReadByteBufferNext(msg As IByteBuffer)
+            MyBase.ReadByteBuffer(msg)
         End Sub
 #End Region
 
@@ -117,80 +89,85 @@ Namespace Connector.UDP
         ''' </summary>
         ''' <param name="buf"></param>
         ''' <returns></returns>
-        Public Overrides Function WriteByteBuf(buf As IByteBuffer) As Task
-            If _isRelease Then Return Nothing
-            If _ClientChannel Is Nothing Then
-                Return Nothing
-            End If
-            UpdateActivityTime()
-            DisposeResponse(buf)
-            'Trace.WriteLine($"通道：{RemoteIP} 发送：目标:{RemoteIP.ToString()}，data：0x{ByteBufferUtil.HexDump(buf)}")
+        Protected Overrides Async Function WriteByteBuf0(buf As IByteBuffer) As Task
+            If CheckIsInvalid() Then
+                Await Task.FromException(New Exception("connect is invalid"))
 
-            '_ClientChannel?.EventLoop()?.Execute(Sub()
-            '                                         _ClientChannel?.WriteAndFlushAsync(New DatagramPacket(buf, RemoteIP)).Wait()
-            '                                     End Sub)
-            Return _ClientChannel?.WriteAndFlushAsync(New DatagramPacket(buf, RemoteIP))
+            End If
+
+            If UDPServer Is Nothing Then
+                Await Task.FromException(New Exception($"connect is {_Status.Status}"))
+                Return
+            End If
+
+            Await UDPServer.WriteByteBufByUDP(buf, RemoteIP).ConfigureAwait(False)
+            buf.Release()
         End Function
 #End Region
 
-        ''' <summary>
-        ''' 创建一个连接头像详情对象，包含用于描述当前连接通道的信息
-        ''' </summary>
-        ''' <returns></returns>
-        Protected Overrides Function GetConnectorDetail0() As INConnectorDetail
-            Return Nothing 'New UDPClientDetail_ReadOnly(RemoteDetail.Addr, RemoteDetail.Port, LocalDetail.Addr, LocalDetail.Port)
+
+
+#Region "连接服务器"
+        Public Overrides Async Function ConnectAsync() As Task
+            Await Task.FromException(New Exception("UDP Client  nonsupport ConnectAsync"))
         End Function
 
-        Protected Overrides Function GetStatus_Fail() As INConnectorStatus
-            Return ConnectorStatus_Invalid.Invalid
-        End Function
-
-        Protected Overrides Function GetStatus_Connected() As INConnectorStatus
-            Return TCPClient.TCPClientConnectorStatus.Connected
-        End Function
 
         ''' <summary>
-        ''' 当连接通道连接已失效时调用
+        ''' 连接状态检查，当连接成功时，检查连接状态
         ''' </summary>
-        Protected Overrides Sub ConnectFail0()
-            Return
+        Protected Friend Overridable Sub CheckConnectedStatus()
+            If Not CheckIsInvalid() Then
+                If _CommandList.Count = 0 Then
+                    If _IsForcibly Then
+                        CheckKeepaliveTime()
+                    End If
+                Else
+                    CheckCommandList()
+                End If
+            End If
         End Sub
-
-        ''' <summary>
-        ''' 表示通道建立完毕时调用
-        ''' </summary>
-        Protected Overrides Sub ConnectSuccess0()
-            Return
-        End Sub
-
+#End Region
 
 #Region "关闭连接"
-        ''' <summary>
-        ''' 关闭连接
-        ''' </summary>
-        Public Overrides Sub CloseConnector()
+        Public Overrides Async Function CloseAsync() As Task
+            If Me._isRelease Then Return
+            If Not _IsActivity Then Return
 
-            If _ClientChannel IsNot Nothing Then
+            Me._Status = ConnectorStatus.Invalid
 
-                FireClientOffline(Me)
-                FireConnectorClosedEvent(GetConnectorDetail())
+            Me._IsActivity = False
+
+            UpdateActivityTime()
+            If UDPServer IsNot Nothing Then
+                RemoveHandler UDPServer.ServerCloseEvent, AddressOf UDPServer_ServerCloseEvent
+                UDPServer = Nothing
             End If
-            _ClientChannel = Nothing
-            _Status = GetStatus_Fail()
 
-            _IsActivity = False
-            RaiseEvent ConnectorDisposeEvent(Me)
-
-        End Sub
+            Await Task.Run(Sub()
+                               FireConnectorClosedEvent(Me._ConnectorDetail)
+                               Me.SetInvalid() '被关闭了就表示无效了
+                           End Sub).ConfigureAwait(False)
+            Me._IsForcibly = False
+        End Function
 #End Region
+
 
 
         ''' <summary>
         ''' 释放资源
         ''' </summary>
-        Protected Overrides Sub Release1()
-            _EventLoop = Nothing
+        Protected Overrides Sub Release0()
+            '_Client = Nothing
+            _RemoteAddress = Nothing
+            _LocalAddress = Nothing
+            If UDPServer IsNot Nothing Then
+                RemoveHandler UDPServer.ServerCloseEvent, AddressOf UDPServer_ServerCloseEvent
+
+            End If
+            UDPServer = Nothing
         End Sub
+
     End Class
 End Namespace
 

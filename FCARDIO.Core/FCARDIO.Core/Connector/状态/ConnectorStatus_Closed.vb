@@ -11,7 +11,7 @@
 
         Public Overridable Sub CheckStatus(connector As INConnector) Implements INConnectorStatus.CheckStatus
             If (Not connector.CheckIsInvalid()) Then
-                connector.ConnectAsync()
+                connector.ConnectAsync().ConfigureAwait(False)
             End If
         End Sub
     End Class

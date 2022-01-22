@@ -100,18 +100,17 @@ Namespace Connector.SerialPort
                 mConnectorWriteError = 0
             Catch ex As Exception
                 mConnectorWriteError += 1
+                _ConnectorDetail.SetError(ex)
 
-                If mConnectorWriteError > 3 Then
-                    _IsActivity = False
-                    _ConnectorDetail.SetError(ex)
-                    '串口无效
-                    FireConnectorErrorEvent(GetConnectorDetail())
-
-                    CloseAsync()
-                End If
             End Try
 
-            Await Task.CompletedTask
+            If mConnectorWriteError > 3 Then
+                _IsActivity = False
+                '串口无效
+                FireConnectorErrorEvent(GetConnectorDetail())
+
+                Await CloseAsync().ConfigureAwait(False)
+            End If
         End Function
 #End Region
 
@@ -158,7 +157,7 @@ Namespace Connector.SerialPort
             '保存波特率
             dtl = _ConnectorDetail
             dtl.Baudrate = mSerialPort.BaudRate
-
+            Dim openex As Exception = Nothing
             Try
                 '打开串口
                 mSerialPort.Open()
@@ -167,17 +166,35 @@ Namespace Connector.SerialPort
 
                 FireConnectorConnectedEvent(GetConnectorDetail())
                 CheckCommandList()
+
             Catch ex As Exception
                 '串口无效
                 _ConnectorDetail.SetError(ex)
+                openex = ex
+            End Try
+            If openex IsNot Nothing Then
+                Await Task.FromException(openex)
+            End If
+        End Function
+
+        ''' <summary>
+        ''' 异步处理成功的后续操作
+        ''' </summary>
+        Protected Friend Sub ConnectingNext(connTask As Task)
+            If Me.CheckIsInvalid() Then Return
+            If Not Me._Status.Status = "Connecting" Then Return
+            If connTask.IsCompleted = False Then Return
+            If connTask.IsFaulted Or connTask.IsCanceled Then
+                '有错误，或已取消
                 FireConnectorErrorEvent(GetConnectorDetail())
                 mSerialPort = Nothing
                 _Status = ConnectorStatus.Invalid
                 _IsActivity = False
                 SetInvalid()
-            End Try
-            Await Task.CompletedTask
-        End Function
+            End If
+        End Sub
+
+
 
         ''' <summary>
         ''' 检查通道是否已开启
@@ -239,7 +256,7 @@ Namespace Connector.SerialPort
             Await Task.Run(Sub()
                                FireConnectorClosedEvent(Me._ConnectorDetail)
                                Me.SetInvalid() '被关闭了就表示无效了
-                           End Sub)
+                           End Sub).ConfigureAwait(False)
         End Function
 
 #End Region

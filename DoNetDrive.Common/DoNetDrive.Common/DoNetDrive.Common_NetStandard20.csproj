@@ -5,6 +5,10 @@
     <Version>1.16.0</Version>
     <RootNamespace>DoNetDrive.Common</RootNamespace>
     <AssemblyName>DoNetDrive.Common</AssemblyName>
+    <Authors>xiaolong</Authors>
+    <Company>FCARD</Company>
+    <Description>用于运行设备命令的基础库的工具包，依赖于 Newtonsoft.Json。</Description>
+    <PackageProjectUrl>https://gitee.com/GZFCARD/DoNetDrive.Core</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

@@ -201,6 +201,14 @@ Namespace Connector
         ''' <returns></returns>
         ReadOnly Property CommandTotal As Long
 
+
+        ''' <summary>
+        ''' 设置保活包参数
+        ''' </summary>
+        ''' <param name="bUse">启用开关</param>
+        ''' <param name="iIntervalTime">间隔时间</param>
+        ''' <param name="SendBuf">发送内容</param>
+        Sub SetKeepAliveOption(ByVal bUse As Boolean, ByVal iIntervalTime As Integer, ByVal SendBuf() As Byte)
     End Interface
 End Namespace
 

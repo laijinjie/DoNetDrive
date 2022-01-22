@@ -273,7 +273,12 @@ Namespace Command
         ''' </summary>
         Public Sub SetStatus(cmdstatus As INCommandStatus) Implements INCommandRuntime.SetStatus
             If _IsRelease Then Return
-            _Status = cmdstatus
+            If Not _Status.IsCompleted Then
+                _Status = cmdstatus
+            Else
+                Return
+            End If
+
             If _Status.IsCompleted Then
                 If CommandAsyncTaskTokenSource IsNot Nothing Then
                     Try
@@ -566,7 +571,7 @@ Namespace Command
         Protected Overridable Async Function SendPacketCore() As Task
             Dim buf = _Packet.GetPacketData(_Connector.GetByteBufAllocator())
 
-            Await _Connector.WriteByteBuf(buf)
+            Await _Connector.WriteByteBuf(buf).ConfigureAwait(False)
         End Function
 
         ''' <summary>

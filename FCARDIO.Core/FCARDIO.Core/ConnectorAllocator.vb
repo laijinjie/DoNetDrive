@@ -7,19 +7,24 @@ Imports DotNetty.Transport.Channels
 Imports DotNetty.Common.Concurrency
 Imports System.Threading
 
+
+
+
 ''' <summary>
 ''' 基于命令模式。
 ''' 用于协调连接通道和命令还有调用者之间的关系
 ''' 将命令推送到指定的连接通道，并监督连接通道的运转情况。
 ''' </summary>
 Public NotInheritable Class ConnectorAllocator
-    Implements INConnectorEvent, IDisposable, INCommandEvent
+    Implements INConnectorEvent, IDisposable, INCommandEvent, IConnecterManage
 
     ''' <summary>
     ''' 默认的通道生成工厂
     ''' </summary>
     Public Shared DefaultConnectorFactory As INConnectorFactory = New DefaultConnectorFactory()
 
+
+#Region "单例"
     ''' <summary>
     ''' 单例模式中的全局变量
     ''' </summary>
@@ -31,6 +36,9 @@ Public NotInheritable Class ConnectorAllocator
     ''' 单例模式中所用到的锁
     ''' </summary>
     Private Shared lockObj As Object = New Object
+
+
+
 
     ''' <summary>
     ''' 获取分配器的唯一实例
@@ -46,11 +54,12 @@ Public NotInheritable Class ConnectorAllocator
         End If
         Return staticConnectorAllocator
     End Function
+#End Region
 
     ''' <summary>
     ''' 用于生成通道的工厂
     ''' </summary>
-    Private ConnectorFactory As INConnectorFactory
+    Public Property ConnectorFactory As INConnectorFactory
 
     ''' <summary>
     ''' 保存所有的连接通道
@@ -164,6 +173,8 @@ Public NotInheritable Class ConnectorAllocator
     End Sub
 
 
+
+
 #Region "连接通道操作"
 
     ''' <summary>
@@ -202,7 +213,7 @@ Public NotInheritable Class ConnectorAllocator
                 Trace.WriteLine($"ConnectorManageTask.Run 出现错误 {ex.ToString()}")
             End Try
 
-            Await Task.Delay(5)
+            Await Task.Delay(5).ConfigureAwait(False)
         Loop While True
 
     End Function
@@ -218,40 +229,37 @@ Public NotInheritable Class ConnectorAllocator
         If _IsRelease Then Return Nothing
         Dim sKey = cdtl.GetKey()
         Dim Conn As INConnector = Nothing
+
         If Not Connectors.TryGetValue(sKey, Conn) Then
             '通道不存在，创建一个通道
-            SyncLock lockObj
-                If Not Connectors.TryGetValue(sKey, Conn) Then
-                    '通道不存在，创建一个通道
-                    Conn = ConnectorFactory.CreateConnector(cdtl)
-                    If Conn IsNot Nothing Then
-                        Dim oTmpConn As INConnector = Nothing
-                        If Connectors.TryGetValue(sKey, oTmpConn) Then
-                            If Not Object.ReferenceEquals(oTmpConn, Conn) Then
-                                '通道已存在
-                                Conn.Dispose()
-                                Conn = Nothing
-                            End If
+            Conn = ConnectorFactory.CreateConnector(cdtl, Me)
+            If Conn IsNot Nothing Then
+                Dim oTmpConn As INConnector = Nothing
+                If Connectors.TryGetValue(sKey, oTmpConn) Then
+                    If Not Object.ReferenceEquals(oTmpConn, Conn) Then
+                        '通道已存在
+                        Conn.Dispose()
+                        Conn = Nothing
+                    End If
 
-                            Return oTmpConn
-                        Else
-                            '通道添加成功
-                            '添加通道的事件绑定
-                            AddEventListener(Conn)
-                            If Not Connectors.TryAdd(sKey, Conn) Then
-                                RemoveEventListener(Conn)
-                                Conn.Dispose()
-                                Conn = Nothing
-                                Return Nothing
-                            End If
-                        End If
-                    Else
-                        '分配器工厂无法创建连接通道，可能 cdtl 指示了一个无效的值
+                    Return oTmpConn
+                Else
+                    '通道添加成功
+                    '添加通道的事件绑定
+                    AddEventListener(Conn)
+                    If Not Connectors.TryAdd(sKey, Conn) Then
+                        RemoveEventListener(Conn)
+                        Conn.Dispose()
+                        Conn = Nothing
                         Return Nothing
                     End If
                 End If
-            End SyncLock
+            Else
+                '分配器工厂无法创建连接通道，可能 cdtl 指示了一个无效的值
+                Return Nothing
+            End If
         End If
+
         Return Conn
     End Function
 
@@ -320,7 +328,7 @@ Public NotInheritable Class ConnectorAllocator
     ''' </summary>
     ''' <param name="sKey"></param>
     ''' <returns></returns>
-    Public Function GetConnector(sKey As String) As INConnector
+    Public Function GetConnector(sKey As String) As INConnector Implements IConnecterManage.GetConnector
         If _IsRelease Then Return Nothing
         Dim connector As INConnector = Nothing
         If Connectors.TryGetValue(sKey, connector) Then
@@ -334,7 +342,7 @@ Public NotInheritable Class ConnectorAllocator
     ''' </summary>
     ''' <param name="sKey"></param>
     ''' <param name="oConn"></param>
-    Public Sub RemoveConnector(ByVal sKey As String, oConn As INConnector)
+    Public Sub RemoveConnector(ByVal sKey As String, oConn As INConnector) Implements IConnecterManage.RemoveConnector
         If _IsRelease Then Return
         If Connectors.TryRemove(sKey, oConn) Then
             RemoveEventListener(oConn)
@@ -346,7 +354,7 @@ Public NotInheritable Class ConnectorAllocator
     ''' 添加一个连接通道
     ''' </summary>
     ''' <returns></returns>
-    Public Function AddConnector(ByVal sKey As String, conn As INConnector) As Boolean
+    Public Function AddConnector(ByVal sKey As String, conn As INConnector) As Boolean Implements IConnecterManage.AddConnector
         If _IsRelease Then Return Nothing
         If Connectors.ContainsKey(sKey) Then
             Return False
@@ -368,7 +376,7 @@ Public NotInheritable Class ConnectorAllocator
     ''' 获取所有在线的连接通道的Key
     ''' </summary>
     ''' <returns></returns>
-    Public Function GetAllConnectorKeys() As List(Of String)
+    Public Function GetAllConnectorKeys() As List(Of String) Implements IConnecterManage.GetAllConnectorKeys
         Return Connectors.Keys.ToList()
     End Function
 #End Region
@@ -387,14 +395,14 @@ Public NotInheritable Class ConnectorAllocator
 
         If Not Connectors.TryGetValue(sKey, Conn) Then
             '通道不存在，创建一个通道
-            Conn = Await ConnectorFactory.CreateConnectorAsync(cdtl)
+            Conn = Await ConnectorFactory.CreateConnectorAsync(cdtl, Me).ConfigureAwait(False)
             If Conn IsNot Nothing Then
                 If Not Connectors.TryAdd(sKey, Conn) Then
                     Dim oTmpConn As INConnector = Nothing
                     If Connectors.TryGetValue(sKey, oTmpConn) Then
                         If Not Object.ReferenceEquals(oTmpConn, Conn) Then
                             '通道已存在
-                            Await Conn.CloseAsync()
+                            Await Conn.CloseAsync().ConfigureAwait(False)
                             Conn.Dispose()
                             Conn = Nothing
                         End If
@@ -424,8 +432,8 @@ Public NotInheritable Class ConnectorAllocator
     ''' <returns></returns>
     Public Async Function OpenConnectorAsync(connectDtl As INConnectorDetail) As Task(Of INConnector)
         If _IsRelease Then Return Nothing
-        Dim connector = Await GetOrCreateConnectorAsync(connectDtl)
-        Await connector.ConnectAsync()
+        Dim connector = Await GetOrCreateConnectorAsync(connectDtl).ConfigureAwait(False)
+        Await connector.ConnectAsync().ConfigureAwait(False)
         Return connector
     End Function
 
@@ -438,7 +446,7 @@ Public NotInheritable Class ConnectorAllocator
     ''' <returns></returns>
     Public Async Function OpenForciblyConnectAsync(connectDtl As INConnectorDetail) As Task(Of INConnector)
         If _IsRelease Then Return Nothing
-        Dim connector As INConnector = Await OpenConnectorAsync(connectDtl)
+        Dim connector As INConnector = Await OpenConnectorAsync(connectDtl).ConfigureAwait(False)
         connector.OpenForciblyConnect()
         Return connector
     End Function
@@ -455,7 +463,7 @@ Public NotInheritable Class ConnectorAllocator
         Dim sKey = connectDtl.GetKey()
 
         If Connectors.TryGetValue(sKey, connector) Then
-            Await connector.CloseAsync()
+            Await connector.CloseAsync().ConfigureAwait(False)
         End If
         Return True
     End Function
@@ -493,6 +501,7 @@ Public NotInheritable Class ConnectorAllocator
 
     ''' <summary>
     ''' 停止一个命令，如果命令处于队列中，不管是正在排队，还是已经在处理，都可以立刻停止
+    ''' 通过命令的Key进行查找 INCommandDetail.Key
     ''' </summary>
     ''' <param name="cmdDetail">停止具有相同命令信息的所有指令</param>
     ''' <returns></returns>
@@ -505,6 +514,19 @@ Public NotInheritable Class ConnectorAllocator
         Dim Conn As INConnector = GetConnector(cdtl)
         If Conn Is Nothing Then Return False
         Conn.StopCommand(cmdDetail)
+        Return True
+    End Function
+
+    ''' <summary>
+    ''' 停止一个命令，指定通道上的所有命令
+    ''' </summary>
+    ''' <param name="connDetail">标志连接通道的详情</param>
+    ''' <returns></returns>
+    Public Function StopCommand(connDetail As INConnectorDetail) As Boolean
+        If _IsRelease Then Return False
+        Dim Conn As INConnector = GetConnector(connDetail)
+        If Conn Is Nothing Then Return False
+        Conn.StopCommand(Nothing)
         Return True
     End Function
 #End Region
@@ -528,13 +550,13 @@ Public NotInheritable Class ConnectorAllocator
             Throw New ArgumentException("ConnectorFactory  is  Null")
         End If
 
-        Dim Conn As INConnector = Await GetOrCreateConnectorAsync(cdtl)
+        Dim Conn As INConnector = Await GetOrCreateConnectorAsync(cdtl).ConfigureAwait(False)
 
         If Conn Is Nothing Then
             Throw New ArgumentException("Connector is  Null")
         End If
 
-        Return Await Conn.RunCommandAsync(cmd)
+        Return Await Conn.RunCommandAsync(cmd).ConfigureAwait(False)
     End Function
 #End Region
 
@@ -762,7 +784,7 @@ Public NotInheritable Class ConnectorAllocator
         _IsRelease = True
         Await _ConnectorManageTask
         For Each kv In Connectors
-            Await kv.Value.CloseAsync()
+            Await kv.Value.CloseAsync().ConfigureAwait(False)
         Next
         ClearConnector()
     End Function

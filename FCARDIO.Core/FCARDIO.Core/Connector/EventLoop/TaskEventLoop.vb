@@ -105,7 +105,7 @@ Namespace Connector
 
         Public Function Schedule(action As IRunnable, delay As TimeSpan) As IScheduledTask Implements IScheduledExecutorService.Schedule
             Dim oTask = Task.Run(Async Function()
-                                     Await Task.Delay(delay.TotalMilliseconds)
+                                     Await Task.Delay(delay.TotalMilliseconds).ConfigureAwait(False)
                                      action.Run()
                                  End Function)
             Return New TaskEventLoopScheduledTask(oTask)
@@ -113,7 +113,7 @@ Namespace Connector
 
         Public Function Schedule(action As Action, delay As TimeSpan) As IScheduledTask Implements IScheduledExecutorService.Schedule
             Dim oTask = Task.Run(Async Function()
-                                     Await Task.Delay(delay.TotalMilliseconds)
+                                     Await Task.Delay(delay.TotalMilliseconds).ConfigureAwait(False)
                                      action()
                                  End Function)
             Return New TaskEventLoopScheduledTask(oTask)
@@ -121,7 +121,7 @@ Namespace Connector
 
         Public Function Schedule(action As Action(Of Object), state As Object, delay As TimeSpan) As IScheduledTask Implements IScheduledExecutorService.Schedule
             Dim oTask = Task.Run(Async Function()
-                                     Await Task.Delay(delay.TotalMilliseconds)
+                                     Await Task.Delay(delay.TotalMilliseconds).ConfigureAwait(False)
                                      action(state)
                                  End Function)
             Return New TaskEventLoopScheduledTask(oTask)
@@ -129,7 +129,7 @@ Namespace Connector
 
         Public Function Schedule(action As Action(Of Object, Object), context As Object, state As Object, delay As TimeSpan) As IScheduledTask Implements IScheduledExecutorService.Schedule
             Dim oTask = Task.Run(Async Function()
-                                     Await Task.Delay(delay.TotalMilliseconds)
+                                     Await Task.Delay(delay.TotalMilliseconds).ConfigureAwait(False)
                                      action(context, state)
                                  End Function)
             Return New TaskEventLoopScheduledTask(oTask)
@@ -137,7 +137,7 @@ Namespace Connector
 
         Public Async Function ScheduleAsync(action As Action(Of Object), state As Object, delay As TimeSpan, cancellationToken As CancellationToken) As Task Implements IScheduledExecutorService.ScheduleAsync
             Dim oTask = Task.Run(Async Function()
-                                     Await Task.Delay(delay.TotalMilliseconds)
+                                     Await Task.Delay(delay.TotalMilliseconds).ConfigureAwait(False)
                                      action(state)
                                  End Function, cancellationToken)
             Await oTask

@@ -12,7 +12,7 @@
         ''' 指示通道已连接
         ''' 通常用在客户端管道上
         ''' </summary>
-        Public Shared Connected As TCPClientConnectorStatus_Connected = New TCPClientConnectorStatus_Connected()
+        Public Shared Connected As UDPClientConnectorStatus_Connected = New UDPClientConnectorStatus_Connected()
 
     End Class
 End Namespace

@@ -10,6 +10,14 @@ Namespace Connector.TCPClient
     ''' </summary>
     Public Class TCPClientDetail
         Inherits AbstractConnectorDetail
+
+        Private _Remote As IPDetail
+
+        Public ReadOnly Property Remote As IPDetail
+            Get
+                Return _Remote
+            End Get
+        End Property
         ''' <summary>
         ''' 通道的别名 自定义通道Key
         ''' </summary>
@@ -64,21 +72,21 @@ Namespace Connector.TCPClient
         ''' <summary>
         ''' 初始化连接器详细
         ''' </summary>
-        ''' <param name="sAddr">远程服务器的IP或域名</param>
-        ''' <param name="iPort">远程服务器的监听端口</param>
-        Sub New(sAddr As String, iPort As Integer)
-            Me.New(sAddr, iPort, String.Empty, 0)
+        ''' <param name="sRemoteAddr">远程服务器的IP或域名</param>
+        ''' <param name="iRemotePort">远程服务器的监听端口</param>
+        Sub New(sRemoteAddr As String, iRemotePort As Integer)
+            Me.New(sRemoteAddr, iRemotePort, String.Empty, 0)
         End Sub
 
         ''' <summary>
         ''' 初始化连接器详细
         ''' </summary>
-        ''' <param name="sAddr">远程服务器的IP或域名</param>
-        ''' <param name="iPort">远程服务器的监听端口</param>
+        ''' <param name="sRemoteAddr">远程服务器的IP或域名</param>
+        ''' <param name="iRemotePort">远程服务器的监听端口</param>
         ''' <param name="slocal">指定本地IP</param>
         ''' <param name="ilocalPort">指定本地端口</param>
-        Sub New(sAddr As String, iPort As Integer, slocal As String, ilocalPort As Integer)
-            Me.New(sAddr, iPort, slocal, ilocalPort, False, Nothing, Nothing)
+        Sub New(sRemoteAddr As String, iRemotePort As Integer, slocal As String, ilocalPort As Integer)
+            Me.New(sRemoteAddr, iRemotePort, slocal, ilocalPort, False, Nothing, Nothing)
 
         End Sub
 
@@ -86,51 +94,51 @@ Namespace Connector.TCPClient
         ''' <summary>
         ''' 初始化详情
         ''' </summary>
-        ''' <param name="sAddr">远程服务器的IP或域名</param>
-        ''' <param name="iPort">远程服务器的监听端口</param>
+        ''' <param name="sRemoteAddr">远程服务器的IP或域名</param>
+        ''' <param name="iRemotePort">远程服务器的监听端口</param>
         ''' <param name="slocal">指定本地IP</param>
         ''' <param name="ilocalPort">指定本地端口</param>
         ''' <param name="bSSL">是否开启SSL</param>
         ''' <param name="oX509">使用的证书</param>
-        Public Sub New(sAddr As String, iPort As Integer, slocal As String, ilocalPort As Integer,
+        Public Sub New(sRemoteAddr As String, iRemotePort As Integer, slocal As String, ilocalPort As Integer,
                        bSSL As Boolean, oX509 As X509Certificate2)
-            Me.New(sAddr, iPort, slocal, ilocalPort, bSSL, oX509, Nothing)
+            Me.New(sRemoteAddr, iRemotePort, slocal, ilocalPort, bSSL, oX509, Nothing)
         End Sub
 
 
         ''' <summary>
         ''' 初始化详情
         ''' </summary>
-        ''' <param name="sAddr">远程服务器的IP或域名</param>
-        ''' <param name="iPort">远程服务器的监听端口</param>
+        ''' <param name="sRemoteAddr">远程服务器的IP或域名</param>
+        ''' <param name="iRemotePort">远程服务器的监听端口</param>
         ''' <param name="slocal">指定本地IP</param>
         ''' <param name="ilocalPort">指定本地端口</param>
         ''' <param name="bSSL">是否开启SSL</param>
         ''' <param name="oX509">使用的证书</param>
         ''' <param name="oSSLFac">用于创建SSL安全套接字的流工厂</param>
-        Public Sub New(sAddr As String, iPort As Integer, slocal As String, ilocalPort As Integer,
+        Public Sub New(sRemoteAddr As String, iRemotePort As Integer, slocal As String, ilocalPort As Integer,
                        bSSL As Boolean, oX509 As X509Certificate2, oSSLFac As Func(Of Stream, SslStream))
-            Timeout = TCPClientAllocator.CONNECT_TIMEOUT_Default '默认值是5秒
-            RestartCount = TCPClientAllocator.CONNECT_RECONNECT_Default '默认重试2次
+            Timeout = TCPClientFactory.CONNECT_TIMEOUT_Default '默认值是5秒
+            RestartCount = TCPClientFactory.CONNECT_RECONNECT_Default '默认重试2次
             ConnectAlias = String.Empty
             Dim oIP As IPAddress = Nothing
-            RemoteHost = sAddr
-            If Not String.IsNullOrEmpty(sAddr) Then
-                If IPAddress.TryParse(sAddr, oIP) Then
+            RemoteHost = sRemoteAddr
+            If Not String.IsNullOrEmpty(sRemoteAddr) Then
+                If IPAddress.TryParse(sRemoteAddr, oIP) Then
                     If oIP.AddressFamily <> Sockets.AddressFamily.InterNetwork Then
-                        Throw New ArgumentException($"{sAddr} is not IPv4")
+                        Throw New ArgumentException($"{sRemoteAddr} is not IPv4")
                     Else
-                        Addr = sAddr
+                        Addr = sRemoteAddr
                     End If
                 Else
                     Try
-                        Dim oDNSIP As IPHostEntry = Dns.GetHostEntry(sAddr)
+                        Dim oDNSIP As IPHostEntry = Dns.GetHostEntry(sRemoteAddr)
                         If oDNSIP.AddressList.Length > 0 Then
                             '获取服务器节点
                             Addr = oDNSIP.AddressList(0).ToString()
                         End If
                     Catch ex As Exception
-                        Throw New ArgumentException($"{sAddr} host not find!")
+                        Throw New ArgumentException($"{sRemoteAddr} host not find!")
                     End Try
 
                 End If
@@ -140,7 +148,7 @@ Namespace Connector.TCPClient
                 Addr = RemoteHost
             End If
 
-            Port = iPort
+            Port = iRemotePort
 
             oIP = Nothing
             If Not String.IsNullOrEmpty(LocalAddr) Then
@@ -152,7 +160,7 @@ Namespace Connector.TCPClient
 
             LocalPort = ilocalPort
 
-
+            _Remote = New IPDetail(Addr, Port)
             'If bSSL Then
             '    If oX509 Is Nothing Then bSSL = False
             'End If

@@ -15,11 +15,6 @@ Namespace Connector
         Implements INConnector
 
         ''' <summary>
-        ''' 默认的保活包
-        ''' </summary>
-        Public Shared DefaultKeepalivePacket As Byte() = System.Text.Encoding.ASCII.GetBytes("PING")
-
-        ''' <summary>
         ''' 默认的通道连接保持时间
         ''' </summary>
         Public Shared DefaultChannelKeepaliveMaxTime As Integer = 60
@@ -86,6 +81,9 @@ Namespace Connector
         ''' </summary>
         Protected _LastSendDataTime As Date
 
+#Region "保活包"
+
+
         ''' <summary>
         ''' 发送保活包时间
         ''' </summary>
@@ -95,6 +93,18 @@ Namespace Connector
         ''' 保活包最大间隔
         ''' </summary>
         Protected _KeepAliveMaxTime As Integer
+
+        ''' <summary>
+        ''' 启用保活包
+        ''' </summary>
+        Protected _UseKeepAlive As Boolean
+
+        ''' <summary>
+        ''' 保活包发送内容
+        ''' </summary>
+        Protected _KeepAliveSendBuf() As Byte
+#End Region
+
 
         ''' <summary>
         ''' 发送字节数
@@ -228,6 +238,7 @@ Namespace Connector
             _LastSendDataTime = Date.MinValue
             _SendKeepaliveTime = Date.MinValue
             _KeepAliveMaxTime = 30
+            _UseKeepAlive = False
 
             ChannelKeepaliveMaxTime = DefaultChannelKeepaliveMaxTime
         End Sub
@@ -338,7 +349,7 @@ Namespace Connector
         End Function
 
 
-        Public Sub AddCommand(cd As INCommandRuntime) Implements INConnector.AddCommand
+        Public Overridable Sub AddCommand(cd As INCommandRuntime) Implements INConnector.AddCommand
             cd.SetConnector(Me)
 
             If (_isRelease) Then
@@ -370,7 +381,7 @@ Namespace Connector
             _CommandTotal += 1
             _CommandList.Enqueue(cd)
 
-            Return Await CommandTaskCompletionSource.Task
+            Return Await CommandTaskCompletionSource.Task.ConfigureAwait(False)
         End Function
 
         ''' <summary>
@@ -508,12 +519,12 @@ Namespace Connector
                 cmd = Nothing
                 retGetCommand = _CommandList.TryDequeue(cmd)
                 If retGetCommand Then
-                    cmd.RemoveBinding()
                     If ex.Message = "Stop" Then
                         cmd.SetStatus(cmd.GetStatus_Stop())
                     Else
                         cmd.SetException(ex)
                     End If
+                    cmd.RemoveBinding()
                     RaiseEvent CommandErrorEvent(Me, cmd.GetEventArgs)
                 End If
             Loop While retGetCommand
@@ -641,7 +652,7 @@ Namespace Connector
                 _isInvalid = False
                 Return False
             End If
-
+            If _CommandList Is Nothing Then Return True
             If Not _CommandList.IsEmpty Then
                 _isInvalid = False
                 Return False
@@ -702,6 +713,8 @@ Namespace Connector
                 If (_isRelease) Then Return
                 CheckStatus()
             Catch ex As Exception
+                Me._ConnectorDetail.SetError(ex)
+                FireConnectorErrorEvent(Me._ConnectorDetail)
                 Trace.WriteLine($"key:{GetKey()} AbstractConnector.Run 出现错误：{ex.ToString()}")
             End Try
         End Sub
@@ -941,11 +954,16 @@ Namespace Connector
             End If
 
             tmpMsg.SetReaderIndex(iMaskReadIndex)
-            If _DecompileList.Count = 0 Then
-                'Trace.WriteLine($"收到数据：{GetKey()} Len:{ msg.ReadableBytes} 但是未找到处理器")
-            End If
 
-            DisposeRequest(tmpMsg)
+            'If _DecompileList.Count = 0 Then
+            '    'Trace.WriteLine($"收到数据：{GetKey()} Len:{ msg.ReadableBytes} 但是未找到处理器")
+            'End If
+            Try
+                DisposeRequest(tmpMsg)
+            Catch ex As Exception
+                Trace.WriteLine($"ReadByteBuffer.DisposeRequest 发生错误：{ex.ToString()} ")
+            End Try
+
             tmpMsg = Nothing
             '检查是否需要发送下一条命令 --  #
 
@@ -965,7 +983,7 @@ Namespace Connector
 
             DisposeResponse(buf)
             Me._SendTotalBytes += buf.ReadableBytes
-            Await WriteByteBuf0(buf)
+            Await WriteByteBuf0(buf).ConfigureAwait(False)
         End Function
 
         ''' <summary>
@@ -980,10 +998,25 @@ Namespace Connector
 #Region "建立连接"
         Public MustOverride Async Function ConnectAsync() As Task Implements INConnector.ConnectAsync
 
+
+
+#End Region
+
+#Region "保活包"
+
+
+
+        Public Overridable Sub SetKeepAliveOption(ByVal bUse As Boolean, ByVal iIntervalTime As Integer, ByVal SendBuf() As Byte) Implements INConnector.SetKeepAliveOption
+            _UseKeepAlive = bUse
+            _KeepAliveMaxTime = iIntervalTime
+            _KeepAliveSendBuf = SendBuf
+        End Sub
+
         ''' <summary>
         ''' 检查是否需要发送保活包
         ''' </summary>
         Protected Overridable Sub CheckKeepaliveTime()
+            If Not _UseKeepAlive Then Return
             Dim oBeginTime As DateTime
             If Me._LastReadDataTime = Date.MinValue Then
                 '没收到过数据
@@ -1016,10 +1049,9 @@ Namespace Connector
         ''' </summary>
         Protected Overridable Sub SendKeepalivePacket()
             If _IsActivity Then
-                WriteByteBuf(Unpooled.WrappedBuffer(DefaultKeepalivePacket))
+                WriteByteBuf(Unpooled.WrappedBuffer(_KeepAliveSendBuf))
             End If
         End Sub
-
 #End Region
 
 #Region "关闭通道"

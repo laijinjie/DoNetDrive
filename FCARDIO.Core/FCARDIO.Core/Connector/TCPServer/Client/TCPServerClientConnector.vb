@@ -14,14 +14,15 @@ Namespace Connector.TCPServer.Client
         ''' </summary>
         Public Sub New(oDtl As TCPServerClientDetail,
                        client As Socket,
-                       server As INConnector)
+                       server As IConnecterManage)
             MyBase.New(oDtl)
             _Client = client
             _Status = TCPClientConnectorStatus.Connected
             Me._IsForcibly = True
             _IsActivity = True
             Task.Run(Sub()
-                         server.FireClientOnline(Me)
+                         server.AddConnector(Me.GetKey(), Me)
+                         FireClientOnline(Me)
                      End Sub).ContinueWith(Sub() ReceiveAsync())
         End Sub
 

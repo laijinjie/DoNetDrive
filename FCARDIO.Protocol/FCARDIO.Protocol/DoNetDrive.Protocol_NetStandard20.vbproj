@@ -4,7 +4,12 @@
 		<RootNamespace>DoNetDrive.Protocol</RootNamespace>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>DoNetDrive.Protocol</AssemblyName>
-		<Version>1.2.0</Version>
+		<Version>2.01.0</Version>
+		<PackageId>DoNetDrive.Protocol</PackageId>
+		<Authors>xiaolong</Authors>
+		<Company>FCARD</Company>
+		<Description>用于运行设备命令的协议解析抽象层，定义了各种产品的协议格式及编解码器</Description>
+		<PackageProjectUrl>https://gitee.com/GZFCARD/DoNetDrive.Core</PackageProjectUrl>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

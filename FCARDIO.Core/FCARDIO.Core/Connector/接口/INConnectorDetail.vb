@@ -83,12 +83,6 @@
         ''' </summary>
         ''' <returns></returns>
         Property ClientOnlineCallBlack As Action(Of INConnector)
-
-        ''' <summary>
-        ''' 通道保活时间，超过指定时间未收到任意数据包则发送一个保活包,单位秒
-        ''' </summary>
-        ''' <returns></returns>
-        Property KeepaliveTime As Integer
     End Interface
 
 End Namespace

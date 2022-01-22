@@ -21,15 +21,19 @@ Namespace Connector.TCPServer
         ''' </summary>
         Protected _Server As Socket
 
+
+        Protected ConnecterManage As IConnecterManage
+
         ''' <summary>
         ''' 初始化服务器监听通道
         ''' </summary>
         ''' <param name="detail">通道的详情描述类</param>
-        Public Sub New(detail As TCPServerDetail)
+        Public Sub New(detail As TCPServerDetail, cntManage As IConnecterManage)
             _CommandList = Nothing
             _DecompileList = Nothing
             _ActivityCommand = Nothing
             _IsForcibly = True
+            ConnecterManage = cntManage
 
             MyBase._ConnectorDetail = detail
             _LocalAddress = New IPDetail(detail.LocalAddr, detail.LocalPort)
@@ -97,7 +101,7 @@ Namespace Connector.TCPServer
             '需要先绑定本地IP和端口
             _Server.Bind(oLocalIP)
             '开始监听
-            _Server.Listen(TCPServerAllocator.SoBacklog)
+            _Server.Listen(TCPServerFactory.SoBacklog)
 
             _ConnectDate = DateTime.Now
             FireConnectorConnectedEvent(_ConnectorDetail)
@@ -107,9 +111,9 @@ Namespace Connector.TCPServer
 
 
             '开始等待响应
-            AcceptAsync()
+            AcceptAsync().ConfigureAwait(False)
 
-            Await Task.CompletedTask
+            Await Task.CompletedTask()
         End Function
 
 
@@ -152,27 +156,6 @@ Namespace Connector.TCPServer
             Me.SetInvalid() '被关闭了就表示无效了
         End Sub
 
-        ''' <summary>
-        ''' 连接状态检查，当连接成功时，检查连接状态
-        ''' </summary>
-        Protected Friend Overridable Sub CheckConnectedStatus()
-            If Not CheckIsInvalid() Then
-                If _CommandList.Count = 0 Then
-                    CheckKeepaliveTime()
-                Else
-                    CheckCommandList()
-                End If
-
-            Else
-                If IsForciblyConnect() Then
-                    '保持连接 检查保活时间，发送保活包 
-                    CheckKeepaliveTime()
-                Else
-                    CloseAsync()
-                End If
-
-            End If
-        End Sub
 
 #End Region
 
@@ -190,9 +173,9 @@ Namespace Connector.TCPServer
 
                     If _isRelease Then Return
                     iStep = 0
-                    oClient = Await _Server.AcceptAsync(oClient)
+                    oClient = Await _Server.AcceptAsync(oClient).ConfigureAwait(False)
                     iStep = 1
-                    Await AddClient(oClient)
+                    Await AddClient(oClient).ConfigureAwait(False)
                     iStep = 2
                     oClient = Nothing
 
@@ -219,15 +202,16 @@ Namespace Connector.TCPServer
 
             Await Task.Run(Sub()
                                Dim iClientID As Long
-                               Dim sKey = TCPServerAllocator.GetClientKey(_LocalAddress, oClient.RemoteEndPoint, iClientID)
+                               Dim sKey = TCPServerFactory.GetClientKey(_LocalAddress, oClient.RemoteEndPoint, iClientID)
                                Dim oDtl = New TCPServer.Client.TCPServerClientDetail(sKey,
                                                                   New IPDetail(oClient.RemoteEndPoint),
                                                                   _LocalAddress,
                                                                   iClientID)
+                               oDtl.ClientOnlineCallBlack = Me._ConnectorDetail.ClientOfflineCallBlack
                                oDtl.ClientOfflineCallBlack = Me._ConnectorDetail.ClientOfflineCallBlack
-                               Dim oConnClient = New TCPServer.Client.TCPServerClientConnector(oDtl, oClient, Me)
+                               Dim oConnClient = New TCPServer.Client.TCPServerClientConnector(oDtl, oClient, ConnecterManage)
 
-                           End Sub)
+                           End Sub).ConfigureAwait(False)
         End Function
 #End Region
 
@@ -259,8 +243,7 @@ Namespace Connector.TCPServer
             Await Task.Run(Sub()
                                FireConnectorClosedEvent(Me._ConnectorDetail)
                                Me.SetInvalid() '被关闭了就表示无效了
-                           End Sub)
-            Await Task.CompletedTask
+                           End Sub).ConfigureAwait(False)
         End Function
 #End Region
 
@@ -270,6 +253,7 @@ Namespace Connector.TCPServer
         Protected Overrides Sub Release0()
             _Server = Nothing
             _LocalAddress = Nothing
+            ConnecterManage = Nothing
         End Sub
 
         Protected Overrides Function WriteByteBuf0(buf As IByteBuffer) As Task

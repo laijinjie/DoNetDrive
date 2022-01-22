@@ -9,36 +9,36 @@ Namespace Factory
     ''' </summary>
     Public Class DefaultConnectorFactory
         Implements INConnectorFactory
+
+        ''' <summary>
+        ''' 保存连接器创建工厂
+        ''' </summary>
+        ''' <returns></returns>
+        Public Property ConnectorFactoryDictionary As Dictionary(Of String, INConnectorFactory)
+
+        Public Sub New()
+            ConnectorFactoryDictionary = New Dictionary(Of String, INConnectorFactory)
+            ConnectorFactoryDictionary.Add(ConnectorType.TCPClient, TCPClient.TCPClientFactory.GetInstance())
+            ConnectorFactoryDictionary.Add(ConnectorType.TCPServer, TCPServer.TCPServerFactory.GetInstance())
+            ConnectorFactoryDictionary.Add(ConnectorType.UDPServer, UDP.UDPServerFactory.GetInstance())
+            ConnectorFactoryDictionary.Add(ConnectorType.UDPClient, UDP.UDPClientFactory.GetInstance())
+            ConnectorFactoryDictionary.Add(ConnectorType.SerialPort, SerialPort.SerialPortFactory.GetInstance())
+        End Sub
+
         ''' <summary>
         ''' 创建一个连接通道
         ''' </summary>
         ''' <param name="cd">包含一个描述连接通道详情的内容用于创建连接通道</param>
         ''' <returns></returns>
-        Public Function CreateConnector(cd As INConnectorDetail) As INConnector Implements INConnectorFactory.CreateConnector
-            Dim cdTypeName = $"{cd.GetTypeName()}"
-            Dim ConnAor As INConnectorAllocator '用于创建连接通道的分配器
-            Select Case cdTypeName
-                Case ConnectorType.TCPClient
-                    ConnAor = TCPClient.TCPClientAllocator.GetAllocator()
-                    Return ConnAor.GetNewConnector(cd)
-                Case ConnectorType.TCPServer
-                    ConnAor = TCPServer.TCPServerAllocator.GetAllocator()
-                    Return ConnAor.GetNewConnector(cd)
-                'Case ConnectorType.UDPClient, ConnectorType.UDPServer
-                '    ConnAor = UDP.UDPAllocator.GetAllocator()
-                '    Return ConnAor.GetNewConnector(cd)
-                Case ConnectorType.SerialPort
-                    Return New Connector.SerialPort.SerialPortConnector(cd)
-                    'Case ConnectorType.WebSocketServer
-                    '    ConnAor = WebSocket.Server.WebSocketServerAllocator.GetAllocator()
-                    '    Return ConnAor.GetNewConnector(cd)
-                    'Case ConnectorType.WebSocketClient
-                    '    ConnAor = WebSocket.Client.WebSocketClientAllocator.GetAllocator()
-                    '    Return ConnAor.GetNewConnector(cd)
-                Case Else
-                    Return Nothing
-            End Select
-
+        Public Function CreateConnector(cd As INConnectorDetail, ConnecterManage As IConnecterManage) As INConnector Implements INConnectorFactory.CreateConnector
+            Dim cdTypeName = cd.GetTypeName()
+            Dim ConnAor As INConnectorFactory '用于创建连接通道的分配器
+            If ConnectorFactoryDictionary.ContainsKey(cdTypeName) Then
+                ConnAor = ConnectorFactoryDictionary(cdTypeName)
+                Return ConnAor.CreateConnector(cd, ConnecterManage)
+            Else
+                Return Nothing
+            End If
         End Function
 
 
@@ -47,31 +47,15 @@ Namespace Factory
         ''' </summary>
         ''' <param name="cd">包含一个描述连接通道详情的内容用于创建连接通道</param>
         ''' <returns></returns>
-        Public Async Function CreateConnectorAsync(cd As INConnectorDetail) As Task(Of INConnector) Implements INConnectorFactory.CreateConnectorAsync
-            Dim cdTypeName = $"{cd.GetTypeName()}"
-            Dim ConnAor As INConnectorAllocator '用于创建连接通道的分配器
-            Select Case cdTypeName
-                Case ConnectorType.TCPClient
-                    ConnAor = TCPClient.TCPClientAllocator.GetAllocator()
-                    Return Await ConnAor.GetNewConnectorAsync(cd)
-                Case ConnectorType.TCPServer
-                    ConnAor = TCPServer.TCPServerAllocator.GetAllocator()
-                    Return Await ConnAor.GetNewConnectorAsync(cd)
-                'Case ConnectorType.UDPClient, ConnectorType.UDPServer
-                '    ConnAor = UDP.UDPAllocator.GetAllocator()
-                '    Return Await ConnAor.GetNewConnectorAsync(cd)
-                Case ConnectorType.SerialPort
-                    Return Task.FromResult(Of INConnector)(New Connector.SerialPort.SerialPortConnector(cd))
-                    'Case ConnectorType.WebSocketServer
-                    '    ConnAor = WebSocket.Server.WebSocketServerAllocator.GetAllocator()
-                    '    Return Await ConnAor.GetNewConnectorAsync(cd)
-                    'Case ConnectorType.WebSocketClient
-                    '    ConnAor = WebSocket.Client.WebSocketClientAllocator.GetAllocator()
-                    '    Return Await ConnAor.GetNewConnectorAsync(cd)
-                Case Else
-                    Return Nothing
-            End Select
-
+        Public Async Function CreateConnectorAsync(cd As INConnectorDetail, ConnecterManage As IConnecterManage) As Task(Of INConnector) Implements INConnectorFactory.CreateConnectorAsync
+            Dim cdTypeName = cd.GetTypeName()
+            Dim ConnAor As INConnectorFactory '用于创建连接通道的分配器
+            If ConnectorFactoryDictionary.ContainsKey(cdTypeName) Then
+                ConnAor = ConnectorFactoryDictionary(cdTypeName)
+                Return Await ConnAor.CreateConnectorAsync(cd, ConnecterManage).ConfigureAwait(False)
+            Else
+                Return Nothing
+            End If
         End Function
     End Class
 End Namespace

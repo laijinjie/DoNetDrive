@@ -1,26 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.16.0</Version>
-    <AssemblyName>DoNetDrive.Protocol.Util</AssemblyName>
-    <RootNamespace>DoNetDrive.Protocol.Util</RootNamespace>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Version>1.16.0</Version>
+		<AssemblyName>DoNetDrive.Protocol.Util</AssemblyName>
+		<RootNamespace>DoNetDrive.Protocol.Util</RootNamespace>
+		<PackageId>DoNetDrive.Protocol.Util</PackageId>
+		<Authors>xiaolong</Authors>
+		<Company>FCARD</Company>
+		<Description>用于运行设备命令的协议解析工具包，依赖于 DotNetty.Buffers。</Description>
+		<PackageProjectUrl>https://gitee.com/GZFCARD/DoNetDrive.Core</PackageProjectUrl>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\Output\Release\</OutputPath>
-    <DocumentationFile>..\..\Output\Release\netstandard2.0\DoNetDrive.Protocol.Util.xml</DocumentationFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputPath>..\..\Output\Release\</OutputPath>
+		<DocumentationFile>..\..\Output\Release\netstandard2.0\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\Output\Debug\</OutputPath>
-    <DocumentationFile>..\..\Output\Debug\netstandard2.0\DoNetDrive.Protocol.Util.xml</DocumentationFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<OutputPath>..\..\Output\Debug\</OutputPath>
+		<DocumentationFile>..\..\Output\Debug\netstandard2.0\DoNetDrive.Protocol.Util.xml</DocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-	  <PackageReference Include="DotNetty.Buffers" Version="0.7.0" />
-	  <PackageReference Include="DotNetty.Common" Version="0.7.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="DotNetty.Buffers" Version="0.7.0" />
+		<PackageReference Include="DotNetty.Common" Version="0.7.0" />
+	</ItemGroup>
 
 
 </Project>
