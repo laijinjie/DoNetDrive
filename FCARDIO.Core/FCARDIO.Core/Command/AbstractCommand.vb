@@ -273,6 +273,8 @@ Namespace Command
         ''' </summary>
         Public Sub SetStatus(cmdstatus As INCommandStatus) Implements INCommandRuntime.SetStatus
             If _IsRelease Then Return
+
+            ''  Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} -- {Me.GetType().Name} --  {Key} SetStatus,old:{_Status.GetType.Name}，new:{cmdstatus.GetType.Name}")
             If Not _Status.IsCompleted Then
                 _Status = cmdstatus
             Else
@@ -280,18 +282,22 @@ Namespace Command
             End If
 
             If _Status.IsCompleted Then
+                ''  Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} -- {Me.GetType().Name} --  {Key} SetStatus---IsCompleted,{_Status.GetType.Name}")
                 If CommandAsyncTaskTokenSource IsNot Nothing Then
                     Try
                         If _Status.IsFaulted Then
+                            If CommandException Is Nothing Then
+                                CommandException = New Exception(_Status.GetType.Name)
+                            End If
                             CommandAsyncTaskTokenSource.TrySetException(CommandException)
                         ElseIf _Status.IsCanceled Then
                             CommandAsyncTaskTokenSource.TrySetCanceled(CancellationToken.None)
                         Else
                             CommandAsyncTaskTokenSource.TrySetResult(Me)
                         End If
-
+                        '' Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} -- {Me.GetType().Name} --  {Key} SetStatus---TrySetResult over")
                     Catch ex As Exception
-
+                        ''  Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} -- {Me.GetType().Name} --  {Key} SetStatus---CommandAsyncTaskTokenSource error,{ex.Message}")
                     End Try
                 End If
             End If
@@ -516,6 +522,7 @@ Namespace Command
 
             If Not _Status.IsCompleted Then
                 If _IsRelease Then Return
+                'Console.WriteLine($" {DateTime.Now:HH:mm:ss.ffff} --{Me.GetType().Name} --  {Key} Command-run,Status:{_Status.GetType.Name}")
                 _Connector?.GetEventLoop()?.Schedule(Me, TimeSpan.FromMilliseconds(50))
             End If
         End Sub

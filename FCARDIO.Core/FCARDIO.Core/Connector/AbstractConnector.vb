@@ -398,6 +398,7 @@ Namespace Connector
                             If Object.ReferenceEquals(_ActivityCommand, tmp) Then
                                 tmp = Nothing
                                 Call _CommandList.TryDequeue(tmp)
+                                Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff}-- {eventCommand.GetType().Name} --  {eventCommand.CommandDetail.Key} 已删除")
                                 tmp = Nothing
                             End If
                             tmp = Nothing
@@ -441,7 +442,7 @@ Namespace Connector
                                 '将命令放到管道相同的线程中执行
                                 GetEventLoop()?.Execute(_ActivityCommand)
                             End If
-
+                            Console.WriteLine($" {DateTime.Now:HH:mm:ss.ffff}--{_ActivityCommand.GetType().Name} --  {_ActivityCommand.CommandDetail.Key} CheckCommandList--run")
                             Exit Do
                         End If
                     End If
