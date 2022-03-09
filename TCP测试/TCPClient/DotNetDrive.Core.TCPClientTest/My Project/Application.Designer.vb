@@ -32,7 +32,7 @@ Namespace My
         
         <Global.System.Diagnostics.DebuggerStepThroughAttribute()>  _
         Protected Overrides Sub OnCreateMainForm()
-            Me.MainForm = Global.DotNetDrive.Core.TCPClientTest.frmTCPClientAsync
+            Me.MainForm = Global.DotNetDrive.Core.TCPClientTest.FrmTCPClient
         End Sub
     End Class
 End Namespace

@@ -5,6 +5,7 @@
     Public MustInherit Class AbstractConnectorDetail
         Implements INConnectorDetail
 
+        Public Property ConnectingCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ConnectingCallBlack
         Public Property ConnectedCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ConnectedCallBlack
         Public Property ClosedCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ClosedCallBlack
         Public Property ErrorCallBlack As Action(Of INConnectorDetail) Implements INConnectorDetail.ErrorCallBlack

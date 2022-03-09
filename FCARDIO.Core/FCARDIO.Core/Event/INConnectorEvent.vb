@@ -21,6 +21,13 @@ Namespace Connector
         ''' <param name="connector">触发事件的连接通道信息</param>
         Event ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail)
 
+        ''' <summary>
+        ''' 连接通道正在建立连接时发生
+        ''' </summary>
+        ''' <param name="sender">触发事件的调用者</param>
+        ''' <param name="connector">触发事件的连接通道信息</param>
+        Event ConnectorConnectingEvent(sender As Object, connector As INConnectorDetail)
+
 
         ''' <summary>
         ''' 连接通道连接关闭时发生

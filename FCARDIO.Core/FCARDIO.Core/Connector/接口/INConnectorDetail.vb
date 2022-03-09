@@ -62,6 +62,11 @@
         Property ConnectedCallBlack As Action(Of INConnectorDetail)
 
         ''' <summary>
+        ''' 当连接通道，连接建立成功后，会触发此函数回调
+        ''' </summary>
+        Property ConnectingCallBlack As Action(Of INConnectorDetail)
+
+        ''' <summary>
         ''' 当连接通道关闭时，触发此函数
         ''' </summary>
         ''' <returns></returns>

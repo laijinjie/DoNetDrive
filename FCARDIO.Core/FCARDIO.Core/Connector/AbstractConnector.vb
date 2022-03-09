@@ -212,6 +212,13 @@ Namespace Connector
         Public Event ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Implements INConnectorEvent.ConnectorConnectedEvent
 
         ''' <summary>
+        ''' 连接通道正在连接时时发生
+        ''' </summary>
+        ''' <param name="sender">触发事件的调用者</param>
+        ''' <param name="connector">触发事件的连接通道信息</param>
+        Public Event ConnectorConnectingEvent(sender As Object, connector As INConnectorDetail) Implements INConnectorEvent.ConnectorConnectingEvent
+
+        ''' <summary>
         ''' 连接通道连接关闭时发生
         ''' </summary>
         ''' <param name="sender"></param>
@@ -829,6 +836,16 @@ Namespace Connector
         End Sub
 #End Region
 
+#Region "产生通道正在连接的事件"
+        ''' <summary>
+        ''' 产生通道正在连接的事件
+        ''' </summary>
+        Protected Sub FireConnectorConnectingEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorConnectingEvent
+            connector?.ConnectingCallBlack?(connector)
+            RaiseEvent ConnectorConnectingEvent(Me, connector)
+        End Sub
+#End Region
+
 #Region "产生通道已连接的事件"
         ''' <summary>
         ''' 产生通道已连接的事件
@@ -837,6 +854,8 @@ Namespace Connector
             connector?.ConnectedCallBlack?(connector)
             RaiseEvent ConnectorConnectedEvent(Me, connector)
         End Sub
+
+
 #End Region
 
         ''' <summary>
@@ -849,15 +868,21 @@ Namespace Connector
             RaiseEvent ConnectorClosedEvent(Me, connector)
         End Sub
 
+#Region "连接发生错误时触发"
         ''' <summary>
         ''' 连接通道发生错误时触发事件
         ''' </summary>
         ''' <param name="connector">触发事件的连接通道信息</param>
         Public Sub FireConnectorErrorEvent(connector As INConnectorDetail) Implements INFireConnectorEvent.FireConnectorErrorEvent
-            ClearCommand(New Exception("Connect error", connector.GetError))
+            If Not _IsForcibly Then
+                ClearCommand(New Exception("Connect error", connector.GetError))
+            End If
+
             connector?.ErrorCallBlack?(connector)
             RaiseEvent ConnectorErrorEvent(Me, connector)
         End Sub
+#End Region
+
 #End Region
 
 

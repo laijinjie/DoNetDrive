@@ -4,14 +4,14 @@
 		<RootNamespace>DoNetDrive.Core</RootNamespace>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>DoNetDrive.Core</AssemblyName>
-		<AssemblyVersion>2.01.0.0</AssemblyVersion>
-		<FileVersion>2.01.0.0</FileVersion>
-		<Version>2.01.0</Version>
+		<AssemblyVersion>2.03.0.0</AssemblyVersion>
+		<FileVersion>2.03.0.0</FileVersion>
+		<Version>2.03.0</Version>
 
 		<PackageId>DoNetDrive.Core</PackageId>
 		<Authors>xiaolong</Authors>
 		<Company>FCARD</Company>
-		<Description>用于运行设备命令的基础库，依赖于 Nettty.Buffer ，包含TCP Client 、TCP Server 、UDP 、 串口 的通讯实现，抽象设备命令和执行步骤。</Description>
+		<Description>用于运行设备命令的基础库，依赖于 Nettty.Buffer ，包含TCP Client 、TCP Server 、UDP  的通讯实现，抽象设备命令和执行步骤。</Description>
 		<PackageProjectUrl>https://gitee.com/GZFCARD/DoNetDrive.Core</PackageProjectUrl>
 	</PropertyGroup>
 
@@ -41,7 +41,6 @@
 		<PackageReference Include="DotNetty.Common" Version="0.7.0" />
 		<PackageReference Include="DotNetty.Buffers" Version="0.7.0" />
 		<PackageReference Include="DotNetty.Transport" Version="0.7.0" />
-		<PackageReference Include="System.IO.Ports" Version="5.0.0" />
 	</ItemGroup>
 
 </Project>

@@ -133,6 +133,7 @@ Namespace Connector.TCPClient
                             _ConnectorDetail.SetError(ex)
                             FireConnectorErrorEvent(_ConnectorDetail)
                             Me.SetInvalid() '被关闭了就表示无效了
+                            Return
                     End Select
 
                 End If
@@ -236,10 +237,11 @@ Namespace Connector.TCPClient
 
 
             _ConnectDate = DateTime.Now
-
+            FireConnectorConnectingEvent(_ConnectorDetail)
             Await _Client.ConnectAsync(oPoint).ConfigureAwait(False)
             _ConnectDate = DateTime.Now
             FireConnectorConnectedEvent(_ConnectorDetail)
+            _ConnectorDetail.SetError(Nothing)
             '连接成功
             _Status = TCPClientConnectorStatus.Connected
             Me._IsActivity = True
@@ -312,9 +314,10 @@ Namespace Connector.TCPClient
 
             If _ReconnectCount > _ReconnectMax Then
 
-
-
                 If Me._IsForcibly Then
+                    _ConnectorDetail.SetError(New Exception("TCP 连接已断开，将会继续重试", ex))
+                    FireConnectorErrorEvent(_ConnectorDetail)
+
                     _ReconnectCount = 0
                     _Status = TCPClientConnectorStatus.Closed
                 Else

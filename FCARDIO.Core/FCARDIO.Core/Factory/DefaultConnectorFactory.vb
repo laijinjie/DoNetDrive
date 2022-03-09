@@ -22,7 +22,7 @@ Namespace Factory
             ConnectorFactoryDictionary.Add(ConnectorType.TCPServer, TCPServer.TCPServerFactory.GetInstance())
             ConnectorFactoryDictionary.Add(ConnectorType.UDPServer, UDP.UDPServerFactory.GetInstance())
             ConnectorFactoryDictionary.Add(ConnectorType.UDPClient, UDP.UDPClientFactory.GetInstance())
-            ConnectorFactoryDictionary.Add(ConnectorType.SerialPort, SerialPort.SerialPortFactory.GetInstance())
+            'ConnectorFactoryDictionary.Add(ConnectorType.SerialPort, SerialPort.SerialPortFactory.GetInstance())
         End Sub
 
         ''' <summary>

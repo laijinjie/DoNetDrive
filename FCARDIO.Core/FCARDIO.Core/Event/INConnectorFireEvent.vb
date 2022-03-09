@@ -14,6 +14,13 @@ Namespace Connector
         Sub FireConnectorErrorEvent(connector As INConnectorDetail)
 
 
+
+        ''' <summary>
+        ''' 连接通道正在建立连接时发生
+        ''' </summary>
+        ''' <param name="connector">触发事件的连接通道信息</param>
+        Sub FireConnectorConnectingEvent(connector As INConnectorDetail)
+
         ''' <summary>
         ''' 连接通道连接建立成功时发生
         ''' </summary>

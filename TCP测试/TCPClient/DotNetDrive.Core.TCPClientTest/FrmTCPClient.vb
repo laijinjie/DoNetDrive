@@ -8,6 +8,8 @@ Imports DotNetty.Buffers
 Imports DotNetty.Common.Utilities
 Imports System.Collections.Concurrent
 Imports System.Text
+Imports DoNetDrive.Core.Factory
+
 Public Class FrmTCPClient
     Private mIsUnload As Boolean
 
@@ -21,6 +23,9 @@ Public Class FrmTCPClient
     Private Sub frmTCPServer_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Allocator = ConnectorAllocator.GetAllocator()
         AbstractConnector.DefaultChannelKeepaliveMaxTime = 300
+
+        Dim defFactory As DefaultConnectorFactory = TryCast(Allocator.ConnectorFactory, DefaultConnectorFactory)
+        defFactory.ConnectorFactoryDictionary.Add(ConnectorType.SerialPort, DoNetDrive.Connector.COM.SerialPortFactory.GetInstance())
 
         obServer = New TCPIOObserverHandler()
         IniLoadLocalIP()
@@ -123,6 +128,16 @@ Public Class FrmTCPClient
         AddLog($"连接已关闭  {connector.GetKey()} {GetConnectorDetail(connector)} ")
     End Sub
 
+    Private Sub Allocator_ConnectorConnectingEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorConnectingEvent
+        If mIsUnload Then Return
+        Dim conn = Allocator.GetConnector(connector)
+        conn.AddRequestHandle(obServer)
+        Dim sKey = connector.GetKey()
+        mConnectKeys.TryAdd(sKey, sKey)
+        AddLog($"正在发起连接 {sKey} {GetConnectorDetail(connector)} ")
+
+    End Sub
+
     Private Sub Allocator_ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Handles Allocator.ConnectorConnectedEvent
         If mIsUnload Then Return
         Dim conn = Allocator.GetConnector(connector)
@@ -192,8 +207,10 @@ Public Class FrmTCPClient
 
     Private Sub butConnect_Click(sender As Object, e As EventArgs) Handles butConnect.Click
         Dim oTCPDTL = GetTCPClientDetail()
-
+        oTCPDTL.Timeout = 2000
+        oTCPDTL.RestartCount = 3
         Allocator.OpenConnector(oTCPDTL)
+        Allocator.OpenForciblyConnect(oTCPDTL)
     End Sub
 
     Private Sub butCloseTCP_Click(sender As Object, e As EventArgs) Handles butCloseTCP.Click

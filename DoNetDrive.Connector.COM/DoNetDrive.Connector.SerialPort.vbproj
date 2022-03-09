@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DoNetDrive.Connector.COM</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>用于完成 串口 的通讯实现，需要依赖 。DoNetDrive.Core</Description>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="DotNetty.Common" Version="0.7.0" />
+		<PackageReference Include="DotNetty.Buffers" Version="0.7.0" />
+		<PackageReference Include="DotNetty.Transport" Version="0.7.0" />
+		<PackageReference Include="System.IO.Ports" Version="5.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj" />
+	</ItemGroup>
+</Project>

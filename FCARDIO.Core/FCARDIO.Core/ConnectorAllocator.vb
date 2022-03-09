@@ -122,6 +122,9 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="sender">触发事件的调用者</param>
     ''' <param name="connector">触发事件的连接通道信息</param>
     Public Event ConnectorConnectedEvent(sender As Object, connector As INConnectorDetail) Implements INConnectorEvent.ConnectorConnectedEvent
+
+    Public Event ConnectorConnectingEvent(sender As Object, connector As INConnectorDetail) Implements INConnectorEvent.ConnectorConnectingEvent
+
     ''' <summary>
     ''' 连接通道连接关闭时发生
     ''' </summary>
@@ -572,7 +575,7 @@ Public NotInheritable Class ConnectorAllocator
         AddHandler conn.CommandTimeout, AddressOf FireCommandTimeout
         AddHandler conn.AuthenticationErrorEvent, AddressOf FireAuthenticationErrorEvent
 
-
+        AddHandler conn.ConnectorConnectingEvent, AddressOf FireConnectorConnectingEvent
         AddHandler conn.ConnectorErrorEvent, AddressOf FireConnectorErrorEvent
         AddHandler conn.ConnectorConnectedEvent, AddressOf FireConnectorConnectedEvent
         AddHandler conn.ConnectorClosedEvent, AddressOf FireConnectorClosedEvent
@@ -732,6 +735,15 @@ Public NotInheritable Class ConnectorAllocator
     ''' <param name="connector">触发事件的连接通道信息</param>
     Private Sub FireConnectorConnectedEvent(sender As Object, connector As INConnectorDetail)
         RaiseEvent ConnectorConnectedEvent(sender, connector)
+    End Sub
+
+    ''' <summary>
+    ''' 连接通道连接建立时发生
+    ''' </summary>
+    ''' <param name="sender">触发事件的调用者</param>
+    ''' <param name="connector">触发事件的连接通道信息</param>
+    Private Sub FireConnectorConnectingEvent(sender As Object, connector As INConnectorDetail)
+        RaiseEvent ConnectorConnectingEvent(sender, connector)
     End Sub
 
     ''' <summary>

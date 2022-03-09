@@ -196,6 +196,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\DoNetDrive.Connector.COM\DoNetDrive.Connector.SerialPort.vbproj">
+      <Project>{7f2b596f-3c53-4e5e-b874-485cea4dfb7a}</Project>
+      <Name>DoNetDrive.Connector.SerialPort</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj">
       <Project>{a149c4d3-2209-408f-a0de-d9eb8e0fa492}</Project>
       <Name>DoNetDrive.Core_NetStandard20</Name>
