@@ -24,11 +24,6 @@ Public Class CommandDetailFactory
         ''' 访问远程UDP服务器
         ''' </summary>
         UDPClient
-
-        ''' <summary>
-        ''' 串口通讯
-        ''' </summary>
-        SerialPort
     End Enum
 
     ''' <summary>
@@ -87,6 +82,15 @@ Public Class CommandDetailFactory
         ''' USB设备中的USB离线巡更棒
         ''' </summary>
         USBDrive_OfflinePatrol
+
+        ''' <summary>
+        ''' A33 芯片指纹机
+        ''' </summary>
+        A33_Fingerprint
+        ''' <summary>
+        ''' A33_芯片人脸机
+        ''' </summary>
+        A33_Face
     End Enum
 
 
@@ -105,20 +109,34 @@ Public Class CommandDetailFactory
                 conn = New TCPServer.Client.TCPServerClientDetail(addr)
             Case ConnectType.UDPClient
                 conn = New UDP.UDPClientDetail(addr, port)
-            Case ConnectType.SerialPort
-                conn = New SerialPort.SerialPortDetail(port)
         End Select
 
-        If conn Is Nothing Then Return Nothing
+
+        Return CreateDetail(conn, colerType, SN, Password)
+    End Function
+
+    ''' <summary>
+    ''' 创建命令详情
+    ''' </summary>
+    ''' <param name="connDetal">通讯通道详情</param>
+    ''' <param name="colerType"></param>
+    ''' <param name="SN"></param>
+    ''' <param name="Password"></param>
+    ''' <returns></returns>
+    Public Shared Function CreateDetail(connDetal As INConnectorDetail,
+                                        colerType As ControllerType, SN As String, Password As String) As INCommandDetail
+
+        If connDetal Is Nothing Then Return Nothing
         Dim cmd As INCommandDetail = Nothing
         Select Case colerType
             Case ControllerType.Door88, ControllerType.Door89A, ControllerType.Door89H,
                  ControllerType.Door989,
-                 ControllerType.Door58, ControllerType.Door59, ControllerType.Door5926T
-                cmd = New OnlineAccess.OnlineAccessCommandDetail(conn, SN, Password)
+                 ControllerType.Door58, ControllerType.Door59, ControllerType.Door5926T,
+                 ControllerType.A33_Fingerprint， ControllerType.A33_Face
+                cmd = New OnlineAccess.OnlineAccessCommandDetail(connDetal, SN, Password)
 
             Case ControllerType.USBDrive_CardReader, ControllerType.USBDrive_OfflinePatrol
-                cmd = New USBDrive.USBDriveCommandDetail(conn, SN.ToInt32())
+                cmd = New USBDrive.USBDriveCommandDetail(connDetal, SN.ToInt32())
         End Select
         Return cmd
     End Function

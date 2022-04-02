@@ -4,7 +4,7 @@
 		<RootNamespace>DoNetDrive.Protocol</RootNamespace>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>DoNetDrive.Protocol</AssemblyName>
-		<Version>2.01.0</Version>
+		<Version>2.02.0</Version>
 		<PackageId>DoNetDrive.Protocol</PackageId>
 		<Authors>xiaolong</Authors>
 		<Company>FCARD</Company>

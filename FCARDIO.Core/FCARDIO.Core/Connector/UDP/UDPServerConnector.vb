@@ -166,35 +166,46 @@ Namespace Connector.UDP
             Dim abuf = New ArraySegment(Of Byte)(bBuf)
             Dim remote = New IPEndPoint(IPAddress.Any, 0)
             Dim NettyBuf = Unpooled.WrappedBuffer(bBuf)
+            Dim SocketException As Exception
 
-            NettyBuf.Clear()
 
-            Try
-                Dim ReceiveFromResult As SocketReceiveFromResult =
-                Await _UDPServer.ReceiveFromAsync(abuf, SocketFlags.None, remote).ConfigureAwait(False)
+            Do
+                NettyBuf.Clear()
+                Try
+                    Dim ReceiveFromResult As SocketReceiveFromResult =
+                    Await _UDPServer.ReceiveFromAsync(abuf, SocketFlags.None, remote).ConfigureAwait(False)
 
-                While ReceiveFromResult.ReceivedBytes > 0
-                    If _isRelease Then Exit While
-                    NettyBuf.SetWriterIndex(ReceiveFromResult.ReceivedBytes)
-                    Dim oPacketRemote As IPEndPoint = ReceiveFromResult.RemoteEndPoint
-                    ReadByteBufferNext(NettyBuf, oPacketRemote)
-                    NettyBuf.Clear()
-                    Try
-                        ReceiveFromResult = Await _UDPServer.ReceiveFromAsync(abuf, SocketFlags.None, remote).ConfigureAwait(False)
-                    Catch ex As Exception
-                        Debug.Print(ex.ToString())
-                    End Try
+                    If ReceiveFromResult.ReceivedBytes > 0 Then
+                        If _isRelease Then Exit Do
+                        NettyBuf.SetWriterIndex(ReceiveFromResult.ReceivedBytes)
+                        Dim oPacketRemote As IPEndPoint = ReceiveFromResult.RemoteEndPoint
+                        ReadByteBufferNext(NettyBuf, oPacketRemote)
 
-                End While
+                    Else
+                        Exit Do
+                    End If
 
-                NettyBuf.Release()
-            Catch ex As Exception
-                _IsActivity = False
-                ClearCommand(New SocketException(10054))
-                FireConnectorClosedEvent(Me._ConnectorDetail)
 
-                SetInvalid()
-            End Try
+                Catch socketEx As SocketException
+                    If (socketEx.NativeErrorCode <> 10054) Then
+                        SocketException = socketEx
+                        Exit Do
+                    End If
+                Catch ex As Exception
+                    SocketException = ex
+
+                    Exit Do
+                End Try
+            Loop While True
+
+
+            NettyBuf.Release()
+
+            _IsActivity = False
+            ClearCommand(SocketException)
+            FireConnectorClosedEvent(Me._ConnectorDetail)
+
+            SetInvalid()
         End Function
 
 
