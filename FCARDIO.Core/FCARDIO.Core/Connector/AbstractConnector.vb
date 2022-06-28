@@ -1005,11 +1005,13 @@ Namespace Connector
         ''' <returns></returns>
         Public Overridable Async Function WriteByteBuf(buf As IByteBuffer) As Task Implements INConnector.WriteByteBuf
             If _isRelease Then Return
-            UpdateSendDataTime()
+
 
             DisposeResponse(buf)
-            Me._SendTotalBytes += buf.ReadableBytes
+
             Await WriteByteBuf0(buf).ConfigureAwait(False)
+            Me._SendTotalBytes += buf.ReadableBytes
+            UpdateSendDataTime()
         End Function
 
         ''' <summary>

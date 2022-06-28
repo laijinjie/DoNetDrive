@@ -247,6 +247,15 @@ Namespace Connector.TCPClient
             Me._IsActivity = True
             _ReconnectCount = 0 '连接成功，则复位此标志
             Me._LocalAddress = New IPDetail(_Client.LocalEndPoint)
+
+            '_Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, True)
+
+            'Dim tcpKeepalive(11) As Byte
+            'BitConverter.GetBytes(1).CopyTo(tcpKeepalive, 0)                               'switch On
+            'BitConverter.GetBytes(_KeepAliveMaxTime).CopyTo(tcpKeepalive, 4)    'wait time(ms)
+            'BitConverter.GetBytes(_KeepAliveMaxTime).CopyTo(tcpKeepalive, 8)          'interval(ms)
+            '_Client.IOControl(IOControlCode.KeepAliveValues, tcpKeepalive, Nothing)                   'Set keep-alive parameter
+
             '开始等待响应
             ReceiveAsync().ConfigureAwait(False)
             '开始执行命令

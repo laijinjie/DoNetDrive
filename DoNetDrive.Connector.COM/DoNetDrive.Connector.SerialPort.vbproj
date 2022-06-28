@@ -4,6 +4,19 @@
     <RootNamespace>DoNetDrive.Connector.COM</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>用于完成 串口 的通讯实现，需要依赖 。DoNetDrive.Core</Description>
+    <Authors>xiaolong</Authors>
+    <Version>1.3.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>FCARD</Company>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>DoNetDrive.Connector.SerialPort.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <OutputPath>..\Output\Release\</OutputPath>
+    <DocumentationFile>DoNetDrive.Connector.SerialPort.xml</DocumentationFile>
   </PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="DotNetty.Common" Version="0.7.0" />

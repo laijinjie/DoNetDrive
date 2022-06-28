@@ -124,18 +124,6 @@ Namespace FrameCommand
             Dim oPck As T = TryCast(readPacket, T)
             If oPck Is Nothing Then Return
             If FPacket Is Nothing Then Return
-            If oPck.Code <> FPacket.Code Then
-                'Trace.WriteLine($"{_Connector.GetKey()} 信息代码不一致，已抛弃，返回的代码：{oPck.Code}，期望的代码：{FPacket.Code}")
-                Return '信息代码不一致，不是此命令的后续
-            End If
-
-            '检查命令返回值是否为密码错误
-            If CheckResponse_PasswordErr(oPck) Then
-                '发生错误
-                SetStatus(PasswordErrorStatus)
-                fireAuthenticationErrorEvent()
-                Return
-            End If
 
             '检查命令返回值是否为校验和错误
             If CheckResponse_CheckSumErr(oPck) Then
@@ -149,6 +137,32 @@ Namespace FrameCommand
                 End If
                 Return
             End If
+
+            If oPck.Code <> FPacket.Code Then
+                'Trace.WriteLine($"{_Connector.GetKey()} 信息代码不一致，已抛弃，返回的代码：{oPck.Code}，期望的代码：{FPacket.Code}")
+                Return '信息代码不一致，不是此命令的后续
+            End If
+
+            '检查命令返回值是否为密码错误
+            If CheckResponse_PasswordErr(oPck) Then
+                '发生错误
+                SetStatus(PasswordErrorStatus)
+                fireAuthenticationErrorEvent()
+                Return
+            End If
+
+            ''检查命令返回值是否为校验和错误
+            'If CheckResponse_CheckSumErr(oPck) Then
+            '    If _ReSendCount <= 100 Then
+            '        SetStatus(GetStatus_Runing())
+            '        CommandReSend()
+            '        SetRuningStatus()
+            '    Else
+            '        SetStatus(CheckSumErrorStatus)
+            '        fireFireCommandErrorEvent()
+            '    End If
+            '    Return
+            'End If
 
             '继续检查响应是否为命令的下一步骤
             Try

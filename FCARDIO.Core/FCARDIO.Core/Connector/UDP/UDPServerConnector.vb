@@ -203,6 +203,7 @@ Namespace Connector.UDP
 
             _IsActivity = False
             ClearCommand(SocketException)
+            Me._ConnectorDetail.SetError(SocketException)
             FireConnectorClosedEvent(Me._ConnectorDetail)
 
             SetInvalid()
@@ -342,6 +343,9 @@ Namespace Connector.UDP
             If client Is Nothing Then
 
                 Dim oDetail As UDPClientDetail = mUDPClientDetail.Clone()
+                oDetail.ClientOnlineCallBlack = _ConnectorDetail.ClientOnlineCallBlack
+                oDetail.ClientOfflineCallBlack = _ConnectorDetail.ClientOfflineCallBlack
+                oDetail.ConnectedCallBlack = _ConnectorDetail.ConnectedCallBlack
                 client = New UDPServerClientConnector(oDetail, Me, ConnecterManage)
 
                 Return client

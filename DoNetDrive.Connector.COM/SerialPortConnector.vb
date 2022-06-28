@@ -92,6 +92,23 @@ Public Class SerialPortConnector
             Return
         End If
 
+
+        If (CommandSendIntervalTimeMS > 0) Then
+            Dim iDelayTime As Integer
+
+            If LastReadDataTime > LastSendDataTime Then
+                iDelayTime = (DateTime.Now - LastReadDataTime).Milliseconds
+            Else
+                iDelayTime = (DateTime.Now - LastSendDataTime).Milliseconds
+            End If
+
+            If (iDelayTime < CommandSendIntervalTimeMS) Then
+                iDelayTime = CommandSendIntervalTimeMS - iDelayTime
+                Await Task.Delay(iDelayTime)
+            End If
+
+        End If
+
         mSerialPort.DiscardOutBuffer()
         UpdateActivityTime()
 
@@ -101,7 +118,6 @@ Public Class SerialPortConnector
         Catch ex As Exception
             mConnectorWriteError += 1
             _ConnectorDetail.SetError(ex)
-
         End Try
 
         If mConnectorWriteError > 3 Then
@@ -236,9 +252,9 @@ Public Class SerialPortConnector
     ''' 关闭串口
     ''' </summary>
     Public Overrides Async Function CloseAsync() As Task
-        If CheckIsInvalid() Then Return
-        If Not _IsActivity Then Return
+        If Me._isRelease Then Return
 
+        _IsActivity = False
         If mSerialPort Is Nothing Then
             Return
         End If
@@ -250,7 +266,6 @@ Public Class SerialPortConnector
         End If
         mSerialPort = Nothing
 
-        _IsActivity = False
 
 
         Await Task.Run(Sub()

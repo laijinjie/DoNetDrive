@@ -542,31 +542,36 @@ Namespace Command
                 Return
             End If
 
-
-            Dim tWrite = SendPacketCore()
-
-
-            _ReSendCount += 1
             '将状态变更为等待响应
             CommandWaitResponse()
 
-            tWrite.ContinueWith(Sub()
-                                    'Trace.WriteLine($"命令发送完毕：{Key}")
-                                    If tWrite.IsCanceled Or tWrite.IsFaulted Then
-                                        '等待下一次运行
-                                        If Not CheckTimeout() Then
-                                            SetStatus(GetStatus_Runing())
-                                        End If
-                                    Else
-                                        '发送完毕，切发送成功
-                                        If _IsWaitResponse = False Then
-                                            _ReSendCount = 0
-                                            CommandCompleted()
-                                            Return
-                                        End If
-                                    End If
-                                    fireCommandProcessEvent()
-                                End Sub)
+            Dim tWrite = SendPacketCore()
+
+            Dim actionWriteCallblack = Sub(x As Task)
+                                           'Trace.WriteLine($"命令发送完毕：{Key}")
+                                           If x.IsCanceled Or x.IsFaulted Then
+                                               '等待下一次运行
+                                               If Not CheckTimeout() Then
+                                                   SetStatus(GetStatus_Runing())
+                                               End If
+                                           Else
+                                               '发送完毕，切发送成功
+                                               If _IsWaitResponse = False Then
+                                                   _ReSendCount = 0
+                                                   CommandCompleted()
+                                                   Return
+                                               End If
+                                           End If
+                                           fireCommandProcessEvent()
+                                       End Sub
+
+
+            _ReSendCount += 1
+            If Not (tWrite.IsCompleted) Then
+                tWrite.ContinueWith(actionWriteCallblack)
+            Else
+                actionWriteCallblack(tWrite)
+            End If
 
             IsExecuteing = False
         End Sub
