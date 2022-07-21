@@ -25,7 +25,9 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DotNetDrive.Core.TCPClientT
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TCPServer.net6", "TCPServer.net6\TCPServer.net6.vbproj", "{361D746B-AA82-4F83-BDA9-4BC737FCD37E}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DoNetDrive.Connector.SerialPort", "DoNetDrive.Connector.COM\DoNetDrive.Connector.SerialPort.vbproj", "{7F2B596F-3C53-4E5E-B874-485CEA4DFB7A}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DoNetDrive.Connector.SerialPort", "DoNetDrive.Connector.COM\DoNetDrive.Connector.SerialPort.vbproj", "{7F2B596F-3C53-4E5E-B874-485CEA4DFB7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetDrive.Core.UDPTest", "DotnetDrive.Core.UDPTest\DotnetDrive.Core.UDPTest.csproj", "{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +155,18 @@ Global
 		{7F2B596F-3C53-4E5E-B874-485CEA4DFB7A}.Release|x64.Build.0 = Release|Any CPU
 		{7F2B596F-3C53-4E5E-B874-485CEA4DFB7A}.Release|x86.ActiveCfg = Release|Any CPU
 		{7F2B596F-3C53-4E5E-B874-485CEA4DFB7A}.Release|x86.Build.0 = Release|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Debug|x64.Build.0 = Debug|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Debug|x86.Build.0 = Debug|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Release|x64.ActiveCfg = Release|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Release|x64.Build.0 = Release|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Release|x86.ActiveCfg = Release|Any CPU
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -165,6 +179,7 @@ Global
 		{40DB5FDE-A8C5-450E-AA71-363AC0BB4CFE} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
 		{7D95D7A5-1592-4AA9-97E9-6C6C8AD3B923} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
 		{361D746B-AA82-4F83-BDA9-4BC737FCD37E} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
+		{8734FDC2-73CC-49FD-A2E2-AD7D0D798C39} = {05D94429-64D3-4CF9-AB5B-42D6ADF9F3A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FBDE6113-46E3-41E0-8096-8E241BFD9F84}

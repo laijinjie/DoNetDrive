@@ -80,7 +80,11 @@ Namespace Connector.UDP
         ''' </summary>
         ''' <returns></returns>
         Public Overrides Function GetKey() As String
-            Return $"{GetTypeName()}_Local:{LocalAddr}:{LocalPort}"
+            If "*".Equals(LocalAddr) Or String.IsNullOrEmpty(LocalAddr) Then
+                Return $" {GetTypeName()}_Local:*:{LocalPort}"
+            Else
+                Return $" {GetTypeName()}_Local:{LocalAddr}:{LocalPort}"
+            End If
         End Function
 
 
@@ -89,7 +93,12 @@ Namespace Connector.UDP
         ''' </summary>
         ''' <returns></returns>
         Public Overrides Function ToString() As String
-            Return $" {GetTypeName()} LocalAddr: {LocalAddr}:{LocalPort}"
+            If "*".Equals(LocalAddr) Or String.IsNullOrEmpty(LocalAddr) Then
+                Return $" {GetTypeName()} LocalAddr: *:{LocalPort}"
+            Else
+                Return $" {GetTypeName()} LocalAddr: {LocalAddr}:{LocalPort}"
+            End If
+
         End Function
     End Class
 End Namespace

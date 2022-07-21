@@ -1,4 +1,6 @@
-﻿Imports DoNetDrive.Core.Packet
+﻿Imports DoNetDrive.Core.Connector
+Imports DoNetDrive.Core.Packet
+Imports System.Text
 
 Namespace Command.Text
     ''' <summary>
@@ -6,6 +8,28 @@ Namespace Command.Text
     ''' </summary>
     Public Class TextCommand
         Inherits AbstractCommand
+
+
+        ''' <summary>
+        ''' 初始化两个重要参数，并进行参数检查
+        ''' </summary>
+        ''' <param name="cnnectDetail">表示需要执行此命令的通道详情</param>
+        Sub New(cnnectDetail As INConnectorDetail, sTxt As String)
+            MyBase.New(New TextCommandDetail(cnnectDetail), New TextCommandParameter(sTxt, Encoding.UTF8))
+
+        End Sub
+
+
+
+        ''' <summary>
+        ''' 初始化两个重要参数，并进行参数检查
+        ''' </summary>
+        ''' <param name="cd">表示命令详情，包含通道信息，对端信息，超时时间，重发次数</param>
+        Sub New(cd As INCommandDetail, sTxt As String)
+            MyBase.New(cd, New TextCommandParameter(sTxt, Encoding.UTF8))
+            _IsWaitResponse = False
+            _Decompile = New TextPacketDecompile(Encoding.UTF8)
+        End Sub
 
 
         ''' <summary>

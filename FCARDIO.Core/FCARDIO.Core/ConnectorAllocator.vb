@@ -172,7 +172,7 @@ Public NotInheritable Class ConnectorAllocator
         ConnectorFactory = DefaultConnectorFactory
         _IsRelease = False
 
-        Task.Run(AddressOf ConnectorManageTask)
+        _ConnectorManageTask = ConnectorManageTask()
     End Sub
 
 
@@ -793,12 +793,26 @@ Public NotInheritable Class ConnectorAllocator
     ''' </summary>
     ''' <returns></returns>
     Public Async Function Release() As Task
-        _IsRelease = True
-        Await _ConnectorManageTask
-        For Each kv In Connectors
-            Await kv.Value.CloseAsync().ConfigureAwait(False)
-        Next
-        ClearConnector()
+        If _IsRelease = True Then Return
+
+        Dim iStep = 1
+        Try
+            _IsRelease = True
+            iStep = 2
+            Await _ConnectorManageTask
+            iStep = 3
+            For Each kv In Connectors
+                Await kv.Value.CloseAsync().ConfigureAwait(False)
+            Next
+            iStep = 4
+            ClearConnector()
+            iStep = 5
+            _ConnectorManageTask = Nothing
+        Catch ex As Exception
+            Throw New Exception($"Release Lib Step {iStep} \r\n Message:{ex.Message }", ex)
+        End Try
+
+
     End Function
 
     Private Sub ClearConnector()

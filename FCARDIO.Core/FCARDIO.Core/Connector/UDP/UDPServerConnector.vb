@@ -84,19 +84,24 @@ Namespace Connector.UDP
             UpdateActivityTime()
 
             Me._IsActivity = False
-
-
-
-            _UDPServer = New Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
-            _UDPServer.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, True)
-            Dim oLocalIP As IPEndPoint
+            Dim localIPAddress As IPAddress
             If Not String.IsNullOrEmpty(detail.LocalAddr) Then
-                oLocalIP = New IPEndPoint(IPAddress.Parse(detail.LocalAddr), detail.LocalPort)
+                If detail.LocalAddr = "*" Then
+                    localIPAddress = IPAddress.Any
+                Else
+                    localIPAddress = IPAddress.Parse(detail.LocalAddr)
+                End If
             Else
-                oLocalIP = New IPEndPoint(IPAddress.Any, detail.LocalPort)
+                localIPAddress = IPAddress.Any
             End If
+            _UDPServer = New Socket(localIPAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp)
+
+
+            _UDPServer.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, True)
+            Dim oLocalIPEndPoint As IPEndPoint
+            oLocalIPEndPoint = New IPEndPoint(localIPAddress, detail.LocalPort)
             '需要先绑定本地IP和端口
-            _UDPServer.Bind(oLocalIP)
+            _UDPServer.Bind(oLocalIPEndPoint)
 
 
             _ConnectDate = DateTime.Now
@@ -168,6 +173,7 @@ Namespace Connector.UDP
             Dim NettyBuf = Unpooled.WrappedBuffer(bBuf)
             Dim SocketException As Exception
 
+            Dim iReReceiveFromCount As Integer
 
             Do
                 NettyBuf.Clear()
@@ -176,17 +182,25 @@ Namespace Connector.UDP
                     Await _UDPServer.ReceiveFromAsync(abuf, SocketFlags.None, remote).ConfigureAwait(False)
 
                     If ReceiveFromResult.ReceivedBytes > 0 Then
+                        iReReceiveFromCount = 0
                         If _isRelease Then Exit Do
                         NettyBuf.SetWriterIndex(ReceiveFromResult.ReceivedBytes)
                         Dim oPacketRemote As IPEndPoint = ReceiveFromResult.RemoteEndPoint
                         ReadByteBufferNext(NettyBuf, oPacketRemote)
-
+                        'Exit Do
                     Else
-                        Exit Do
+                        '操作失败，重试
+                        Await Task.Delay(10)
+                        iReReceiveFromCount += 1
+                        If iReReceiveFromCount > 100 Then
+                            Exit Do '关闭连接
+                        End If
+
                     End If
 
 
                 Catch socketEx As SocketException
+                    'ConnectionReset	10054	此连接由远程对等计算机重置。  此时不理会，直接重新调用 ReceiveFromAsync
                     If (socketEx.NativeErrorCode <> 10054) Then
                         SocketException = socketEx
                         Exit Do
@@ -201,10 +215,15 @@ Namespace Connector.UDP
 
             NettyBuf.Release()
 
-            _IsActivity = False
+
+
+            If IsInvalid Then Return
+            If Not _IsActivity Then Return
+
             ClearCommand(SocketException)
             Me._ConnectorDetail.SetError(SocketException)
-            FireConnectorClosedEvent(Me._ConnectorDetail)
+
+            CloseAsync()
 
             SetInvalid()
         End Function
@@ -249,12 +268,18 @@ Namespace Connector.UDP
 
 
             '检查是否存在广播通道
-            mUDPClientDetail.Addr = "255.255.255.255"
-            mUDPClientDetail.Port = iRemotePort
-            Client = ConnecterManage.GetConnector(mUDPClientDetail.GetKey())
-            If Client IsNot Nothing Then
-                Client.ReadByteBufferNext(msg)
-            End If
+
+
+            Dim sKeys = ConnecterManage.GetAllConnectorKeys()
+            Dim sFindKey = $"{mUDPClientDetail.GetTypeName()}_Local:{mUDPClientDetail.LocalAddr}:{mUDPClientDetail.LocalPort}_Remote:255.255.255.255"
+            For Each clientKey In sKeys
+                If clientKey.StartsWith(sFindKey) Then
+                    Client = ConnecterManage.GetConnector(clientKey)
+                    If Client IsNot Nothing Then
+                        Client.ReadByteBufferNext(msg)
+                    End If
+                End If
+            Next
         End Sub
 #End Region
 
@@ -302,10 +327,10 @@ Namespace Connector.UDP
             _UDPServer = Nothing
             UpdateActivityTime()
 
-            Await Task.Run(Sub()
-                               FireConnectorClosedEvent(Me._ConnectorDetail)
-                               Me.SetInvalid() '被关闭了就表示无效了
-                           End Sub).ConfigureAwait(False)
+
+            FireConnectorClosedEvent(Me._ConnectorDetail)
+            Me.SetInvalid() '被关闭了就表示无效了
+            Await Task.CompletedTask
         End Function
 #End Region
 
@@ -346,6 +371,8 @@ Namespace Connector.UDP
                 oDetail.ClientOnlineCallBlack = _ConnectorDetail.ClientOnlineCallBlack
                 oDetail.ClientOfflineCallBlack = _ConnectorDetail.ClientOfflineCallBlack
                 oDetail.ConnectedCallBlack = _ConnectorDetail.ConnectedCallBlack
+                oDetail.ClosedCallBlack = _ConnectorDetail.ClosedCallBlack
+                oDetail.ErrorCallBlack = _ConnectorDetail.ErrorCallBlack
                 client = New UDPServerClientConnector(oDetail, Me, ConnecterManage)
 
                 Return client

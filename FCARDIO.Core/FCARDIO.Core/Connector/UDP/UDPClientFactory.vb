@@ -56,8 +56,8 @@ Namespace Connector.UDP
         Public Function CreateConnector(detail As INConnectorDetail, ConnecterManage As IConnecterManage) As INConnector Implements INConnectorFactory.CreateConnector
 
 
-            Dim conn = CreateClient(detail, ConnecterManage)
-            Return conn
+            Dim conn = CreateClient(detail, ConnecterManage).ConfigureAwait(False)
+            Return conn.GetAwaiter().GetResult()
         End Function
 
         ''' <summary>
@@ -66,7 +66,7 @@ Namespace Connector.UDP
         ''' <param name="detail"></param>
         ''' <returns></returns>
         Public Async Function CreateConnectorAsync(detail As INConnectorDetail, ConnecterManage As IConnecterManage) As Task(Of INConnector) Implements INConnectorFactory.CreateConnectorAsync
-            Dim conn = CreateClient(detail, ConnecterManage)
+            Dim conn = Await CreateClient(detail, ConnecterManage)
             Return Await Task.FromResult(conn)
         End Function
 
@@ -77,26 +77,29 @@ Namespace Connector.UDP
         ''' </summary>
         ''' <param name="clientdtl"></param>
         ''' <returns></returns>
-        Private Function CreateClient(clientdtl As UDPClientDetail, ConnecterManage As IConnecterManage) As UDPServerClientConnector
+        Private Async Function CreateClient(clientdtl As UDPClientDetail, ConnecterManage As IConnecterManage) As Task(Of UDPServerClientConnector)
             Dim serverdtl = New UDPServerDetail(clientdtl.LocalAddr, clientdtl.LocalPort)
             Dim UDPServer As UDPServerConnector
             Dim sKey = serverdtl.GetKey()
             UDPServer = ConnecterManage.GetConnector(sKey)
             If UDPServer IsNot Nothing Then
 
-                Return CreateClientByUDPServer(clientdtl, UDPServer)
+                Return Await CreateClientByUDPServer(clientdtl, UDPServer)
             Else
+
+                serverdtl.ClientOfflineCallBlack = clientdtl.ClientOfflineCallBlack
+                serverdtl.ClientOnlineCallBlack = clientdtl.ClientOnlineCallBlack
+                serverdtl.ClosedCallBlack = clientdtl.ClosedCallBlack
+                serverdtl.ConnectedCallBlack = clientdtl.ConnectedCallBlack
+                serverdtl.ErrorCallBlack = clientdtl.ErrorCallBlack
+
                 '需要先创建UDP服务器
                 UDPServer = New UDPServerConnector(serverdtl, ConnecterManage)
-                Dim udpBindOver = False
+                Await UDPServer.ConnectAsync()
 
-                Dim task = UDPServer.ConnectAsync().ContinueWith(Sub(t) udpBindOver = True).ConfigureAwait(False)
-                Do
-                    Threading.Thread.Sleep(5)
-                Loop While Not udpBindOver
                 If UDPServer.GetStatus().Status = "Bind" Then
                     ConnecterManage.AddConnector(serverdtl.GetKey(), UDPServer)
-                    Return CreateClientByUDPServer(clientdtl, UDPServer)
+                    Return Await CreateClientByUDPServer(clientdtl, UDPServer)
                 Else
                     Throw New Exception("UDP Bind error")
                 End If
@@ -104,14 +107,14 @@ Namespace Connector.UDP
         End Function
 
 
-        Private Function CreateClientByUDPServer(clientdtl As UDPClientDetail, UDPServer As UDPServerConnector) As UDPServerClientConnector
+        Private Async Function CreateClientByUDPServer(clientdtl As UDPClientDetail, UDPServer As UDPServerConnector) As Task(Of UDPServerClientConnector)
             Dim oRemotePoint As IPEndPoint
             Dim oIP As IPAddress = Nothing
 
             If IPAddress.TryParse(clientdtl.Addr, oIP) Then
                 oRemotePoint = New IPEndPoint(oIP, clientdtl.Port)
             Else
-                Dim oDNSIP As IPHostEntry = Dns.GetHostEntry(clientdtl.Addr)
+                Dim oDNSIP As IPHostEntry = Await Dns.GetHostEntryAsync(clientdtl.Addr)
                 If oDNSIP.AddressList.Length > 0 Then
                     '获取服务器节点
                     oIP = oDNSIP.AddressList(0)
@@ -119,8 +122,16 @@ Namespace Connector.UDP
 
                 oRemotePoint = New IPEndPoint(oIP, clientdtl.Port)
             End If
+            Dim client = UDPServer.AddClientConnector(oRemotePoint)
 
-            Return UDPServer.AddClientConnector(oRemotePoint)
+            Dim oLibClientDtl = client.GetConnectorDetail()
+            oLibClientDtl.ClientOfflineCallBlack = clientdtl.ClientOfflineCallBlack
+            oLibClientDtl.ClientOnlineCallBlack = clientdtl.ClientOnlineCallBlack
+            oLibClientDtl.ClosedCallBlack = clientdtl.ClosedCallBlack
+            oLibClientDtl.ConnectedCallBlack = clientdtl.ConnectedCallBlack
+            oLibClientDtl.ErrorCallBlack = clientdtl.ErrorCallBlack
+
+            Return client
         End Function
 
 

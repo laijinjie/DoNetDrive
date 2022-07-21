@@ -22,7 +22,7 @@
 		<PackageReference Include="DotNetty.Common" Version="0.7.0" />
 		<PackageReference Include="DotNetty.Buffers" Version="0.7.0" />
 		<PackageReference Include="DotNetty.Transport" Version="0.7.0" />
-		<PackageReference Include="System.IO.Ports" Version="5.0.0" />
+		<PackageReference Include="System.IO.Ports" Version="6.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj" />

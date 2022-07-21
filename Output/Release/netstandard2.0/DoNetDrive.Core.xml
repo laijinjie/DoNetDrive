@@ -999,6 +999,18 @@ DoNetDrive.Core
  文本命令，可用于发送一个文本
  </summary>
 </member>
+<member name="M:DoNetDrive.Core.Command.Text.TextCommand.#ctor(DoNetDrive.Core.Connector.INConnectorDetail,System.String)">
+ <summary>
+ 初始化两个重要参数，并进行参数检查
+ </summary>
+ <param name="cnnectDetail">表示需要执行此命令的通道详情</param>
+</member>
+<member name="M:DoNetDrive.Core.Command.Text.TextCommand.#ctor(DoNetDrive.Core.Command.INCommandDetail,System.String)">
+ <summary>
+ 初始化两个重要参数，并进行参数检查
+ </summary>
+ <param name="cd">表示命令详情，包含通道信息，对端信息，超时时间，重发次数</param>
+</member>
 <member name="M:DoNetDrive.Core.Command.Text.TextCommand.#ctor(DoNetDrive.Core.Command.INCommandDetail,DoNetDrive.Core.Command.Text.TextCommandParameter)">
  <summary>
  初始化两个重要参数，并进行参数检查
@@ -2191,6 +2203,16 @@ DoNetDrive.Core
  </summary>
  <param name="connector"></param>
  <param name="msg"></param>
+</member>
+<member name="T:DoNetDrive.Core.Connector.ObserverTextDebug">
+ <summary>
+ 文本观察者输出接口
+ </summary>
+</member>
+<member name="M:DoNetDrive.Core.Connector.ObserverTextDebug.#ctor(System.Action{DoNetDrive.Core.Connector.INConnector,System.String},System.Action{DoNetDrive.Core.Connector.INConnector,System.String})">
+ <summary>
+ 创建文本观察者输出接口，并绑定回调委托
+ </summary>
 </member>
 <member name="T:DoNetDrive.Core.Connector.TCPClient.TCPClientConnector">
  <summary>

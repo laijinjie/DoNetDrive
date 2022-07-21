@@ -38,13 +38,15 @@ Namespace Connector.UDP
             _IsActivity = True
 
             connecterManage.AddConnector(detail.GetKey, Me)
+
+            FireConnectorConnectedEvent(_ConnectorDetail)
             FireClientOnline(Me)
             _ConnectDate = DateTime.Now
         End Sub
 
-        Private Sub UDPServer_ServerCloseEvent(sender As IUDPServerConnector)
+        Private Async Sub UDPServer_ServerCloseEvent(sender As IUDPServerConnector)
             If _isRelease Then Return
-            CloseAsync()
+            Await CloseAsync()
         End Sub
 
         Protected Overrides Function GetInitializationStatus() As INConnectorStatus
@@ -109,7 +111,7 @@ Namespace Connector.UDP
 
 #Region "连接服务器"
         Public Overrides Async Function ConnectAsync() As Task
-            Await Task.FromException(New Exception("UDP Client  nonsupport ConnectAsync"))
+            Await Task.CompletedTask
         End Function
 
 
@@ -144,11 +146,12 @@ Namespace Connector.UDP
                 UDPServer = Nothing
             End If
 
-            Await Task.Run(Sub()
-                               FireConnectorClosedEvent(Me._ConnectorDetail)
-                               Me.SetInvalid() '被关闭了就表示无效了
-                           End Sub).ConfigureAwait(False)
+            FireClientOffline(Me)
+            FireConnectorClosedEvent(Me._ConnectorDetail)
+            Me.SetInvalid() '被关闭了就表示无效了
             Me._IsForcibly = False
+
+            Await Task.CompletedTask
         End Function
 #End Region
 
