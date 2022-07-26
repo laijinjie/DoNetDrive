@@ -9,7 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FCARDIO.Core\FCARDIO.Core\DoNetDrive.Core_NetStandard20.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="log4net.Config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

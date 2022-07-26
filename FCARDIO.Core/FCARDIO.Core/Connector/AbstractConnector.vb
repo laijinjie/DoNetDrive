@@ -432,7 +432,14 @@ Namespace Connector
         ''' </summary>
         Public Overridable Sub CheckCommandList() Implements INConnector.CheckCommandList
             If (_isRelease) Then Return
-            If _ActivityCommand IsNot Nothing Then Return
+            If _ActivityCommand IsNot Nothing Then
+                If _ActivityCommand.IsRelease Then
+                    _ActivityCommand = Nothing
+                Else
+                    Return
+                End If
+
+            End If
             UpdateActivityTime()
             If _CommandList.Count = 0 Then Return
             Do
@@ -516,7 +523,6 @@ Namespace Connector
         ''' <summary>
         ''' 清空所有在缓冲中的命令
         ''' </summary>
-        ''' <param name="isStop"></param>
         Protected Overridable Sub ClearCommand(ByVal ex As Exception)
             If (_isRelease) Then Return
             Dim cmd As INCommandRuntime = Nothing

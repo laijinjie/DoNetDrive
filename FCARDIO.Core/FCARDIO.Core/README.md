@@ -190,3 +190,47 @@ defFactory.ConnectorFactoryDictionary.Add(ConnectorType.SerialPort, DoNetDrive.C
 	3. 接收到数据报后将数据报发送到 本地IP:本地端口号:远程IP:远程端口号 4个组件组成的通道
 	4. 接收到数据报后尝试查询本地的广播通道，将数据报转发到广播通道。
 	5. 接收到数据报创建子通道时将ClosedCallBlack和ErrorCallBlack委托传递到子通道。
+
+
+## ver 2.09.0
+
+ 1. 修复在单独一个代码块中为每个命令都添加 using ，或者单独调用 cmd.Dispose() 会引发阻塞的bug，
+ 2. 如下面代码块在第二次 await Allocator.AddCommandAsync(cmd); 会引发阻塞。
+ 3. 现在已对这种情况进行了修复，不会再发生阻塞了。
+~~~ c#
+
+try
+{
+    using var par = new DoNetDrive.Protocol.Door.Door8800.SystemParameter.KeepAliveInterval
+        .WriteKeepAliveInterval_Parameter(20);
+
+    using var cmd = new DoNetDrive.Protocol.Door.Door8800.SystemParameter.KeepAliveInterval
+    .WriteKeepAliveInterval(cmdDtl, par);
+    await Allocator.AddCommandAsync(cmd);
+
+
+}
+catch (Exception ex)
+{
+
+    return;
+}
+try
+{
+    using var par = new DoNetDrive.Protocol.Door.Door8800.SystemParameter.KeepAliveInterval
+        .WriteKeepAliveInterval_Parameter(20);
+
+    using var cmd = new DoNetDrive.Protocol.Door.Door8800.SystemParameter.KeepAliveInterval
+    .WriteKeepAliveInterval(cmdDtl, par);
+    
+    await Allocator.AddCommandAsync(cmd);
+
+}
+catch (Exception ex)
+{
+
+    return;
+}
+
+~~~
+

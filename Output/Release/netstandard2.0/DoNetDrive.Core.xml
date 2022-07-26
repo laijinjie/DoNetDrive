@@ -1830,7 +1830,6 @@ DoNetDrive.Core
  <summary>
  清空所有在缓冲中的命令
  </summary>
- <param name="isStop"></param>
 </member>
 <member name="M:DoNetDrive.Core.Connector.AbstractConnector.RaiseCommandErrorEvent(DoNetDrive.Core.Command.INCommandRuntime,System.Boolean)">
  <summary>

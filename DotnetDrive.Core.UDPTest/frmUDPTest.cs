@@ -2,8 +2,10 @@ using DoNetDrive.Core;
 using DoNetDrive.Core.Command.Text;
 using DoNetDrive.Core.Connector;
 using DoNetDrive.Core.Connector.UDP;
+using DotNetty.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using log4net;
 
 namespace DotnetDrive.Core.UDPTest
 {
@@ -11,6 +13,7 @@ namespace DotnetDrive.Core.UDPTest
     {
         private ConnectorAllocator Allocator;
         private bool IsRelease;
+        ILog mLog;
         public frmUDPTest()
         {
             IsRelease = false;
@@ -18,6 +21,9 @@ namespace DotnetDrive.Core.UDPTest
 
             InitializeComponent();
             IniLocalIP();
+
+            log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
+            mLog = LogManager.GetLogger("frmUDPTest");//获取一个日志记录器
         }
 
         public void IniLocalIP()
@@ -77,25 +83,36 @@ namespace DotnetDrive.Core.UDPTest
 
         }
 
+        private class MyConnectorObserverHandler : ConnectorObserverHandler
+        {
+            public Action<INConnector, IByteBuffer> readCallblack;
+            public MyConnectorObserverHandler(Action<INConnector, IByteBuffer> read)
+            {
+                readCallblack = read;
+                HexDump = false;
+                base.UseEcho = true;
+            }
+            public override void DisposeRequest(INConnector connector, IByteBuffer msg)
+            {
+                readCallblack?.Invoke(connector, msg);
+                base.DisposeRequest(connector, msg);
+
+            }
+        }
 
         private void UDPServer_ClientOnlineCallBlack(INConnector client)
         {
             AddLog("客户端上线：" + client.GetConnectorDetail().ToString());
-            client.AddRequestHandle(new ConnectorObserverTextHandler(
-                new ObserverTextDebug(
-                    read: UDPClient_ReadCallBlack,
-                    send: null
-                    ),
-                System.Text.Encoding.UTF8));
+            client.AddRequestHandle(new MyConnectorObserverHandler(UDPClient_ReadCallBlack));
         }
 
         /// <summary>
         /// udp客户端接收到数据的回调
         /// </summary>
         /// <param name="client"></param>
-        private void UDPClient_ReadCallBlack(INConnector client,string msg)
+        private void UDPClient_ReadCallBlack(INConnector client, IByteBuffer msg)
         {
-            AddLog("收到数据：" + client.GetConnectorDetail().ToString() + "\r\n" + msg);
+            AddLog("收到数据：" + client.GetConnectorDetail().ToString() + " 长度：" + msg.ReadableBytes);
         }
 
 
@@ -140,14 +157,25 @@ namespace DotnetDrive.Core.UDPTest
 
         private void AddLog(string sLog)
         {
-            if (IsRelease) return;
+            if (IsRelease)
+            {
+                mLog.Info(sLog);
+                return;
+            }
+                
             if (txtLog.InvokeRequired)
             {
                 Invoke(AddLog, sLog);
                 return;
             }
             if (IsRelease) return;
+
+            mLog.Info(sLog);
+
+            if (txtLog.TextLength > 20000)
+                txtLog.Clear();
             txtLog.AppendText($"{DateTime.Now:HH:mm:ss} -- {sLog} \r\n");
+            
         }
 
         private async void btnCloseBind_Click(object sender, EventArgs e)
@@ -278,7 +306,7 @@ namespace DotnetDrive.Core.UDPTest
             //绑定处理事件
             clientDetail.ClientOfflineCallBlack = UDPServer_ClientOfflineCallBlack;
             clientDetail.ClientOnlineCallBlack = UDPServer_ClientOnlineCallBlack;
-            clientDetail.ConnectedCallBlack= UDPServer_ConnectedCallBlack;
+            clientDetail.ConnectedCallBlack = UDPServer_ConnectedCallBlack;
             clientDetail.ClosedCallBlack = UDPServer_ClosedCallBlack;
 
 
